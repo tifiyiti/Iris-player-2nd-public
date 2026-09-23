@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/models/player.dart';
 import 'package:iris/utils/logger.dart';
 import 'package:provider/provider.dart';
+final areaKeyLog = AreaKeyLog(LogKeys.legacyMain);
 
 void useAppLifecycle() {
   final context = useContext();
@@ -12,11 +13,11 @@ void useAppLifecycle() {
   useEffect(() {
     try {
       if (appLifecycleState == AppLifecycleState.paused) {
-        logger('App lifecycle state: paused');
+        areaKeyLog.i('App lifecycle state: paused');
         context.read<MediaPlayer>().saveProgress();
       }
     } catch (e) {
-      logger('App lifecycle state error: $e');
+      areaKeyLog.e('App lifecycle state error: $e');
     }
     return;
   }, [appLifecycleState]);

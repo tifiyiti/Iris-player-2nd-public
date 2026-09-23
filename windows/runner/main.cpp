@@ -19,6 +19,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   flutter::DartProject project(L"data");
 
+  // Flutter 3.35+ merges the platform and UI threads by default on Windows;
+  // window_manager's synchronous setFullScreen then deadlocks on the
+  // windowed/maximized <-> picture-fullscreen transitions (flutter/flutter
+  // #176088). Pin the UI isolate to its own thread to avoid the hang.
+  project.set_ui_thread_policy(flutter::UIThreadPolicy::RunOnSeparateThread);
+
   std::vector<std::string> command_line_arguments =
       GetCommandLineArguments();
 

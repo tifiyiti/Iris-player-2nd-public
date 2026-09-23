@@ -31,6 +31,10 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
+# VS 2022 17.10+ / MSVC 14.4x deprecates <experimental/coroutine> used by
+# permission_handler_windows; silence until plugin migrates to <coroutine>.
+add_definitions(-D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+add_definitions(-D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
 
 # Compilation settings that should be applied to most targets.
 #
@@ -66,6 +70,13 @@ set(BUILD_BUNDLE_DIR "$<TARGET_FILE_DIR:${BINARY_NAME}>")
 # Make the "install" step default, as it's required to run.
 set(CMAKE_VS_INCLUDE_INSTALL_TO_DEFAULT_BUILD 1)
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX "${BUILD_BUNDLE_DIR}" CACHE PATH "..." FORCE)
+endif()
+# Newer CMake (>= 4.x) no longer initializes
+# CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT, so the override above may not
+# fire. Fall back only when the prefix is still the default Program Files
+# location, leaving an explicitly user-supplied -DCMAKE_INSTALL_PREFIX alone.
+if(CMAKE_INSTALL_PREFIX MATCHES ".*Program Files.*")
   set(CMAKE_INSTALL_PREFIX "${BUILD_BUNDLE_DIR}" CACHE PATH "..." FORCE)
 endif()
 
@@ -107,5 +118,7 @@ install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   CONFIGURATIONS Profile;Release
   COMPONENT Runtime)
 
-# Install iris-updater.bat
+# Install iris-updater.bat and portable_update_by_zip
 install(FILES "${CMAKE_SOURCE_DIR}/iris-updater.bat" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
+install(FILES "${CMAKE_SOURCE_DIR}/portable_update_by_zip.bat" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
+install(FILES "${CMAKE_SOURCE_DIR}/portable_update_by_zip.ps1" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)

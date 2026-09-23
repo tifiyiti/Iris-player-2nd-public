@@ -4,6 +4,10 @@ import 'package:media_kit/media_kit.dart' as media_kit;
 import 'package:media_kit_video/media_kit_video.dart' as media_kit_video;
 import 'package:video_player/video_player.dart';
 
+/// One sync nudge = 0.5s — the canonical step shared by the keyboard scheme
+/// (features/windows/desktop_keyboard) and any track-panel controls.
+const Duration kSyncStep = Duration(milliseconds: 500);
+
 class MediaPlayer {
   final bool isInitializing;
   final bool isPlaying;
@@ -21,6 +25,28 @@ class MediaPlayer {
   final Future<void> Function() stepBackward;
   final Future<void> Function() stepForward;
   final Future<void> Function(Duration) seek;
+
+  // ── Capability stubs (P0 track/sync features) ──
+  //
+  // Backends without the underlying capability keep these as silent no-ops;
+  // UI entry points consult the getters so unsupported controls are never
+  // offered (fvp: no multi-track sync / delay properties).
+  bool get supportsTrackSelection => false;
+  bool get supportsSyncAdjustment => false;
+
+  /// Live visibility of the subtitle layer (hide = select the "no" track).
+  bool get subtitlesVisible => true;
+
+  Future<void> cycleSubtitleTrack() async {}
+  Future<void> cycleAudioTrack() async {}
+  Future<void> setSubtitlesVisible(bool visible) async {}
+
+  /// [direction] is +1 (advance/later) or -1 (delay/earlier), one 0.5s step
+  /// per call (see desktop_keyboard/controller/sync_steps.dart).
+  Future<void> nudgeSubtitleSync(int direction) async {}
+  Future<void> resetSubtitleSync() async {}
+  Future<void> nudgeAudioSync(int direction) async {}
+  Future<void> resetAudioSync() async {}
 
   MediaPlayer({
     required this.isInitializing,
@@ -49,6 +75,81 @@ class MediaKitPlayer extends MediaPlayer {
   final List<media_kit.SubtitleTrack> subtitles;
   final media_kit.AudioTrack audio;
   final List<media_kit.AudioTrack> audios;
+
+  double _subtitleDelaySeconds = 0;
+  double _audioDelaySeconds = 0;
+  media_kit.SubtitleTrack? _trackBeforeHide;
+
+  static const String _kSubDelayProp = 'sub-delay';
+  static const String _kAudioDelayProp = 'audio-delay';
+
+  @override
+  bool get supportsTrackSelection => true;
+
+  @override
+  bool get supportsSyncAdjustment => true;
+
+  @override
+  bool get subtitlesVisible => subtitle.id != 'no';
+
+  Future<void> _applyDelay(String property, double seconds) async {
+    final platform = player.platform;
+    if (platform is media_kit.NativePlayer) {
+      await platform.setProperty(property, seconds.toString());
+    }
+  }
+
+  @override
+  Future<void> cycleSubtitleTrack() async {
+    if (subtitles.isEmpty) return;
+    final idx = subtitles.indexOf(subtitle);
+    final next = subtitles[(idx + 1) % subtitles.length];
+    await player.setSubtitleTrack(next);
+  }
+
+  @override
+  Future<void> cycleAudioTrack() async {
+    if (audios.isEmpty) return;
+    final idx = audios.indexOf(audio);
+    final next = audios[(idx + 1) % audios.length];
+    await player.setAudioTrack(next);
+  }
+
+  @override
+  Future<void> setSubtitlesVisible(bool visible) async {
+    if (!visible) {
+      if (subtitle.id != 'no') _trackBeforeHide = subtitle;
+      await player.setSubtitleTrack(media_kit.SubtitleTrack.no());
+      return;
+    }
+    await player.setSubtitleTrack(_trackBeforeHide ?? media_kit.SubtitleTrack.auto());
+    _trackBeforeHide = null;
+  }
+
+  @override
+  Future<void> nudgeSubtitleSync(int direction) async {
+    _subtitleDelaySeconds =
+        _subtitleDelaySeconds + direction * (kSyncStep.inMilliseconds / 1000.0);
+    await _applyDelay(_kSubDelayProp, _subtitleDelaySeconds);
+  }
+
+  @override
+  Future<void> resetSubtitleSync() async {
+    _subtitleDelaySeconds = 0;
+    await _applyDelay(_kSubDelayProp, 0);
+  }
+
+  @override
+  Future<void> nudgeAudioSync(int direction) async {
+    _audioDelaySeconds = _audioDelaySeconds + direction * (kSyncStep.inMilliseconds / 1000.0);
+    await _applyDelay(_kAudioDelayProp, _audioDelaySeconds);
+  }
+
+  @override
+  Future<void> resetAudioSync() async {
+    _audioDelaySeconds = 0;
+    await _applyDelay(_kAudioDelayProp, 0);
+  }
 
   MediaKitPlayer({
     required this.player,

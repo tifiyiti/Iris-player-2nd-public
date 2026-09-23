@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
   dynamic_color
+  file_selector_linux
   flutter_secure_storage_linux
   flutter_volume_controller
   fvp
@@ -12,6 +13,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   media_kit_libs_linux
   media_kit_video
   screen_retriever_linux
+  sqlite3_flutter_libs
   url_launcher_linux
   volume_controller
   window_manager

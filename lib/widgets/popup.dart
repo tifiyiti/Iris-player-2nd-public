@@ -1,26 +1,46 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart' hide Card;
 import 'package:flutter/services.dart';
+import 'package:iris/l10n/app_localizations.dart' show AppLocalizations;
+import 'package:iris/store/use_player_ui_store.dart';
 import 'package:iris/utils/platform.dart';
 import 'package:iris/widgets/card.dart';
 import 'package:window_manager/window_manager.dart';
 
 enum PopupDirection { left, right }
 
+/// Mutual exclusion: while any Popup is on screen the bottom control bar
+/// auto-hides, and is restored when the popup is dismissed. Each call saves
+/// its own previous `isShowControl` so nested/replaced popups stack correctly
+/// without a global depth counter (avoids cross-test leakage).
 Future<void> showPopup({
   required BuildContext context,
   required Widget child,
   required PopupDirection direction,
-}) async =>
+}) async {
+  final bool prev = usePlayerUiStore().state.isShowControl;
+  usePlayerUiStore().updateIsShowControl(false);
+  try {
     await Navigator.of(context).push(Popup(child: child, direction: direction));
+  } finally {
+    if (prev) usePlayerUiStore().updateIsShowControl(true);
+  }
+}
 
 Future<void> replacePopup({
   required BuildContext context,
   required Widget child,
   required PopupDirection direction,
-}) async =>
-    await Navigator.of(context)
-        .pushReplacement(Popup(child: child, direction: direction));
+}) async {
+  final bool prev = usePlayerUiStore().state.isShowControl;
+  usePlayerUiStore().updateIsShowControl(false);
+  try {
+    await Navigator.of(context).pushReplacement(Popup(child: child, direction: direction));
+  } finally {
+    if (prev) usePlayerUiStore().updateIsShowControl(true);
+  }
+}
 
 class Popup<T> extends PopupRoute<T> {
   Popup({
@@ -61,8 +81,8 @@ class Popup<T> extends PopupRoute<T> {
   }
 
   @override
-  Widget buildPage(BuildContext context, Animation<double> animation,
-      Animation<double> secondaryAnimation) {
+  Widget buildPage(
+      BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
     return KeyboardListener(
       focusNode: _focusNode,
       autofocus: true,
@@ -76,9 +96,7 @@ class Popup<T> extends PopupRoute<T> {
           Positioned.fill(
             child: GestureDetector(
               onPanStart: (details) {
-                if (Platform.isWindows ||
-                    Platform.isLinux ||
-                    Platform.isMacOS) {
+                if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
                   windowManager.startDragging();
                 }
               },
@@ -86,9 +104,8 @@ class Popup<T> extends PopupRoute<T> {
             ),
           ),
           Align(
-            alignment: direction == PopupDirection.left
-                ? Alignment.bottomLeft
-                : Alignment.bottomRight,
+            alignment:
+                direction == PopupDirection.left ? Alignment.bottomLeft : Alignment.bottomRight,
             child: AnimatedBuilder(
               animation: animation,
               builder: (context, child) {
@@ -136,8 +153,7 @@ class Popup<T> extends PopupRoute<T> {
                       child: UnconstrainedBox(
                         child: LimitedBox(
                           maxWidth: screenWidth / size - 16,
-                          maxHeight:
-                              isDesktop ? screenHeight - 56 : screenHeight - 16,
+                          maxHeight: isDesktop ? screenHeight - 56 : screenHeight - 16,
                           child: Card(
                             child: Material(
                               color: Colors.transparent,
@@ -160,5 +176,16 @@ class Popup<T> extends PopupRoute<T> {
         ],
       ),
     );
+  }
+}
+
+extension PopupDirectionLocalization on PopupDirection {
+  String label(AppLocalizations t) {
+    switch (this) {
+      case PopupDirection.left:
+        return t.popup_direction_left;
+      case PopupDirection.right:
+        return t.popup_direction_right;
+    }
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
@@ -8,11 +9,9 @@ import 'package:iris/store/use_player_ui_store.dart';
 
 void useOrientation() {
   final context = useContext();
-  final orientation =
-      useAppStore().select(context, (state) => state.orientation);
+  final orientation = useAppStore().select(context, (state) => state.runtimeOrientation);
 
-  final aspectRatio =
-      usePlayerUiStore().select(context, (state) => state.aspectRatio);
+  final aspectRatio = usePlayerUiStore().select(context, (state) => state.aspectRatio);
 
   setOrientation(ScreenOrientation orientation, double? aspect) {
     if (Platform.isAndroid || Platform.isIOS) {

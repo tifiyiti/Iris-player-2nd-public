@@ -1,4 +1,5 @@
 arb-dir: lib/l10n
 template-arb-file: app_en.arb
 output-localization-file: app_localizations.dart
-synthetic-package: false
+# synthetic-package: false # 即使你注释了，确保这里不要再开启
+use-deferred-loading: true # 推荐开启，防止应用启动时一次性加载几千条字符串，优化首屏性能

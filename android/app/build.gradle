@@ -14,6 +14,16 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+// Android versionCode is maintained in version.properties (auto-incremented by the
+// pre-commit hook, see .githooks/pre-commit). versionName still comes from pubspec.
+def buildNumberFile = rootProject.file('version.properties')
+def buildVersionCode = 2026
+if (buildNumberFile.exists()) {
+    def props = new Properties()
+    buildNumberFile.withInputStream { props.load(it) }
+    buildVersionCode = (props.'versionCode' ?: '2026') as int
+}
+
 android {
     namespace = "nini22p.iris"
     compileSdk = flutter.compileSdkVersion
@@ -35,11 +45,18 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
+        versionCode = buildVersionCode
         versionName = flutter.versionName
     }
 
     signingConfigs {
+        // Shared debug keystore (committed to VCS for team-wide consistency)
+        debug {
+            storeFile = rootProject.file('app/debug.keystore')
+            storePassword = 'android'
+            keyAlias = 'androiddebugkey'
+            keyPassword = 'android'
+        }
         release {
             keyAlias = keystoreProperties['keyAlias']
             keyPassword = keystoreProperties['keyPassword']
@@ -48,7 +65,28 @@ android {
         }
     }
 
+    // Some author may need to create different variants of the app
+    // and install them on the same device at the same time.
+    // Thus use a flavor dimension called "funcVer".
+    flavorDimensions "funcVer"
+
+    productFlavors {
+        nini22p {
+            dimension "funcVer"
+            applicationIdSuffix ".nini22p"
+        }
+        tifi7 {
+            dimension "funcVer"
+            applicationIdSuffix ".tifi7"
+        }
+    }
+
     buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            // Use the shared debug keystore so all team builds share the same debug signature
+            signingConfig = signingConfigs.debug
+        }
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.

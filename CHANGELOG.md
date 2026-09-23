@@ -1,3 +1,37 @@
+## v2.0.0
+
+### Changelog
+
+* Second-development release on top of upstream IRIS
+* Metadata-driven settings engine (database-persisted, importable/exportable)
+* Scenario playback: named, reusable play plans (override / append / batch)
+* Virtual media rules and merged playback
+* Tag virtual collections with a numeric command syntax
+* Secondary-audio synchronized playback (second track + A-P-B time mapping)
+* MediaDb library (recursive/resumable scan, path tree, standalone search)
+* PotPlayer desktop key scheme, custom keybinds, A-B loop
+* Desktop context menu, side playlist, keyboard OSD
+* WebDAV wildcard-host auto-discovery
+* Screenshot / frame-step / open-with, settings import-export with password audit
+* Windows portable edition with a one-click ZIP updater
+* Versioned release artifact file names
+
+### 更新日志
+
+* 基于上游 IRIS 的二次开发版本
+* 元数据驱动的设置引擎（数据库持久化，可导入导出）
+* 场景播放：命名可复用的播放计划（覆盖 / 追加 / 批量生成）
+* 虚拟媒体规则与合并播放
+* Tag 虚拟合集与数字命令语法
+* 副音同步播放（第二轨 + A-P-B 时间映射）
+* MediaDb 媒体库（递归/断点续扫、路径树、独立搜索）
+* PotPlayer 桌面键位方案、可自定义键位、A-B 区段循环
+* 桌面右键菜单、侧边播放列表、键盘 OSD
+* WebDAV 通配符主机自动发现
+* 截图 / 逐帧 / 打开方式、设置导入导出与密码审计
+* Windows 便携版与一键 ZIP 更新脚本
+* 发布产物文件名带版本号
+
 ## v1.5.2
 
 ### Changelog

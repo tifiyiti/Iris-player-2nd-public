@@ -22,11 +22,7 @@ class DragArea extends StatelessWidget {
         if (isFullScreen) {
           await usePlayerUiStore().updateFullScreen(false);
         } else {
-          if (await windowManager.isMaximized()) {
-            await windowManager.unmaximize();
-          } else {
-            await windowManager.maximize();
-          }
+          await usePlayerUiStore().toggleWindowMaximize();
         }
       },
       onPanStart: (details) async {

@@ -1,0 +1,14 @@
+# Force all text files to use LF line endings on checkout and commit
+* text=auto eol=lf
+
+# Explicitly ensure code and config files use LF
+*.dart text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.gradle text eol=lf
+*.kt text eol=lf
+*.java text eol=lf
+*.properties text eol=lf
+.githooks/pre-commit text eol=lf

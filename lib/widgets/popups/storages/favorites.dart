@@ -1,5 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+
+import 'package:iris/widgets/a11y_tooltip.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/models/storages/local.dart';
@@ -67,7 +69,7 @@ class Favorites extends HookWidget {
           useStorageStore().updateCurrentStorage(storage);
         },
         trailing: PopupMenuButton<StorageOptions>(
-          tooltip: t.menu,
+          tooltip: rowTooltip(t.menu),
           clipBehavior: Clip.hardEdge,
           color: Theme.of(context).colorScheme.surface.withAlpha(250),
           onSelected: (value) {

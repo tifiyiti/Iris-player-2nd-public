@@ -6,6 +6,7 @@ import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/logger.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
+final areaKeyLog = AreaKeyLog(LogKeys.legacyUi);
 
 class AudioTrackList extends HookWidget {
   const AudioTrackList({super.key});
@@ -47,8 +48,7 @@ class AudioTrackList extends HookWidget {
               tileColor:
                   player.audio == audio ? Theme.of(context).hoverColor : null,
               onTap: () {
-                logger(
-                    'Set audio track: ${audio.title ?? audio.language ?? audio.id}');
+                areaKeyLog.i('Set audio track: ${audio.title ?? audio.language ?? audio.id}');
                 player.player.setAudioTrack(audio);
                 Navigator.of(context).pop();
               },
@@ -79,7 +79,7 @@ class AudioTrackList extends HookWidget {
             tileColor:
                 activeAudioTracks.isEmpty ? Theme.of(context).hoverColor : null,
             onTap: () {
-              logger('Set audio track: ${t.off}');
+              areaKeyLog.i('Set audio track: ${t.off}');
               player.controller.setAudioTracks([]);
               Navigator.of(context).pop();
             },
@@ -106,7 +106,7 @@ class AudioTrackList extends HookWidget {
                   ? Theme.of(context).hoverColor
                   : null,
               onTap: () {
-                logger(
+                areaKeyLog.i(
                     'Set audio track: ${audio.metadata['title'] ?? audio.metadata['language'] ?? audios.indexOf(audio).toString()}');
                 player.controller.setAudioTracks([audios.indexOf(audio)]);
                 Navigator.of(context).pop();

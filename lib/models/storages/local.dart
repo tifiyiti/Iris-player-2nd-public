@@ -1,24 +1,30 @@
 import 'dart:io';
+
 import 'package:android_x_storage/android_x_storage.dart';
 import 'package:disks_desktop/disks_desktop.dart';
 import 'package:drives_windows/drives_windows.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:iris/features/windows/desktop_keyboard/controller/ab_loop_engine.dart';
+import 'package:iris/features/windows/desktop_keyboard/store/key_sequence_buffer_store.dart';
 import 'package:flutter/material.dart';
+import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/storage.dart';
+import 'package:iris/models/storages/volume_identity.dart';
 import 'package:iris/models/store/play_queue_state.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
+import 'package:iris/utils/check_content_type.dart';
 import 'package:iris/utils/files_sort.dart';
-import 'package:iris/utils/get_subtitle_map.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/utils/get_subtitle_map.dart';
 import 'package:iris/utils/logger.dart';
 import 'package:iris/utils/path_conv.dart';
 import 'package:iris/utils/platform.dart';
+import 'package:iris/widgets/popups/storages/db/storages_utils/storage_utils.dart';
 import 'package:path/path.dart' as p;
-import 'package:iris/models/file.dart';
-import 'package:iris/utils/check_content_type.dart';
 import 'package:saf_util/saf_util.dart';
 import 'package:saf_util/saf_util_platform_interface.dart';
+final areaKeyLog = AreaKeyLog(LogKeys.legacyDb);
 
 Future<List<LocalStorage>> getLocalStorages(
   BuildContext context,
@@ -35,18 +41,22 @@ Future<List<LocalStorage>> getLocalStorages(
       for (var drive in drives) {
         if (drive.type == DriveType.noRootDirectory) continue;
 
-        final type = drive.type == DriveType.network
-            ? StorageType.network
-            : StorageType.internal;
+        final type = drive.type == DriveType.network ? StorageType.network : StorageType.internal;
         final name = drive.volumeLabel != null
             ? '${drive.volumeLabel} (${drive.name})'
             : '${drive.type == DriveType.network ? t.network_storage : t.local_storage} (${drive.name})';
         final root = drive.root.replaceAll('\\', '');
 
-        final storage = LocalStorage(
+        // final storage = LocalStorage(
+        //   type: type,
+        //   name: name,
+        //   basePath: [root],
+        // );
+        final storage = makeLocalStorage(
           type: type,
           name: name,
           basePath: [root],
+          volumeId: await VolumeIdentity.of(root),
         );
 
         storages.add(storage);
@@ -54,7 +64,7 @@ Future<List<LocalStorage>> getLocalStorages(
 
       for (var shortcut in networkShortcuts) {
         if (shortcut.path == null) continue;
-        final storage = LocalStorage(
+        final storage = makeLocalStorage(
           type: StorageType.network,
           name: shortcut.name,
           basePath: [shortcut.path!],
@@ -69,11 +79,12 @@ Future<List<LocalStorage>> getLocalStorages(
 
       for (var disk in disks) {
         for (var mountpoint in disk.mountpoints) {
-          final storage = LocalStorage(
+          final mountPath = mountpoint.path.replaceAll('\\', '');
+          final storage = makeLocalStorage(
             type: StorageType.internal,
-            name:
-                '${t.local_storage} (${mountpoint.path.replaceAll('\\', '')})',
-            basePath: [mountpoint.path.replaceAll('\\', '')],
+            name: '${t.local_storage} ($mountPath)',
+            basePath: [mountPath],
+            volumeId: await VolumeIdentity.of(mountPath),
           );
 
           storages.add(storage);
@@ -84,54 +95,68 @@ Future<List<LocalStorage>> getLocalStorages(
     return storages;
   } else if (isAndroid) {
     final androidXStorage = AndroidXStorage();
-    final external =
-        await androidXStorage.getExternalStorageDirectory().catchError((error) {
-      logger('Error getting external storage: $error');
+    final external = await androidXStorage.getExternalStorageDirectory().catchError((error) {
+      areaKeyLog.e('Error getting external storage: $error');
       return null;
     });
-    final sdcard =
-        await androidXStorage.getSDCardStorageDirectory().catchError((error) {
-      logger('Error getting SD card: $error');
+
+    final sdcard = await androidXStorage.getSDCardStorageDirectory().catchError((error) {
+      areaKeyLog.e('Error getting SD card: $error');
       return null;
     });
-    final usbs =
-        await androidXStorage.getUSBStorageDirectories().catchError((error) {
-      logger('Error getting USB storages: $error');
+    final usbs = await androidXStorage.getUSBStorageDirectories().catchError((error) {
+      areaKeyLog.e('Error getting USB storages: $error');
       return <String?>[];
     });
 
     List<LocalStorage> storages = [];
 
     if (external != null) {
-      final storage = LocalStorage(
+      final storage = makeLocalStorage(
         type: StorageType.internal,
         name: t.local_storage,
         basePath: [external],
+        volumeId: await VolumeIdentity.of(external),
       );
 
       storages.add(storage);
     }
 
-    if (sdcard != null) {
-      final storage = LocalStorage(
+    if (sdcard != null && await Directory(sdcard).exists()) {
+      final storage = makeLocalStorage(
         type: StorageType.sdcard,
         name: 'SD Card',
         basePath: [sdcard],
+        volumeId: await VolumeIdentity.of(sdcard),
       );
 
       storages.add(storage);
     }
 
     for (var usb in usbs) {
-      if (usb != null) {
-        final storage = LocalStorage(
+      if (usb != null && await Directory(usb).exists()) {
+        final storage = makeLocalStorage(
           type: StorageType.usb,
           name: t.usb_storage,
           basePath: [usb],
+          volumeId: await VolumeIdentity.of(usb),
         );
 
         storages.add(storage);
       }
+    }
+
+    if (storages.isEmpty) {
+      // Fallback: always include internal storage
+      final fallbackRoot =
+          await androidXStorage.getExternalStorageDirectory() ??
+              '/storage/emulated/0';
+      storages.add(makeLocalStorage(
+        type: StorageType.internal,
+        name: t.local_storage,
+        basePath: [fallbackRoot],
+        volumeId: await VolumeIdentity.of(fallbackRoot),
+      ));
     }
 
     return storages;
@@ -147,8 +172,11 @@ Future<PlayQueueState?> getLocalPlayQueue(String filePath) async {
   }
 
   final convedPath = pathConv(filePath);
+  if (convedPath.isEmpty) return null;
 
-  final dirPath = convedPath.sublist(0, convedPath.length - 1);
+  final dirPath = convedPath.length > 1
+      ? convedPath.sublist(0, convedPath.length - 1)
+      : <String>[];
   final files = await LocalStorage(
     type: StorageType.internal,
     name: convedPath.last,
@@ -156,8 +184,7 @@ Future<PlayQueueState?> getLocalPlayQueue(String filePath) async {
   ).getFiles(dirPath);
   final List<FileItem> sortedFiles = filesSort(files: files);
   final List<FileItem> filteredFiles = sortedFiles
-      .where(
-          (file) => [ContentType.video, ContentType.audio].contains(file.type))
+      .where((file) => [ContentType.video, ContentType.audio].contains(file.type))
       .toList();
 
   final List<PlayQueueItem> playQueue = filteredFiles
@@ -176,6 +203,8 @@ Future<PlayQueueState?> getLocalPlayQueue(String filePath) async {
 }
 
 Future<void> pickLocalFile() async {
+  AbLoopEngine.instance.reset();
+  useKeySequenceBufferStore().close();
   FilePickerResult? result = await FilePicker.platform.pickFiles(
     type: FileType.custom,
     allowedExtensions: [...Formats.video, ...Formats.audio],
@@ -196,42 +225,57 @@ Future<void> pickLocalFile() async {
   }
 }
 
-Future<List<FileItem>> getLocalFiles(
-    LocalStorage storage, List<String> path) async {
+Future<List<FileItem>> getLocalFiles(LocalStorage storage, List<String> path) async {
+  if (path.any((s) => s == '..' || s == '.')) {
+    areaKeyLog.w('getLocalFiles rejected traversal path: $path');
+    return [];
+  }
   final directoryPath = p.joinAll(path);
   final directory = Directory(directoryPath);
 
-  if (!await directory.exists()) {
-    logger('Error: Directory does not exist at $directoryPath');
+  bool exists = false;
+  try {
+    exists = await directory.exists();
+  } catch (e) {
+    areaKeyLog.w('getLocalFiles exists check failed for $directoryPath: $e');
+    return [];
+  }
+  if (!exists) {
+    areaKeyLog.e('Error: Directory does not exist at $directoryPath');
     return [];
   }
 
   final Map<String, List<FileSystemEntity>> groupedEntities = {};
-  final allEntities = await directory.list().toList();
-
-  for (final entity in allEntities) {
-    final baseName = p.basenameWithoutExtension(entity.path);
-    groupedEntities.putIfAbsent(baseName, () => []).add(entity);
+  int listCount = 0;
+  try {
+    // Stream to avoid OOM on huge dirs (50w). Yields every 200 entries keep UI alive.
+    await for (final entity in directory.list()) {
+      final baseName = p.basenameWithoutExtension(entity.path);
+      groupedEntities.putIfAbsent(baseName, () => []).add(entity);
+      if (++listCount % 200 == 0) await Future<void>.delayed(Duration.zero);
+    }
+  } catch (e) {
+    areaKeyLog.w('getLocalFiles list failed for $directoryPath: $e');
+    return [];
   }
 
   final List<FileItem> fileItems = [];
   final subtitleExtensions = {'ass', 'srt', 'vtt', 'sub'};
+  int statCount = 0;
 
   for (final group in groupedEntities.values) {
     final videos = group
-        .where((e) =>
-            e is! Directory && checkContentType(e.path) == ContentType.video)
+        .where((e) => e is! Directory && checkContentType(e.path) == ContentType.video)
         .toList();
     final subtitles = group.where((e) {
       final ext = p.extension(e.path).replaceFirst('.', '');
       return e is! Directory && subtitleExtensions.contains(ext);
     }).toList();
-    final others = group
-        .where((e) => !videos.contains(e) && !subtitles.contains(e))
-        .toList();
+    final others = group.where((e) => !videos.contains(e) && !subtitles.contains(e)).toList();
 
     for (final video in videos) {
       final videoStat = await video.stat();
+      if (++statCount % 100 == 0) await Future<void>.delayed(Duration.zero);
       final associatedSubtitles = subtitles.map((sub) {
         final baseName = p.basenameWithoutExtension(video.path);
         String subTitleName = p.basename(sub.path);
@@ -259,6 +303,7 @@ Future<List<FileItem>> getLocalFiles(
 
     for (final entity in others) {
       final stat = await entity.stat();
+      if (++statCount % 100 == 0) await Future<void>.delayed(Duration.zero);
       final isDir = entity is Directory;
       fileItems.add(FileItem(
         storageId: storage.id,
@@ -279,7 +324,13 @@ Future<List<FileItem>> getLocalFiles(
 }
 
 Future<void> pickContentFile() async {
-  final file = await SafUtil().pickFile(mimeTypes: ['video/*', 'audio/*']);
+  SafDocumentFile? file;
+  try {
+    file = await SafUtil().pickFile(mimeTypes: ['video/*', 'audio/*']);
+  } catch (e) {
+    areaKeyLog.w('pickContentFile failed: $e');
+    return;
+  }
   if (file != null) {
     await useAppStore().updateAutoPlay(true);
     await usePlayQueueStore().update(
@@ -298,8 +349,26 @@ Future<void> pickContentFile() async {
   }
 }
 
-Future<List<FileItem>> getContentFiles(String uri) async {
-  final files = await SafUtil().list(uri);
+/// Lists one SAF container directory (resolved to its document URI by the
+/// storage layer) into FileItems.
+///
+/// [containerUri] is the document URI of the directory to list (the tree URI
+/// at the storage root, or a `SafUtil().child`-resolved subdirectory).
+/// [prefixSegments] is the caller's full storage-relative segment list
+/// (`[treeUri, rel1, ...]`) whose children we are listing; each child's
+/// `path` extends it with the child name so downstream DB rows and lookups
+/// stay prefix-correct and reversible.
+Future<List<FileItem>> getContentFiles(
+  String containerUri,
+  List<String> prefixSegments,
+) async {
+  List<SafDocumentFile> files;
+  try {
+    files = await SafUtil().list(containerUri);
+  } catch (e) {
+    areaKeyLog.w('getContentFiles failed for $containerUri: $e');
+    return [];
+  }
 
   final subtitleMap = getSubtitleMap<SafDocumentFile>(
     files: files,
@@ -314,7 +383,7 @@ Future<List<FileItem>> getContentFiles(String uri) async {
     fileItems.add(FileItem(
       name: file.name,
       uri: file.uri,
-      path: [uri, file.name],
+      path: [...prefixSegments, file.name],
       isDir: file.isDir,
       size: file.isDir ? 0 : file.length,
       lastModified: DateTime.fromMillisecondsSinceEpoch(file.lastModified),

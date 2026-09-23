@@ -1,0 +1,1 @@
+enum SpeedGestureMode { singleAxis, dualAxis }

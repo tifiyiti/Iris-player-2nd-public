@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:iris/utils/logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+final areaKeyLog = AreaKeyLog(LogKeys.legacyUtil);
 
 class Release {
   final String version;
@@ -28,7 +29,7 @@ Future<Release?> getLatestRelease() async {
   } else if (Platform.isAndroid) {
     platform = 'android';
   } else {
-    logger('Unsupported platform');
+    areaKeyLog.i('Unsupported platform');
     return null;
   }
 
@@ -72,11 +73,11 @@ Future<Release?> getLatestRelease() async {
           return null;
         }
       } else {
-        logger('Failed to load latest release: ${response.statusCode}');
+        areaKeyLog.e('Failed to load latest release: ${response.statusCode}');
         return null;
       }
     } catch (e) {
-      logger('Error fetching latest release: $e');
+      areaKeyLog.e('Error fetching latest release: $e');
       return null;
     }
   } else {

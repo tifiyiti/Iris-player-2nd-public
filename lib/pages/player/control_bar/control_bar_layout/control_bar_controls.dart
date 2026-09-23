@@ -1,0 +1,151 @@
+import 'package:flutter/material.dart';
+import 'package:iris/models/file.dart';
+import 'package:iris/pages/player/control_bar/control_bar_slider.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/control_bar_circle_slider.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/fit_button.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/fullscreen_button.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/more_menu_button.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/next_previous_buttons.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/play_pause_button.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/play_queue_button.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/playlist_dock_mode_button.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/rate_button.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/repeat_button.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/rotate_button.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/shuffle_button.dart';
+import 'package:iris/features/background_playback/model/enum/bg_quick_bar_align.dart';
+import 'package:iris/features/background_playback/view/background_quick_bar.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/background_playback_menu_button.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/stop_button.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/storage_button.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/subtitle_button.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/volume_widget.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/window_fit_mode_button.dart';
+import 'package:iris/utils/platform.dart';
+
+class ControlBarControls {
+  ControlBarControls({
+    required this.showControl,
+    required this.showControlForHover,
+    required this.color,
+    required this.overlayColor,
+    required this.file,
+    required this.circleScale,
+    this.quickBarAlign = BgQuickBarAlign.right,
+  });
+
+  final VoidCallback showControl;
+  final Future<void> Function(Future<void> callback) showControlForHover;
+  final Color? color;
+  final WidgetStateProperty<Color?>? overlayColor;
+  final FileItem? file;
+  final double circleScale; // 0.0 → 1.0
+
+  /// Where the 副音 quick row sits in the linear layouts.
+  final BgQuickBarAlign quickBarAlign;
+
+  bool get showFit => file?.type != ContentType.audio;
+
+  /// Desktop-only 窗口适应模式 toggle (gate-ON era; legacy mode keeps the
+  /// autoResize settings checkbox). Videos only — a fixed-size audio cover
+  /// has nothing to fit.
+  bool get showWindowFit => isDesktop && file?.type != ContentType.audio;
+
+  Widget get playPause =>
+      PlayPauseButton(showControl: showControl, color: color, overlayColor: overlayColor);
+  Widget get stop => StopButton(showControl: showControl, color: color, overlayColor: overlayColor);
+  Widget get prev => PrevButton(showControl: showControl, color: color, overlayColor: overlayColor);
+  Widget get next => NextButton(showControl: showControl, color: color, overlayColor: overlayColor);
+  Widget get shuffle =>
+      ShuffleButton(showControl: showControl, color: color, overlayColor: overlayColor);
+  Widget get repeat =>
+      RepeatButton(showControl: showControl, color: color, overlayColor: overlayColor);
+  Widget get fit => FitButton(showControl: showControl, color: color, overlayColor: overlayColor);
+  Widget get windowFitMode => WindowFitModeButton(
+      showControl: showControl, color: color, overlayColor: overlayColor);
+  Widget get rate => RateButton(showControl: showControl, color: color, overlayColor: overlayColor);
+  Widget get rotate =>
+      RotateButton(showControl: showControl, color: color, overlayColor: overlayColor);
+
+  Widget get volume => AdaptiveVolumeControl(
+        showControl: showControl,
+        showControlForHover: showControlForHover,
+        color: color,
+        overlayColor: overlayColor,
+      );
+
+  Widget get subtitle => SubtitleButton(
+      color: color, overlayColor: overlayColor, showControlForHover: showControlForHover);
+  // 副音 menu replaces the former seek-step slot on every bar (sub_media
+  // §3/§4): seek step moved into More, the secondary player got its own menu.
+  Widget get backgroundPlaybackMenu => BackgroundPlaybackMenuButton(
+      showControl: showControl, color: color, overlayColor: overlayColor);
+
+  /// 副音 quick-control row (第 3 轮问题 5) — inserted between the slider and
+  /// the button rows in the linear layouts. Alignment follows the
+  /// `background_playback.quickBarAlign` meta row.
+  Widget get backgroundQuickBar => BackgroundQuickBar(
+        axis: Axis.horizontal,
+        alignment: quickBarAlign == BgQuickBarAlign.left
+            ? MainAxisAlignment.start
+            : MainAxisAlignment.end,
+        color: color,
+        overlayColor: overlayColor,
+      );
+  Widget get playQueue => PlayQueueButton(
+      color: color, overlayColor: overlayColor, showControlForHover: showControlForHover);
+  Widget get playlistDockMode => PlaylistDockModeButton(
+      showControl: showControl, color: color, overlayColor: overlayColor);
+  Widget get storage => StorageButton(
+      color: color, overlayColor: overlayColor, showControlForHover: showControlForHover);
+  Widget get fullscreen =>
+      FullscreenButton(showControl: showControl, color: color, overlayColor: overlayColor);
+  Widget get more => MoreMenuButton(
+      showControl: showControl,
+      showControlForHover: showControlForHover,
+      color: color,
+      overlayColor: overlayColor);
+
+  Widget get slider => ControlBarSlider(showControl: showControl, color: color);
+
+  /// Seek bar for the stacked desktop layout: identical behavior, but the
+  /// position/duration texts are omitted (they live on their own line
+  /// above), so the axis claims the full row width.
+  Widget get stackedSlider =>
+      ControlBarSlider(showControl: showControl, color: color, showTimeLabels: false);
+
+  /// Left transport group of the desktop bar — everything that sits before
+  /// the seek axis in [DesktopControlLayout]. Single source of truth for the
+  /// one-line AND stacked arrangements (order must never drift between them).
+  List<Widget> get desktopLeftButtons => [
+        playPause,
+        stop,
+        prev,
+        next,
+        shuffle,
+        repeat,
+        if (showFit) fit,
+        if (showWindowFit) windowFitMode,
+        rate,
+        rotateOrVolume,
+      ];
+
+  /// Right group of the desktop bar — restores subtitle lost vs legacy.
+  /// Playlist dock toggle lives ONLY in the side panel ([CircleSliderLayout]).
+  List<Widget> get desktopRightButtons => [
+        subtitle,
+        backgroundPlaybackMenu,
+        playQueue,
+        storage,
+        if (isDesktop) fullscreen,
+        more,
+      ];
+
+  Widget get circleSlider => ControlBarCircleSlider(
+        showControl: showControl,
+        color: color,
+        circleScale: circleScale,
+      );
+
+  Widget get rotateOrVolume => isMobilePlatform ? rotate : volume;
+}

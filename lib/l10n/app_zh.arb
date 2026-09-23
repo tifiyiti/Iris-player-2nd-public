@@ -113,5 +113,2881 @@
   "version": "版本",
   "video": "视频",
   "video_zoom": "视频缩放",
-  "volume": "音量"
+  "volume": "音量",
+  "circle_slider_landscape_percent": "单手面板宽度",
+  "circle_slider_scale": "圆环滑条大小",
+  "gesture_profile_classic": "无分区（仅旧版默认）",
+  "gesture_profile_region": "分区",
+  "gesture_profile_right_hand": "右侧",
+  "gesture_profile_left_hand": "左侧",
+  "gesture_profile_tag_play": "Tag 播放",
+  "phone_landscape_slider_type": "手机横屏滑条类型",
+  "ph_use_normal_slider": "普通",
+  "ph_use_circle_slider_right": "右侧圆环",
+  "ph_use_circle_slider_left": "左侧圆环",
+  "screen_rotation": "屏幕方向",
+  "reuse_last_orientation": "记住上次方向",
+  "reuse_last_orientation_description": "关闭后，应用启动时使用默认方向。",
+  "circle_slider_center_action": "圆环中心动作",
+  "circle_slider_center_none": "无动作",
+  "circle_slider_center_toggle_controls": "显示 / 隐藏控制栏",
+  "circle_slider_center_toggle_play_pause": "播放 / 暂停",
+  "circle_slider_center_switch_group": "切换底部按钮组",
+  "gesture_backward_10s": "快退 10 秒",
+  "gesture_play_pause": "播放 / 暂停",
+  "gesture_forward_10s": "快进 10 秒",
+  "gesture_brightness": "亮度",
+  "gesture_volume": "音量",
+  "gesture_speed_control": "播放速度",
+  "show_gesture_overlay": "手势指引",
+  "gesture_settings": "手势设置",
+  "landscape_gesture_profile": "横屏手势",
+  "portrait_gesture_profile": "竖屏手势",
+  "landscape_gesture_profile_desc": "控制播放时横屏手势的行为。",
+  "portrait_gesture_profile_desc": "控制播放时竖屏手势的行为。",
+  "show_controls_on_play_to_pause": "暂停时显示控制栏",
+  "show_controls_on_play_to_pause_description": "从播放变为暂停时自动显示控制栏（经典手势除外）",
+  "webdav_host_hint": "主机可以是主机名、域名或 IPv4 地址。\n\nIPv4 地址可用“*”通配，最多两段。\n\n示例：\n• 192.168.1.10\n• 192.168.1.*\n• 192.168.*.*\n• example.com\n\n查找方式：\n• 先重试上次用过的地址，再发现局域网设备，然后以有界并发扫描当前子网（通常几秒）。\n• 只尝试当前网络内可达的主机，命中即停止。",
+  "host_hint_toggle": "主机格式与扫描说明",
+  "invalid_ip_pattern": "IP 格式无效。仅支持 IPv4，最多两个“*”。",
+  "testing": "测试中",
+  "connected_to": "已连接到",
+  "connection_failed": "连接失败",
+  "cancel_test": "取消测试",
+  "test_cancelled": "测试已取消",
+  "webdav_testing_host": "正在测试 {host}（{index}/{total}）",
+  "webdav_auth_rejected": "已找到主机，但用户名或密码被拒绝。",
+  "webdav_no_distinct_host": "未找到独立的主机——另一条目已占用 {host}。",
+  "export_import": "导出 / 导入",
+  "export_options": "导出选项",
+  "import_options": "导入选项",
+  "export_import_app_settings": "应用设置",
+  "storage_favorites": "存储 / 收藏",
+  "storage_import_mode": "存储导入模式",
+  "import_append": "追加",
+  "import_override": "覆盖",
+  "import_override_hint": "关闭则为追加",
+  "export_label": "导出",
+  "import_label": "导入",
+  "export_success": "导出成功",
+  "import_success": "导入成功",
+  "export_failed": "导出失败",
+  "import_failed": "导入失败",
+  "export_cancelled": "导出已取消",
+  "import_cancelled": "导入已取消",
+  "import_nothing_selected": "没有选中要导入的内容",
+  "export_nothing_selected": "没有选中要导出的内容",
+  "transfer_sec_app_settings": "应用设置",
+  "transfer_sec_app_settings_desc": "含 legacy 快照 + setting_values 行；跨平台导入时对方专属项自动跳过",
+  "transfer_sec_history": "播放历史",
+  "transfer_sec_history_desc": "每文件的播放进度与历史",
+  "transfer_sec_favorites": "收藏",
+  "transfer_sec_favorites_desc": "收藏路径列表",
+  "transfer_sec_scenarios": "播放场景",
+  "transfer_sec_scenarios_desc": "场景定义、来源、排除、显式条目、状态",
+  "transfer_sec_tag_play": "标签播放",
+  "transfer_sec_tag_play_desc": "标签、成员、视图状态、固定预设",
+  "transfer_sec_virtual_media": "虚拟媒体",
+  "transfer_sec_virtual_media_desc": "虚拟媒体规则与状态",
+  "transfer_sec_network": "网络存储",
+  "transfer_sec_network_desc": "WebDAV / FTP（需口令加密，手机/电脑通用）",
+  "transfer_sec_unsupported_suffix": "（不支持）",
+  "transfer_sec_missing_suffix": "（文件中无此节）",
+  "transfer_res_skip": "跳过",
+  "transfer_res_append": "追加",
+  "transfer_res_overwrite": "覆盖",
+  "transfer_excl_local": "本地存储",
+  "transfer_excl_local_reason": "指向设备特定路径（SAF content://、盘符、挂载点），换设备/平台后不存在；凭据亦绑定机器。请在新设备上重新添加。",
+  "transfer_excl_nodes": "媒体库节点 / 媒体库",
+  "transfer_excl_nodes_reason": "设备特定的完整文件树，数据量可能极大，且可由重新扫描重建，故不支持导入导出。",
+  "transfer_excl_scan": "扫描状态",
+  "transfer_excl_scan_reason": "设备特定、瞬态，重装后重新扫描即可。",
+  "transfer_excl_queue": "播放队列",
+  "transfer_excl_queue_reason": "瞬态队列，不随设置迁移。",
+  "transfer_excl_current": "当前播放位置（运行时）",
+  "transfer_excl_current_reason": "瞬态状态，不随设置迁移。",
+  "transfer_platform_android": "手机（Android）",
+  "transfer_platform_ios": "手机（iOS）",
+  "transfer_platform_windows": "电脑（Windows）",
+  "transfer_platform_linux": "电脑（Linux）",
+  "transfer_platform_macos": "电脑（macOS）",
+  "transfer_platform_unknown": "未知设备",
+  "transfer_platform_skipped_note": "来源平台专属，已跳过",
+  "transfer_export_intro": "本机：{here} · 手机/电脑通用：跨平台导入时对方专属设置自动跳过，网络存储（WebDAV/FTP）可正常迁移。",
+  "@transfer_export_intro": {
+    "placeholders": {
+      "here": {"type": "String"}
+    }
+  },
+  "transfer_export_pass_required": "导出网络存储必须设置口令",
+  "transfer_export_pass_note": "网络存储需口令加密（永不明文）",
+  "transfer_export_pass_numeric": "数字口令",
+  "transfer_export_pass_custom": "自定义口令",
+  "transfer_export_pass_label": "口令",
+  "transfer_export_pass_numeric_hint": "至少4位数字",
+  "transfer_export_pass_custom_hint": "任意口令",
+  "transfer_export_pass_numeric_rule": "需全为数字，至少4位。",
+  "transfer_export_pass_short_rule": "口令越短文件越易被破解。",
+  "transfer_export_pass_empty": "导出网络存储必须设置口令",
+  "transfer_export_pass_numeric_bad": "数字口令需至少4位数字",
+  "transfer_export_pass_too_short": "口令至少4位",
+  "transfer_import_decrypt_title": "输入口令解密",
+  "transfer_import_pass_label": "口令",
+  "transfer_import_pass_empty": "口令不能为空",
+  "transfer_import_pass_bad": "口令错误或文件损坏: {error}",
+  "@transfer_import_pass_bad": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "transfer_import_parse_failed": "文件解析失败 {error}",
+  "@transfer_import_parse_failed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "transfer_import_route": "来源：{from} → 本机：{to}",
+  "@transfer_import_route": {
+    "placeholders": {
+      "from": {"type": "String"},
+      "to": {"type": "String"}
+    }
+  },
+  "transfer_import_cross_note": "跨平台导入：对方专属设置将自动跳过，网络存储（WebDAV/FTP）与收藏/场景等可正常迁移。",
+  "transfer_import_legacy_note": "检测到旧版导出文件（format 1），将自动兼容导入。",
+  "transfer_import_skip_errors": "跳过错误项目，尽可能导入",
+  "transfer_import_skip_errors_note": "按节独立处理：单条失败仅影响该条，单节失败仅影响该节。",
+  "transfer_report_partial_title": "导入完成（部分失败）",
+  "transfer_report_counts": "成功: {ok}  失败: {fail}",
+  "@transfer_report_counts": {
+    "placeholders": {
+      "ok": {"type": "int"},
+      "fail": {"type": "int"}
+    }
+  },
+  "transfer_report_platform_skipped": "其中 {count} 项为来源平台专属，已跳过（不影响使用）。",
+  "@transfer_report_platform_skipped": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "transfer_report_section_line": "{section}: 成功 {ok} 失败 {fail}",
+  "@transfer_report_section_line": {
+    "placeholders": {
+      "section": {"type": "String"},
+      "ok": {"type": "int"},
+      "fail": {"type": "int"}
+    }
+  },
+  "transfer_report_skipped_note": "已跳过错误项目，其余已尽可能导入。",
+  "transfer_audit_title": "密码导入导出记录",
+  "transfer_audit_empty": "暂无记录",
+  "transfer_audit_export": "导出",
+  "transfer_audit_import": "导入",
+  "transfer_audit_encrypted": "加密({kind})",
+  "@transfer_audit_encrypted": {
+    "placeholders": {
+      "kind": {"type": "String"}
+    }
+  },
+  "transfer_audit_plain": "未加密",
+  "transfer_audit_row": "{op} · {enc} · {result}",
+  "@transfer_audit_row": {
+    "placeholders": {
+      "op": {"type": "String"},
+      "enc": {"type": "String"},
+      "result": {"type": "String"}
+    }
+  },
+  "transfer_audit_detail": "{at}\n节: {sections}{note}",
+  "@transfer_audit_detail": {
+    "placeholders": {
+      "at": {"type": "String"},
+      "sections": {"type": "String"},
+      "note": {"type": "String"}
+    }
+  },
+  "transfer_audit_clear_title": "清空全部记录？",
+  "transfer_audit_clear_body": "此操作不可撤销，且不支持单条删除。",
+  "transfer_audit_clear": "清空",
+  "transfer_audit_clear_all": "清空全部",
+  "transfer_audit_cleared": "已清空",
+  "playq_search_title": "搜索播放列表",
+  "playq_search_hint": "输入文件名关键词",
+  "playq_search": "搜索",
+  "playq_search_label": "搜索",
+  "playq_search_active": "搜索: {query}（清除）",
+  "@playq_search_active": {
+    "placeholders": {
+      "query": {"type": "String"}
+    }
+  },
+  "playq_add": "添加",
+  "playq_delete": "删除",
+  "playq_delete_title": "删除",
+  "playq_delete_body": "将删除队列中的当前播放项。是否继续？",
+  "playq_sort_title": "排序",
+  "playq_sort_tip": "排序",
+  "playq_sort_asc": "正序",
+  "playq_sort_desc": "反序",
+  "playq_sort_title_field": "按标题",
+  "playq_sort_filename": "按文件名",
+  "playq_sort_ext": "按扩展名",
+  "playq_sort_size": "按大小",
+  "playq_sort_duration": "按时长",
+  "playq_sort_date": "按日期",
+  "playq_sort_shuffle": "乱序",
+  "playq_sort_group_folder": "同目录连续",
+  "playq_move_top": "置顶",
+  "playq_move_up": "上移",
+  "playq_move_down": "下移",
+  "playq_move_bottom": "置底",
+  "search_play_options_body": "该媒体无法从当前播放场景队列播放。",
+  "search_play_file_only": "仅播放该媒体",
+  "search_play_folder": "播放其文件夹",
+  "search_play_results": "播放搜索结果",
+  "search_play_scenario": "播放场景",
+  "search_info_path": "路径：{path}",
+  "@search_info_path": {
+    "placeholders": {
+      "path": {"type": "String"}
+    }
+  },
+  "search_info_origin": "来源：{origin}",
+  "@search_info_origin": {
+    "placeholders": {
+      "origin": {"type": "String"}
+    }
+  },
+  "search_origin_explicit": "显式",
+  "search_origin_source": "来源",
+  "search_meta_video": "视频",
+  "search_meta_audio": "音频",
+  "search_excludes_label": "排除规则（尊重排除）",
+  "search_last_scope": "上次: {scope}",
+  "@search_last_scope": {
+    "placeholders": {
+      "scope": {"type": "String"}
+    }
+  },
+  "scan_incomplete_title": "上次扫描未完成",
+  "scan_incomplete_body": "上次扫描被中断。是否从中断处继续，还是开始新的扫描？",
+  "scan_incomplete_new": "开始新扫描",
+  "scan_incomplete_resume": "继续",
+  "search_scope_tip": "范围",
+  "search_scope_all": "全部来源",
+  "search_scope_recursive": "当前目录 · 递归",
+  "search_scope_direct": "当前目录 · 直接",
+  "search_stay_open": "保持打开",
+  "search_close_on_play": "播放后关闭",
+  "search_sort_tip": "排序",
+  "search_sort_name": "名称",
+  "search_sort_path": "路径",
+  "search_sort_modified": "修改时间",
+  "search_sort_size": "大小",
+  "search_sort_duration": "时长",
+  "search_sort_resolution": "分辨率",
+  "search_act_open_lib": "在媒体库中打开",
+  "search_act_open_folder": "在文件夹中打开",
+  "search_act_play_single": "播放单个",
+  "search_act_append": "追加",
+  "search_act_override": "覆盖",
+  "search_err_no_results": "没有可播放的内容：当前搜索结果为空。",
+  "search_err_scenario_missing": "被搜索的场景不存在。",
+  "search_err_selection_not_in_db": "没有可播放的内容：所选项目均不在媒体数据库中。",
+  "search_err_empty_folder": "没有可播放的内容：目录「{folder}」中没有可播放的媒体文件。",
+  "@search_err_empty_folder": {
+    "placeholders": {
+      "folder": {"type": "String"}
+    }
+  },
+  "search_err_cannot_play": "无法播放「{name}」：{reason}",
+  "@search_err_cannot_play": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "reason": {"type": "String"}
+    }
+  },
+  "search_err_not_in_db": "该文件不在媒体数据库中。",
+  "search_err_no_scenario": "当前没有正在播放的场景。",
+  "search_err_not_in_queue": "该文件不在当前播放队列中。",
+  "keybind_title": "自定义快捷键",
+  "keybind_hint": "仅 PotPlayer 方案可改。修改立即生效。清空=解绑（按键将无动作）；蓝色加粗=已自定义，点击逆时针图标回到默认。",
+  "keybind_reset_all": "全部恢复默认",
+  "keybind_reset_all_title": "全部恢复默认？",
+  "keybind_reset_all_body": "将所有快捷键恢复为 PotPlayer 默认值。",
+  "keybind_reset": "恢复默认",
+  "keybind_conflict_title": "快捷键冲突",
+  "keybind_conflict_body": "{combo} 已绑定到“{action}”。是否覆盖？原绑定将被移除。",
+  "@keybind_conflict_body": {
+    "placeholders": {
+      "combo": {"type": "String"},
+      "action": {"type": "String"}
+    }
+  },
+  "keybind_overwrite": "覆盖",
+  "keybind_unbound": "未绑定 — 按键将无动作",
+  "keybind_default_prefix": "默认：{combos}",
+  "@keybind_default_prefix": {
+    "placeholders": {
+      "combos": {"type": "String"}
+    }
+  },
+  "keybind_tip_reset": "恢复默认",
+  "keybind_tip_clear": "清空（解绑）",
+  "keybind_tip_add": "添加/修改（最多4个）",
+  "keybind_tip_maxed": "已达上限（最多4个）",
+  "keybind_capture_title": "按下新的快捷键",
+  "keybind_capture_hint": "按下任意组合键…",
+  "keybind_capture_cancel_hint": "Esc 取消 · 再按一次可更换",
+  "keybind_capture_invalid": "无效组合",
+  "keybind_cat_playback": "播放",
+  "keybind_cat_seeking": "定位",
+  "keybind_cat_av": "音量 / 变速 / 画面",
+  "keybind_cat_tracks": "轨道与同步",
+  "keybind_cat_capture": "截图与文件",
+  "keybind_cat_ab": "A-B 循环",
+  "keybind_cat_tag": "Tag 播放",
+  "keybind_cat_panels": "面板",
+  "keybind_cat_session": "会话 / 窗口",
+  "keybind_act_auto_resize": "窗口适应视频",
+  "keybind_act_play_pause": "播放 / 暂停",
+  "keybind_act_previous": "上一个",
+  "keybind_act_next": "下一个",
+  "keybind_act_frame_backward": "后退一帧",
+  "keybind_act_frame_forward": "前进一帧",
+  "keybind_act_seek_backward": "后退",
+  "keybind_act_seek_forward": "前进",
+  "keybind_act_big_seek_backward": "大幅后退",
+  "keybind_act_big_seek_forward": "大幅前进",
+  "keybind_act_large_seek_backward": "大步后退",
+  "keybind_act_large_seek_forward": "大步前进",
+  "keybind_act_huge_seek_backward": "超大步后退",
+  "keybind_act_huge_seek_forward": "超大步前进",
+  "keybind_act_seek_step_popover": "调整步进大小",
+  "keybind_act_seek_step_increase": "增大步进",
+  "keybind_act_seek_step_decrease": "减小步进",
+  "context_menu_seek_step": "步进",
+  "context_menu_seek_step_hint": "Ctrl+↑/↓ ±1秒 · Ctrl+Shift ±10秒",
+  "keybind_act_restart": "从头播放",
+  "keybind_act_jump_to_time": "跳转到时间",
+  "keybind_act_volume_up": "音量加",
+  "keybind_act_volume_down": "音量减",
+  "keybind_act_mute": "静音",
+  "keybind_act_speed_down": "减速",
+  "keybind_act_speed_up": "加速",
+  "keybind_act_speed_reset": "恢复速度",
+  "keybind_act_fit_cycle": "画面适应循环",
+  "keybind_act_cycle_subtitle": "切换字幕轨道",
+  "keybind_act_cycle_audio": "切换音轨",
+  "keybind_act_toggle_subtitle": "切换字幕显示",
+  "keybind_act_sub_sync_forward": "字幕同步前进",
+  "keybind_act_sub_sync_backward": "字幕同步后退",
+  "keybind_act_sub_sync_reset": "字幕同步重置",
+  "keybind_act_audio_sync_forward": "音频同步前进",
+  "keybind_act_audio_sync_backward": "音频同步后退",
+  "keybind_act_audio_sync_reset": "音频同步重置",
+  "keybind_act_jump_middle": "跳到中间",
+  "keybind_act_jump_near_end": "跳到接近结尾",
+  "keybind_act_delete_file": "删除文件到回收站",
+  "keybind_act_screenshot": "截取当前帧",
+  "keybind_act_ab_a": "A-B 设置 A 点",
+  "keybind_act_ab_b": "A-B 设置 B 点",
+  "keybind_act_ab_quick": "A-B 快速切换",
+  "keybind_act_ab_section": "A-B 区间循环切换",
+  "keybind_act_tag_add": "打开 Tag 播放（预填 +）",
+  "keybind_act_tag_remove": "打开 Tag 播放（预填 -）",
+  "keybind_act_tag_switch": "打开 Tag 播放（预填 *）",
+  "keybind_act_subtitles_panel": "字幕面板",
+  "keybind_act_audio_panel": "音轨面板",
+  "keybind_act_settings": "设置",
+  "keybind_act_play_queue": "播放队列 / 停靠切换",
+  "keybind_act_dock_mode": "切换列表停靠模式",
+  "keybind_act_storages": "存储浏览器",
+  "keybind_act_history": "历史面板",
+  "keybind_act_more_menu": "更多菜单",
+  "keybind_act_open_file": "打开文件",
+  "keybind_act_open_link": "打开链接",
+  "keybind_act_close_playback": "关闭播放",
+  "keybind_act_toggle_repeat": "切换循环",
+  "keybind_act_toggle_shuffle": "切换随机",
+  "keybind_act_always_on_top": "窗口置顶",
+  "keybind_act_fullscreen": "全屏",
+  "keybind_act_exit_fullscreen": "退出全屏",
+  "keybind_act_exit_app": "退出应用",
+  "shot_invalid_dir_title": "目录无效",
+  "shot_pick_error_android": "无法使用该目录，请重选一个可访问的文件夹。",
+  "shot_pick_error_desktop": "桌面端不支持 content:// 目录，请选择本地文件夹路径。",
+  "shot_path_error": "路径无效：不能包含 .. 穿越上级目录{desktopNote}。",
+  "@shot_path_error": {
+    "placeholders": {
+      "desktopNote": {"type": "String"}
+    }
+  },
+  "shot_path_error_desktop_note": "，桌面端也不接受 content:// 链接",
+  "shot_copy_tip": "复制",
+  "shot_pick_label": "选择目录",
+  "shot_paste_label": "粘贴目录路径（为空恢复默认）",
+  "shot_paste_hint": "如 D:/Photos/IRIS",
+  "shot_apply": "应用",
+  "shot_current_dir": "当前生效目录",
+  "shot_reset": "恢复默认",
+  "shot_saved_title": "截屏已保存",
+  "shot_unsupported_title": "当前后端不支持截屏",
+  "shot_unsupported_body": "后端 {backend} 无法抓取视频帧。请切换到 MediaKit 后端后重试。",
+  "@shot_unsupported_body": {
+    "placeholders": {
+      "backend": {"type": "String"}
+    }
+  },
+  "shot_failed_title": "截屏失败",
+  "shot_timeout": "截屏超时（15秒），请重试",
+  "shot_saving": "正在保存截屏…",
+  "shot_frame_prev": "上一帧",
+  "shot_frame_capture": "截存当前帧",
+  "shot_frame_next": "下一帧",
+  "ed_side_pos_bl": "左下",
+  "ed_side_pos_br": "右下",
+  "ed_side_pos": "{h}{v}",
+  "@ed_side_pos": {
+    "placeholders": {
+      "h": {"type": "String"},
+      "v": {"type": "String"}
+    }
+  },
+  "ed_pos_left": "左",
+  "ed_pos_center": "中",
+  "ed_pos_right": "右",
+  "ed_pos_top": "上",
+  "ed_pos_middle": "中",
+  "ed_pos_bottom": "下",
+  "ed_speed_dual": "双档：横 0.1 / 纵 1.0",
+  "ed_speed_single": "单档：仅横 0.1",
+  "ed_gesture_legacy": "Legacy 经典手势",
+  "ed_gesture_region": "横屏 {land} · 竖屏 Region 常规",
+  "@ed_gesture_region": {
+    "placeholders": {
+      "land": {"type": "String"}
+    }
+  },
+  "ed_mode_meta": "元数据模式（可在此回退旧版行为）",
+  "ed_mode_legacy": "Legacy 模式（旧版持久化与运行时）",
+  "ed_scope_all": "全部（视频+音频）",
+  "ed_scope_video": "仅视频",
+  "ed_scope_audio": "仅音频",
+  "ed_osd_always": "始终显示",
+  "ed_osd_hide": "控制栏显示时静默",
+  "ed_osd_single": "单行",
+  "ed_osd_two": "两行",
+  "ed_shot_default_mobile": "默认：Pictures/IRIS",
+  "ed_shot_default_desktop": "默认：图片目录/IRIS（便携包随包）",
+  "gesture_settings_title": "手势区域设置",
+  "gesture_settings_profile": "方案",
+  "gesture_settings_intent": "手势类型",
+  "gesture_region_edit_title": "编辑手势区域",
+  "gesture_region_edit_subtitle": "拖动分隔线调整区域（≥10%）。\n点选区域可更改其动作。",
+  "reset_gesture_layout_title": "重置手势布局",
+  "reset_gesture_layout_subtitle": "恢复手势区域为默认布局",
+  "reset_gesture_layout_default": "默认布局",
+  "reset_gesture_layout_right": "右手布局",
+  "reset_gesture_layout_left": "左手布局",
+  "reset": "重置",
+  "gesture_profile_default": "默认",
+  "reset_gesture_group_profiles": "方案",
+  "reset_gesture_group_intents": "手势类型",
+  "gesture_intent_tap": "点按",
+  "gesture_intent_double_tap": "双击",
+  "gesture_intent_long_press": "长按",
+  "gesture_intent_long_press_pan_horizontal": "长按 + 水平滑动",
+  "gesture_intent_long_press_pan_vertical": "长按 + 垂直滑动",
+  "gesture_intent_pan_horizontal": "水平滑动",
+  "gesture_intent_pan_vertical": "垂直滑动",
+  "gesture_intent_hover": "悬停",
+  "gesture_action_none": "无",
+  "gesture_action_play_pause": "播放 / 暂停",
+  "gesture_action_play": "播放",
+  "gesture_action_pause": "暂停",
+  "gesture_action_toggle_controls": "切换控制栏",
+  "gesture_action_adjust_seek_step": "调整步进",
+  "gesture_action_seek_forward": "快进",
+  "gesture_action_seek_backward": "快退",
+  "gesture_action_seek_to": "跳转到",
+  "gesture_action_activate_transient_speed": "启用瞬时变速",
+  "gesture_action_update_transient_speed": "更新瞬时变速",
+  "gesture_action_deactivate_transient_speed": "关闭瞬时变速",
+  "gesture_action_show_playback_rate_selector": "显示倍速选择器",
+  "gesture_action_update_playback_rate_from_selector": "更新倍速",
+  "gesture_action_show_progress": "显示进度",
+  "gesture_action_toggle_fullscreen": "切换全屏",
+  "gesture_action_open_tag_play_sheet": "打开 Tag 播放",
+  "gesture_action_adjust_volume": "调节音量",
+  "gesture_action_adjust_brightness": "调节亮度",
+  "controls_title_settings": "控制栏覆盖标题",
+  "configure_controls_title": "自定义标题栏内容",
+  "minimal_title_settings": "极简覆盖标题",
+  "configure_minimal_title": "自定义极简标题",
+  "title_field_app_icon": "应用图标",
+  "title_field_battery": "电量",
+  "title_field_time": "时间",
+  "title_field_queue_index": "队列序号",
+  "title_field_media_name": "媒体名称",
+  "title_font_size": "标题字号",
+  "use_classic_title_bar": "使用经典标题栏",
+  "use_classic_title_bar_desc": "显示原始窗口标题栏，而非新的覆盖样式。",
+  "use_legacy_control_bar": "使用旧版控制栏",
+  "use_legacy_control_bar_desc": "在新旧控制栏布局之间切换",
+  "use_legacy_storage_mode": "使用旧版存储模式",
+  "use_legacy_storage_mode_desc": "使用设备持久化存储，而非数据库存储系统",
+  "popup_direction": "弹窗方向",
+  "popup_direction_left": "从左侧",
+  "popup_direction_right": "从右侧",
+  "breadcrumb_start_side": "面包屑起始位置",
+  "breadcrumb_start_side_desc": "配置根路径的显示位置",
+  "breadcrumb_start_left": "根在左侧",
+  "breadcrumb_start_right": "根在右侧",
+  "database_inspector": "数据库检查器",
+  "database_inspector_description": "查看并筛选本地所有表",
+
+  "set_slider_type": "滑条类型",
+  "set_phone_landscape_controls": "手机横屏控制",
+  "set_snake_fine_window": "微调范围",
+  "set_seek_step_seconds": "步进秒数",
+  "set_keyboard_shortcut_scheme": "键盘快捷键方案",
+  "set_desktop_control_bar_layout": "桌面控制栏布局",
+  "set_group_desktop_hover": "鼠标移动时显示",
+  "desktop_hover_show_title": "标题",
+  "desktop_hover_show_title_desc": "控制栏隐藏时，移动鼠标显示标题栏。",
+  "desktop_hover_show_control_bar": "控制栏",
+  "desktop_hover_show_control_bar_desc": "移动鼠标时同时显示完整控制栏（包含标题）。两者都不勾选时，鼠标移动只保留光标显示。",
+  "set_scan_auto_close": "扫描自动关闭",
+  "set_webdav_scan_mode": "WebDAV 主机查找",
+  "set_webdav_scan_mode_discovery": "自动发现",
+  "set_webdav_scan_mode_legacy": "旧版逐个扫描",
+  "set_browse_media_scope": "媒体浏览范围",
+  "set_resume_on_startup": "启动时自动续播",
+  "set_sync_legacy_blob": "同步写入旧版存档",
+  "set_metadata_settings_gate": "元数据设置系统",
+  "set_warning_dialog_prefs": "警告对话框",
+  "set_identity_entries": "自定义桌面条目",
+  "set_osd_enabled": "键盘提示浮层",
+  "set_osd_visibility_mode": "浮层可见性",
+  "set_osd_h_align": "浮层水平位置",
+  "set_osd_v_align": "浮层垂直位置",
+  "set_osd_layout": "浮层布局",
+  "set_osd_duration": "浮层时长",
+  "set_window_keep_in_bounds": "窗口保持可见",
+  "set_keybind_editor": "自定义键盘快捷键",
+  "set_legacy_compat": "旧版兼容",
+  "set_speed_gesture_mode": "变速手势",
+  "set_virtual_media_cross_drag": "虚拟跨段拖动策略",
+  "set_vm_dual_time_sync": "双层时间同步",
+  "set_vm_hide_chunk_when_single_segment": "单段时隐藏分块圆环",
+  "set_vm_mark_tick_color": "分段刻度颜色·长度",
+  "set_vm_naming_strategy": "规则自动命名策略",
+  "set_vm_name_prefix": "规则名称前缀",
+  "set_vm_name_number_format": "规则序号格式",
+  "set_vm_multi_select_hint": "虚拟媒体多选提示",
+  "set_vm_multi_select_hint_desc": "多选虚拟合并媒体时显示一次提示（暂不支持非播放操作）",
+  "vm_multiselect_hint_title": "虚拟合并媒体",
+  "vm_multiselect_hint_body": "虚拟合并媒体可以播放，但删除、排除、打标签等非播放操作暂不适用于合并条目。",
+  "vm_multiselect_hint_never": "不再提示",
+  "set_virtual_media": "虚拟媒体",
+  "set_screenshot_save_path": "截屏保存目录",
+  "set_window_fit_mode": "窗口适应模式",
+  "set_playlist_panel_mode": "队列面板模式",
+  "set_side_fullscreen_behavior": "全屏时的侧边面板",
+  "set_playlist_popup_theme": "浮动队列主题",
+  "set_playlist_dock_theme": "侧边队列主题",
+  "set_video_display_mode": "视频显示模式",
+  "set_gesture_profile": "统一手势方案",
+  "set_scan_rescan_reminder": "重新扫描提醒",
+  "set_browse_scope_all": "全部（视频+音频）",
+  "set_browse_scope_video": "仅视频",
+  "set_browse_scope_audio": "仅音频",
+  "ed_osd_line_single": "单行",
+  "ed_osd_line_two": "两行",
+  "ed_slider_sideway_summary": "侧滑 - {pos} - {design}",
+  "set_panel_popup": "浮动",
+  "set_panel_docked": "侧边停靠",
+  "set_side_fs_keep": "保留面板",
+  "set_side_fs_hide": "隐藏面板",
+  "set_dock_theme_potlike": "PotPlayer 深色",
+  "transfer_audit_log_desc": "查看每次设置导入/导出的时间、加密方式与结果",
+  "set_window_fit_mode_desc": "打开视频时把窗口调整为该视频分辨率，或保持当前窗口大小（仅桌面）",
+
+  "set_snake_fine_window_desc": "锚点前后 ± 秒（共用）",
+  "set_seek_step_seconds_desc": "统一的一档步进：双击、垂直滑动与拨环边角共用",
+  "set_keyboard_shortcut_scheme_desc": "对齐 PotPlayer 的 Windows 按键。元数据系统关闭时回退 IRIS 经典方案",
+  "set_desktop_control_bar_layout_desc": "三行：顶部位置/时长 + 全宽进度条，再加按钮行。元数据系统关闭时回退单行栏",
+  "set_warning_dialog_prefs_desc": "选择哪些可恢复的警告可以不再提示。破坏性与错误对话框始终显示",
+  "set_scan_auto_close_desc": "扫描进度显示多久后自动关闭",
+  "set_scan_rescan_reminder_desc": "N 分钟后提醒重新扫描；0 为关闭提醒",
+  "set_webdav_scan_mode_desc": "通配 IPv4 主机如何解析到具体设备。自动发现会结合当前子网并有界并发；旧版逐个扫描一次只探测一个地址",
+  "set_browse_media_scope_desc": "仅列出范围内的媒体；范围外的文件照常保留在库中，但浏览时不可见（仅元数据模式生效）",
+  "set_resume_on_startup_desc": "打开应用时自动从上次位置继续播放上次的媒体（仅元数据模式生效；关闭后恢复为暂停状态）",
+  "set_sync_legacy_blob_desc": "元数据模式开启时，同时把每次变更镜像写入旧版安全存储（可随时回滚）",
+  "set_metadata_settings_gate_desc": "以数据库行存储设置（实验性，可回滚）",
+  "set_identity_entries_desc": "创建带自定义图标与名称的桌面快捷方式，可选绑定场景 + 标签",
+  "set_auto_resize_desc": "窗口随视频比例自动调整大小（仅桌面；全屏/最大化时不调整；便携版默认开启）",
+  "set_playlist_panel_mode_desc": "侧边：右侧与视频并列（可拖拽 240–600px）；浮动：居中弹窗。长按列表或点按钮可随时切换",
+  "set_side_fullscreen_behavior_desc": "画面全屏（Enter）时，侧边队列保持停靠（保留面板）或默认隐藏、移到右缘悬停呼出（隐藏面板）。窗口全屏与浮动模式不受影响",
+  "set_fs_edge_reveal_width": "全屏唤出热区宽度",
+  "set_fs_edge_reveal_width_desc": "画面全屏下右缘悬停唤出侧边队列的触发条宽度，按屏幕宽度百分比计算（0-50%，0 表示关闭悬停唤出）。鼠标移出面板 5px 后自动收起",
+  "set_playlist_popup_theme_desc": "浮动队列主题：跟随系统 / 深色 / 白色（仅桌面）",
+  "set_playlist_dock_theme_desc": "侧边队列主题：PotPlayer 深色 / 跟随系统 / 白色（仅桌面）",
+  "set_video_display_mode_desc": "视频画面适配：铺满/填充/裁剪/原始比例（桌面含自适应/强制原始；控制栏 Fit 按钮同步切换）",
+  "set_osd_enabled_desc": "为键盘快捷键显示浮动提示",
+  "set_osd_visibility_mode_desc": "始终显示，或在控制栏可见时隐藏",
+  "set_osd_h_align_desc": "OSD 水平位置：左/中/右（仅桌面键盘 OSD）",
+  "set_osd_v_align_desc": "OSD 垂直位置：上/中/下（仅桌面键盘 OSD）",
+  "set_osd_layout_desc": "单行或双行（标题 + 数值）",
+  "set_osd_duration_desc": "浮层在屏幕上的停留时长",
+  "set_keybind_editor_desc": "仅 PotPlayer 方案可改：每动作最多 4 个绑定，可清空解绑；蓝色加粗为已自定义",
+  "set_window_keep_in_bounds_desc": "播放下一视频/音频时若窗口已移出屏幕则自动拉回可视区域（仅桌面；全屏/最大化时不处理）",
+  "set_speed_gesture_mode_desc": "仅长按横滑入态后生效；横 0.1 精调，纵 1.0 粗调（双档）/ 仅横 0.1（单档）",
+  "set_legacy_compat_desc": "非开发人员勿触——开发遗留的兼容开关，误触可能造成 App 崩溃或数据丢失",
+  "set_slider_type_desc": "普通 / 圆环 / 侧滑；侧滑下共用面板总尺寸，旧版降级为普通",
+  "set_circle_slider_center_action_desc": "点击圆心：无动作 / 收起控制栏 / 播放暂停（仅圆弧模式）",
+  "set_screen_orientation_desc": "跟随系统 / 强制横竖屏；开启“记住上次方向”时自动回落",
+  "set_gesture_profile_desc": "统一手势方案：经典 / 区域左右侧；竖屏固定常规区域",
+  "set_virtual_media_desc": "按规则虚拟拼接连续媒体（探测时长/失败段标红；进度条刻度可见）",
+  "set_virtual_media_cross_drag_desc": "跨段拖动：松手预览（浮窗预览，松手再跳转）/ 直接跳转",
+  "set_vm_dual_time_sync_desc": "总时间和子时间分别向下取整到秒，而每段起始偏移通常不是整秒，因此两行的秒会在不同瞬间跳变（最多相差约1秒）。1 各自精确：都保持精确，两行可能交替跳秒；2 子对齐总：总保持精确，子按总时间的秒格计数（默认）；3 总对齐子：子保持精确，总按子时间的秒格计数。",
+  "set_vm_hide_chunk_when_single_segment_desc": "虚拟条目仅一段时隐藏拨盘分块指示",
+  "set_vm_mark_tick_color_desc": "虚拟分段竖条颜色·长度（默认白 3px；0px 与轴齐平）",
+  "set_vm_naming_strategy_desc": "新建/复制规则名 rule+N 的序号策略：最大+1 取最大+1（默认，不复用）/ 复用最小空号 / 全局递增",
+  "set_vm_name_prefix_desc": "自动命名前缀（非空，默认 rule）",
+  "set_vm_name_number_format_desc": "序号格式：不补零 / 补零2-4位",
+  "set_screenshot_save_path_desc": "为空使用平台默认目录（手机 Pictures/IRIS；电脑便携包 userdata/screenshots，安装版系统图片目录/IRIS）",
+
+  "set_group_playback": "播放",
+  "set_group_gestures": "手势与触控",
+  "set_group_virtual_media": "虚拟媒体",
+  "set_group_desktop_tools": "桌面键盘与工具",
+  "set_group_appearance": "外观与语言",
+  "set_group_data": "数据",
+  "set_group_titles": "标题与浏览",
+  "set_group_warnings": "警告",
+  "set_group_osd": "键盘提示浮层",
+  "set_group_scan": "媒体库扫描",
+  "set_group_advanced": "高级",
+  "set_legacy_compat_warn": "非开发人员勿触——遗留兼容开关，可能造成 App 崩溃或数据丢失",
+
+  "set_backend_media_kit": "Media Kit",
+  "set_backend_fvp": "FVP",
+  "set_palette_rainbow": "彩虹",
+  "set_palette_cold": "冷色",
+  "set_palette_warm": "暖色",
+  "set_palette_mono": "白与灰",
+  "set_scheme_legacy": "IRIS 经典",
+  "set_scheme_potplayer": "PotPlayer（Windows）",
+  "set_bar_single_line": "全部一行",
+  "set_bar_stacked": "三行（时间 + 进度条在上）",
+  "set_speed_single_axis": "单档（仅 0.1）",
+  "set_speed_dual_axis": "双档（0.1 + 1.0）",
+  "set_cross_drag_preview": "松手预览",
+  "set_cross_drag_direct": "直接跳转",
+  "set_naming_max_plus_one": "最大+1（默认）",
+  "set_naming_reuse_gap": "复用最小空号",
+  "set_naming_global_counter": "全局递增",
+  "set_num_raw": "不补零",
+  "set_num_pad2": "补零2位",
+  "set_num_pad3": "补零3位",
+  "set_num_pad4": "补零4位",
+  "set_dual_time_exact": "各自精确（可能交替跳秒）",
+  "set_dual_time_sub_to_total": "子对齐总",
+  "set_dual_time_total_to_sub": "总对齐子",
+
+  "dlg_copy_error_title": "播放出错",
+  "dlg_copy": "复制",
+  "dlg_dont_ask_again": "不再提示",
+  "dlg_queue_title": "添加到队列",
+  "dlg_queue_where": "要把项目加到哪里？",
+  "dlg_queue_play_next": "插到开头（下一首播放）",
+  "dlg_queue_append_end": "追加到末尾",
+  "dlg_appended_title": "已添加到播放队列",
+  "dlg_appended_before": "添加前：{before} 项",
+  "@dlg_appended_before": {
+    "placeholders": {
+      "before": {"type": "int"}
+    }
+  },
+  "dlg_appended_after": "添加后：{after} 项（新增 {added} 项）",
+  "@dlg_appended_after": {
+    "placeholders": {
+      "after": {"type": "int"},
+      "added": {"type": "int"}
+    }
+  },
+  "dlg_appended_new_items": "新增项目：",
+  "dlg_appended_more": "…（共 {total} 项）",
+  "@dlg_appended_more": {
+    "placeholders": {
+      "total": {"type": "int"}
+    }
+  },
+  "dlg_portable_title": "发现已安装版数据",
+  "dlg_portable_found_db": "媒体库数据库（媒体库、场景、Tag 播放等）",
+  "dlg_portable_found_kv": "{count} 项界面设置与状态",
+  "@dlg_portable_found_kv": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "dlg_portable_intro": "检测到本机已安装版 IRIS 的数据。是否将其导入当前便携目录（userdata）？",
+  "dlg_portable_caveat": "注意：\n• WebDAV / FTP 等网络存储密码由系统加密保管、绑定本机，不随目录迁移，换机后需重新输入；\n• 启用元数据设置系统后，此类密码以明文保存在数据库文件内，请勿外传含密码的便携目录；\n• 导入后原数据保留不动。",
+  "dlg_portable_skip": "跳过",
+  "dlg_portable_import": "导入",
+  "dlg_storage_info_title": "数据与密码存储说明",
+  "dlg_storage_info_got_it": "知道了",
+  "dlg_storage_portable_header": "便携版（IRIS-windows.zip）",
+  "dlg_storage_portable_body": "解压即用。所有数据保存在 exe 同目录的 userdata 文件夹中：db 子目录是数据库（媒体库、场景、Tag 播放、播放历史等），settings 子目录是界面设置。移动位置或换机时，把整个目录一起拷贝即可。",
+  "dlg_storage_migrate_header": "从安装版迁移",
+  "dlg_storage_migrate_body": "同一台电脑上首次启动便携版时，会询问是否导入已安装版的数据；导入后原数据保留不动。",
+  "dlg_storage_password_header": "密码",
+  "dlg_storage_password_body_win": "WebDAV / FTP 等网络存储凭据由操作系统加密保管、绑定当前电脑，不随 userdata 目录迁移；换机后需重新输入一次。",
+  "dlg_storage_password_body_generic": "WebDAV / FTP 等网络存储凭据默认由应用的加密存储保管（基于系统安全机制）；更换设备后需重新输入一次。",
+  "dlg_storage_security_header": "安全提醒",
+  "dlg_storage_security_body_win": "启用元数据设置系统后，网络存储密码会以明文保存在本地数据库文件内（userdata\\db）。请勿将含密码数据的目录分享给他人；分享前请先删除对应的存储条目或清空其密码。",
+  "dlg_storage_security_body_generic": "启用元数据设置系统后，网络存储密码会以明文保存在本地数据库文件内。请勿将包含该数据库的备份分享给他人；分享前请先删除对应的存储条目或清空其密码。",
+  "dlg_storage_advanced_header": "高级",
+  "dlg_storage_advanced_body": "设置环境变量 IRIS_NO_PORTABLE=1 可强制按安装版模式运行（数据仍存放在系统位置）。",
+  "dlg_storage_location_header": "数据位置",
+  "dlg_storage_location_body": "所有数据（媒体库数据库、场景、Tag 播放、播放历史、界面设置等）都保存在本应用的应用私有目录中，其他应用无法访问；卸载应用将同时清除全部数据。",
+  "dlg_storage_device_header": "换机迁移",
+  "dlg_storage_device_body": "数据不会跨设备同步；更换设备后需重新配置存储与界面设置。",
+  "dlg_retry_saved_password": "使用已保存密码重试",
+  "dlg_warning_title": "警告对话框",
+  "dlg_restore_all_warnings": "恢复全部警告",
+  "dlg_done": "完成",
+  "dlg_no_media_title": "未找到可播内容",
+  "dlg_no_media_message": "所选项目均不在媒体数据库中，是否仍要加入源？",
+  "dlg_no_media_confirm": "仍要加入",
+  "dlg_warn_physical_delete_title": "删除文件到回收站前警告",
+  "dlg_warn_physical_delete_desc": "Windows 播放界面按 Shift+Delete 删除当前文件时",
+  "dlg_warn_force_append_title": "强制加入无可播内容前警告",
+  "dlg_warn_force_append_desc": "所选项目不在媒体库中，仍要加入播放源时",
+  "dlg_warn_gesture_cancel_title": "放弃手势编辑前警告",
+  "dlg_warn_gesture_cancel_desc": "离开手势分区编辑器且不保存时",
+  "dlg_warn_gesture_reset_title": "重置手势编辑前警告",
+  "dlg_warn_gesture_reset_desc": "将未保存的拖动/动作还原到已保存时",
+  "dlg_warn_gesture_confirm_title": "确认手势保存前警告",
+  "dlg_warn_gesture_confirm_desc": "确认覆盖已保存的手势分区时",
+  "dlg_warn_footer": "涉及数据丢失与错误的提示始终显示，无法关闭。",
+
+  "vm_editor_new": "新建虚拟媒体规则",
+  "vm_editor_edit": "编辑规则",
+  "vm_editor_basic": "基本信息",
+  "vm_editor_name": "名字",
+  "vm_editor_description": "描述（显示在副标题，可选）",
+  "vm_editor_match_banner_pattern": "匹配目录的多个条件必须同时满足（全部激活项 AND）才会合并；关闭的条件不参与判断。",
+  "vm_editor_match_banner_dirs": "可指定多个目录，任意一个目录内的媒体都会参与合并。递归模式会包含所选目录的子目录。",
+  "vm_editor_match_mode": "匹配方式",
+  "vm_editor_match_mode_label": "选择匹配方式",
+  "vm_editor_match_specified": "指定目录（非递归）",
+  "vm_editor_match_specified_recursive": "指定目录（递归）",
+  "vm_editor_match_pattern": "匹配目录（非递归）",
+  "vm_editor_match_pattern_recursive": "匹配目录（递归）",
+  "vm_editor_sort": "排序",
+  "vm_editor_sort_field": "排序字段",
+  "vm_editor_sort_filename": "文件名（自然序）",
+  "vm_editor_sort_duration": "时长",
+  "vm_editor_sort_resolution": "分辨率（宽×高）",
+  "vm_editor_sort_aspect": "宽高比",
+  "vm_editor_sort_width": "宽度",
+  "vm_editor_sort_height": "高度",
+  "vm_editor_sort_direction": "方向",
+  "vm_editor_sort_asc": "升序",
+  "vm_editor_sort_desc": "降序",
+  "vm_editor_sort_banner": "无时长/尺寸信息的文件无论升序降序都排在最后。",
+  "vm_editor_boundary": "分组",
+  "vm_editor_boundary_label": "合并范围",
+  "vm_editor_boundary_same_dir": "目录内排序，且仅在同一目录内合并",
+  "vm_editor_boundary_cross_dir": "目录内排序，但允许跨目录合并",
+  "vm_editor_boundary_ignore": "无视目录，排序后直接合并",
+  "vm_editor_title_tags": "标题标签",
+  "vm_editor_title_banner": "标题由点亮标签拼接而成：点亮顺序即拼接顺序，无需输入，不参与排序。",
+  "vm_editor_title_preview": "预览：{title}",
+  "@vm_editor_title_preview": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "vm_editor_title_preview_rule": "规则名",
+  "vm_editor_title_preview_dir": "示例目录",
+  "vm_editor_title_preview_first": "第01集.mp4",
+  "vm_editor_title_preview_last": "第02集.mp4",
+  "vm_editor_tag_rule": "规则名",
+  "vm_editor_tag_dir": "目录名",
+  "vm_editor_tag_first": "首文件名",
+  "vm_editor_tag_last": "末文件名",
+  "vm_editor_tag_seq": "序号",
+  "vm_editor_tag_duration": "时长",
+  "vm_editor_tag_resolution": "分辨率",
+  "vm_editor_separator_label": "播放标题分隔符",
+  "vm_editor_separator_hint": ":",
+  "vm_editor_separator_helper": "虚拟播放标题形如 目录:1/3:原名，用此分隔符拼接",
+  "vm_editor_enabled": "启用",
+  "vm_editor_cancel": "取消",
+  "vm_editor_save": "保存",
+  "vm_editor_pick_dir": "选择",
+  "vm_editor_input_mode": "输入模式",
+  "vm_editor_paste_path": "粘贴目录路径（库内相对路径）",
+  "vm_editor_tooltip_add": "添加",
+  "vm_editor_tooltip_remove": "移除",
+  "vm_editor_library_root": "（库根目录）",
+  "vm_editor_pattern_active": "已激活",
+  "vm_editor_pattern_inactive": "已停用",
+  "vm_editor_pattern_pinned": "已置顶",
+  "vm_editor_pattern_pin": "置顶显示",
+  "vm_editor_pattern_prefix": "前缀",
+  "vm_editor_pattern_suffix": "后缀",
+  "vm_editor_pattern_contains": "包含",
+  "vm_editor_pattern_regex": "正则",
+  "vm_editor_pattern_hint": "匹配内容",
+  "vm_editor_add_condition": "添加条件",
+  "vm_editor_caps_title": "合并限制（至少勾选一个，同时勾选则同时满足；不勾选也受硬顶约束：最长5小时/最多32个）",
+  "vm_editor_caps_longest": "最长",
+  "vm_editor_caps_hhmm": "时:分",
+  "vm_editor_caps_most": "最多",
+  "vm_editor_caps_items": "个",
+  "vm_editor_caps_unit": "个数",
+  "vm_editor_exclusion_title": "单文件排除",
+  "vm_editor_exclude_long_prefix": "超过",
+  "vm_editor_exclude_long_suffix": "的不合并",
+  "vm_editor_skip_single": "只有一个文件时不合并",
+  "vm_editor_confirm_caps_title": "提示",
+  "vm_editor_confirm_caps_body": "未勾选任何限制时，将按硬顶自动约束：单个合并最长5小时、最多32个视频。是否继续？",
+  "vm_editor_confirm_save_title": "确认保存",
+  "vm_editor_confirm_save_body": "此修改将清除该规则相关的虚拟播放进度（新适配媒体进度清零）。是否继续？",
+  "vm_editor_confirm": "确认",
+
+  "vm_sheet_manage_tip": "打开全屏管理（设置入口）",
+  "vm_sheet_new_rule_tip": "新建规则",
+  "vm_sheet_prev_segment": "上一段",
+  "vm_sheet_next_segment": "下一段",
+  "vm_sheet_chapters": "章节",
+  "vm_sheet_stop": "停止",
+  "vm_sheet_empty": "未匹配到任何媒体。",
+  "vm_sheet_close": "关闭",
+  "vm_sheet_pinned": "已置顶",
+  "vm_sheet_pin": "置顶显示",
+  "vm_sheet_copy_failed": "复制失败",
+  "vm_sheet_copy_failed_body": "无法生成唯一的规则名称，请重试。",
+  "vm_mgr_delete_title": "删除规则？",
+  "vm_mgr_delete_body": "删除“{name}”？其虚拟播放进度与续播锚点将一并清除。",
+  "@vm_mgr_delete_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "vm_mgr_delete_confirm": "删除",
+  "vm_mgr_delete_cancel": "取消",
+  "vm_mgr_action_failed_body": "操作失败，请重试。",
+  "vm_drag_preview": "将跳转第{i}/{n}段 {name} · 内 {local}/{seg} · 外 {virt}/{total}",
+  "@vm_drag_preview": {
+    "placeholders": {
+      "i": {"type": "int"},
+      "n": {"type": "int"},
+      "name": {"type": "String"},
+      "local": {"type": "String"},
+      "seg": {"type": "String"},
+      "virt": {"type": "String"},
+      "total": {"type": "String"}
+    }
+  },
+  "vm_editor_name_required": "请输入规则名称。",
+  "vm_editor_no_matcher": "请至少添加一个目录或一个已激活的匹配条件，否则该规则永远匹配不到任何内容。",
+  "vm_editor_bad_regex": "无效的正则表达式：{pattern}",
+  "@vm_editor_bad_regex": {
+    "placeholders": {
+      "pattern": {"type": "String"}
+    }
+  },
+  "vm_sheet_edit": "编辑",
+  "vm_sheet_duplicate": "复制",
+  "vm_sheet_delete": "删除",
+
+  "vm_mgr_new_rule": "新建规则",
+  "vm_mgr_close_escape": "关闭（Esc）",
+  "vm_mgr_title": "虚拟媒体管理",
+  "vm_mgr_empty_title": "暂无虚拟媒体规则",
+  "vm_mgr_empty_body": "创建规则后，情景播放中匹配目录的多个视频将合并为一个虚拟视频显示。",
+  "vm_mgr_limit_min": "{count}分",
+  "@vm_mgr_limit_min": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_mgr_limit_count": "{count}个",
+  "@vm_mgr_limit_count": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_mgr_limit_exclude_min": "排除>{count}分",
+  "@vm_mgr_limit_exclude_min": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_mgr_skip_single": "单文件跳过",
+  "vm_mgr_limits_prefix": "限制 {limits}",
+  "@vm_mgr_limits_prefix": {
+    "placeholders": {
+      "limits": {"type": "String"}
+    }
+  },
+
+  "vm_color_title": "分段刻度颜色·长度",
+  "vm_color_reset": "重置默认",
+  "vm_color_close": "关闭",
+  "vm_color_pure_white": "纯白",
+  "vm_color_format_error": "颜色格式错误",
+  "vm_color_got_it": "知道了",
+  "vm_color_apply": "应用",
+  "vm_color_section_recommended": "推荐",
+  "vm_color_section_presets": "预设",
+  "vm_color_section_hue": "色环微调",
+  "vm_color_section_rgb": "手动 RGB",
+  "vm_color_section_extent": "竖条长度（0px 与轴齐平）",
+  "vm_color_recommended_badge": "推荐",
+  "vm_color_recommended_desc": "进度轴刻度对比度最高，任何主题下都清晰",
+  "vm_color_rgb_bad_number": "R/G/B 须为 0–255 的数字。",
+  "vm_color_rgb_out_of_range": "R/G/B 超出 0–255 范围，已忽略。",
+  "vm_color_hex_hint": "请输入 #RRGGBB（如 #FF9800）。",
+
+  "vm_sheet_title": "虚拟媒体",
+  "vm_sheet_rules_banner": "规则相互独立、无优先级：匹配到即触发合并；多条规则各自生成虚拟视频，重复请自行调整规则规避。磁贴最前为启用开关与置顶图钉。",
+  "vm_sheet_segment_label": "段 {seg}/{total}",
+  "@vm_sheet_segment_label": {
+    "placeholders": {
+      "seg": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "vm_sheet_scan_missing_title": "扫描缺失时长",
+  "vm_sheet_scan_skipped_remote": "{count}个为网络存储（不支持探测）",
+  "@vm_sheet_scan_skipped_remote": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_sheet_scan_failed": "{count}个探测失败",
+  "@vm_sheet_scan_failed": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_sheet_scan_kept_normal": "未能获取缺失时长（{parts}），已保持普通播放。",
+  "@vm_sheet_scan_kept_normal": {
+    "placeholders": {
+      "parts": {"type": "String"}
+    }
+  },
+  "vm_sheet_match_prefix": "匹配：{summary}",
+  "@vm_sheet_match_prefix": {
+    "placeholders": {
+      "summary": {"type": "String"}
+    }
+  },
+  "vm_sheet_preview_all": "全库预览：{lib} 个视频 · 将生成 {count} 个虚拟视频（实际以情景播放的源为准）：",
+  "@vm_sheet_preview_all": {
+    "placeholders": {
+      "lib": {"type": "int"},
+      "count": {"type": "int"}
+    }
+  },
+  "vm_sheet_scan_missing_btn": "扫描缺失时长（{count}）",
+  "@vm_sheet_scan_missing_btn": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_sheet_item_meta": "{duration} · {count}段",
+  "@vm_sheet_item_meta": {
+    "placeholders": {
+      "duration": {"type": "String"},
+      "count": {"type": "int"}
+    }
+  },
+  "vm_list_meta_segments": "{count}段",
+  "@vm_list_meta_segments": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_children_expand": "展开显示合并项内的文件",
+  "vm_children_collapse": "收起合并项内的文件",
+  "vm_child_play": "从此文件开始播放",
+  "vm_progress_group_tooltip": "整组进度",
+  "vm_progress_segment_tooltip": "当前分段进度",
+  "vm_sheet_more_items": "… 共 {count} 项",
+  "@vm_sheet_more_items": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_sheet_no_match": "无匹配",
+  "vm_sheet_no_match_desc": "无匹配 · {desc}",
+  "@vm_sheet_no_match_desc": {
+    "placeholders": {
+      "desc": {"type": "String"}
+    }
+  },
+  "vm_sheet_count_videos": "{count} 个虚拟视频",
+  "@vm_sheet_count_videos": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_sheet_count_videos_desc": "{desc} · {count} 个虚拟视频",
+  "@vm_sheet_count_videos_desc": {
+    "placeholders": {
+      "desc": {"type": "String"},
+      "count": {"type": "int"}
+    }
+  },
+  "vm_sheet_no_conditions": "未配置条件",
+  "vm_sheet_kind_prefix": "前缀",
+  "vm_sheet_kind_suffix": "后缀",
+  "vm_sheet_kind_contains": "包含",
+  "vm_sheet_kind_regex": "正则",
+
+  "tag_new": "新建 Tag",
+  "tag_name_label": "名称",
+  "tag_name_hint": "例如：待看 / 喜欢",
+  "tag_desc_label": "描述（可选）",
+  "tag_desc_short": "描述",
+  "tag_cancel": "取消",
+  "tag_create": "创建",
+  "tag_save": "保存",
+  "tag_edit_prefix": "编辑",
+  "tag_manage_title": "管理 Tag",
+  "tag_empty": "还没有 Tag",
+  "tag_close": "关闭",
+  "tag_delete_title": "删除 Tag",
+  "tag_delete_body": "确定删除「{name}」？\n其所有标记记录与播放视图状态将一并删除。",
+  "@tag_delete_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "tag_delete_confirm": "删除",
+  "tag_pin_title": "Pin 套装",
+  "tag_pin_name_label": "套装名称",
+  "tag_pin_save_current": "保存当前",
+  "tag_pin_empty": "还没有保存的套装",
+  "tag_pin_count": "{count} 个置顶",
+  "@tag_pin_count": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "tag_pin_apply": "应用",
+  "tag_sheet_prev_view": "上一视图",
+  "tag_sheet_prev_hint": "返回上一个 tag（彻底退出请选上方无 tag）",
+  "tag_sheet_manage": "管理",
+  "tag_sheet_pin_presets": "Pin 套装",
+  "tag_sheet_no_tag": "无 tag · 原始列表",
+  "tag_sheet_seq_zero": "序号 0",
+  "tag_sheet_unpin": "取消置顶",
+  "tag_sheet_pin": "置顶",
+  "tag_edit_title": "编辑 · {name}",
+  "@tag_edit_title": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "tag_retention_label": "记录保留策略",
+  "tag_resume_label": "回切窗口（回到该 tag 时）",
+  "tag_retention_forever": "永久保留",
+  "tag_retention_auto": "自动清除：{minutes} 分钟前加入的记录",
+  "@tag_retention_auto": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "tag_edit_tip": "编辑",
+  "tag_delete_tip": "删除",
+  "tag_row_remove": "移除",
+  "tag_row_tag": "打标",
+  "tag_row_activate": "激活该 Tag 播放视图",
+  "tag_row_activate_disabled": "当前场景没有该 Tag 的媒体，无法跳转",
+  "tag_sheet_ignore_scenario": "无视 scenario，播放 Tag 全部媒体",
+  "tag_sheet_ignore_scenario_hint": "激活的 Tag 按自己的全部成员解析，而不是当前 scenario 的媒体",
+  "tag_sheet_auto_close": "快捷键操作后自动关闭",
+  "tag_sheet_auto_close_hint": "仅对快捷键打开的面板生效：执行完一次命令后自动关闭面板",
+  "tag_media_count": "{scenario}/{total}",
+
+  "scn_play_override": "覆盖播放",
+  "scn_play_append": "追加播放",
+  "scn_preview_queue": "预览队列",
+  "scn_rename": "重命名",
+  "scn_delete": "删除",
+  "scn_cancel": "取消",
+  "scn_save": "保存",
+  "scn_rename_title": "重命名场景",
+  "scn_delete_title": "删除场景",
+  "scn_delete_body": "删除此场景？此操作无法撤销。",
+  "scn_delete_many_title": "删除多个场景？",
+  "scn_delete_many_body": "删除选中的 {count} 个场景？",
+  "@scn_delete_many_body": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "scn_path_prefix": "路径：{path}",
+  "@scn_path_prefix": {
+    "placeholders": {
+      "path": {"type": "String"}
+    }
+  },
+  "scn_close": "关闭",
+  "scn_scan_sources": "扫描更新源数据",
+  "scn_rescan_sources": "重新扫描源",
+  "scn_scan_busy_title": "扫描进行中",
+  "scn_scan_busy_body": "已有另一个扫描正在进行。请等待其完成或停止后再试。",
+  "scn_scan_none_title": "没有可扫描的源",
+  "scn_scan_none_body": "该场景没有源。请先添加文件夹或文件源。",
+  "scn_scan_all_offline_title": "所有远端源均不可达",
+  "scn_scan_all_offline_body": "该场景的所有远端存储当前均无法连接。请重新连接后再试。未更改任何数据。",
+  "scn_scan_summary_title": "源数据已更新",
+  "scn_scan_summary_title_stopped": "扫描已停止",
+  "scn_scan_summary_scanned": "已扫描存储：{count}",
+  "@scn_scan_summary_scanned": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "scn_scan_summary_skipped": "已跳过（不可达）：{count}",
+  "@scn_scan_summary_skipped": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "scn_scan_summary_skipped_note": "跳过的远端存储保持原样——其缓存数据未被修改。",
+  "scn_scan_summary_deduped": "已合并重复源：{count}",
+  "@scn_scan_summary_deduped": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "scn_scan_summary_missing": "已移除失效的直接文件：{count}",
+  "@scn_scan_summary_missing": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "scn_scan_sources_offline": "不可达——无法扫描",
+  "scn_scan_paused": "已暂停",
+  "scn_scan_sources_running": "正在更新源 {index}/{total} · {storage}",
+  "@scn_scan_sources_running": {
+    "placeholders": {
+      "index": {"type": "int"},
+      "total": {"type": "int"},
+      "storage": {"type": "String"}
+    }
+  },
+  "scan_sources_error": "扫描错误",
+  "scn_group_same_dir": "同目录连续",
+  "scn_dedupe": "去重",
+  "scn_group_sort": "组内排序",
+  "scn_selected_content": "所选内容",
+  "scn_filter_layer": "过滤层 1",
+  "scn_apply": "应用",
+  "scn_changed_title": "场景自上次导入后已变更",
+  "scn_continue": "继续",
+  "scn_origin_missing": "未找到源场景",
+  "scn_save_as_new": "另存为新场景",
+  "scn_save_playing": "保存当前播放",
+  "scn_sync_origin": "同步回源场景",
+  "scn_override_it": "覆盖它",
+  "scn_append_it": "追加到它",
+  "scn_override_playing_title": "覆盖当前播放？",
+  "scn_override_play": "覆盖并播放",
+  "scn_create_title": "创建场景",
+  "scn_create_one": "创建一个",
+  "scn_create": "创建",
+  "scn_name_hint": "名称",
+  "scn_save_failed": "保存失败",
+  "scn_origin_missing_body": "源场景已不存在。\n改为另存为新场景？",
+  "scn_name_label": "名称",
+  "scn_name_hint_full": "场景名称",
+  "scn_desc_label": "描述",
+  "scn_desc_hint_prefix": "添加于 ",
+  "scn_copy_to": "复制到其他场景",
+  "scn_origin_fallback": "源场景",
+  "scn_desc_override_suffix": "覆盖到已有场景",
+  "scn_desc_append_suffix": "追加到已有场景",
+  "scn_batch_auto": "自动生成（批量）",
+  "scn_batch_pattern": "名称模板",
+  "scn_batch_pattern_hint": "例如：Anime_001",
+  "scn_batch_count": "数量",
+  "scn_batch_count_hint": "1 到 1000",
+  "scn_batch_start": "起始序号",
+  "scn_batch_start_hint": ">= 0",
+  "scn_sort_shuffled": "随机",
+  "scn_sort_original": "原始",
+  "scn_sort_name": "名称",
+  "scn_sort_modified": "修改时间",
+  "scn_sort_duration": "时长",
+  "scn_sort_size": "大小",
+  "scn_group_dir_sources": "目录源",
+  "scn_group_item_sources": "条目源",
+  "scn_group_dir_exclude": "目录排除",
+  "scn_group_item_exclude": "条目排除",
+  "scn_manage_name": "名称",
+  "scn_manage_storage": "存储",
+  "scn_manage_path": "路径",
+  "scn_manage_type": "类型",
+  "scn_manage_created": "创建时间",
+  "scn_manage_container_first": "同容器（目录/存储）优先",
+
+  "lib_search": "搜索",
+  "lib_folder_first": "文件夹优先",
+  "lib_hide_empty_dirs": "隐藏空目录",
+  "lib_only_dirs_with_media": "仅显示有媒体目录",
+  "lib_empty_filtered_no_media": "此处没有包含媒体的目录。",
+  "lib_show_all_dirs": "显示全部目录",
+  "lib_view_mode": "视图模式",
+  "lib_selection_info": "选中信息",
+  "lib_no_media": "无媒体",
+  "lib_no_media_selection": "选中内容中没有找到媒体文件。",
+  "lib_no_media_found": "没有找到媒体文件。",
+  "lib_confirm_delete": "确认删除",
+  "lib_rename": "重命名",
+  "lib_open_with": "用其它应用打开",
+  "lib_play_append": "追加播放",
+  "lib_add_as_source": "添加为源",
+  "lib_create_library": "创建媒体库",
+  "lib_batch_create": "批量创建媒体库",
+  "lib_load_error": "加载失败",
+  "lib_no_libraries": "暂无可用媒体库。",
+  "lib_no_libraries_title": "没有媒体库",
+  "lib_create_first_hint": "请先创建一个媒体库。",
+  "lib_no_sources_to_copy": "没有可复制的来源",
+  "lib_rename_library": "重命名媒体库",
+  "lib_delete_library_title": "删除媒体库？",
+  "lib_delete_library_body": "确定要删除此媒体库吗？",
+  "lib_delete_libraries_title": "删除多个媒体库？",
+  "lib_new_name_hint": "输入新媒体库名称",
+  "lib_name_hint": "媒体库名称",
+  "lib_batch_pattern_hint": "例如：Anime_001",
+  "lib_batch_count_hint": ">= 1",
+  "lib_detached": "已分离",
+  "lib_created_prefix": "创建于：{date}",
+  "@lib_created_prefix": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "lib_updated_prefix": "更新于：{date}",
+  "@lib_updated_prefix": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "lib_sort_name": "名称",
+  "lib_sort_size": "大小",
+  "lib_sort_duration": "时长",
+  "lib_sort_resolution": "分辨率",
+  "lib_sort_modified": "修改时间",
+  "lib_sort_tip": "排序",
+  "lib_recursive": "递归",
+  "lib_direct_only": "仅直接",
+  "lib_play_folder": "播放当前目录",
+  "lib_mode_path_tree": "路径树",
+  "lib_mode_all_media": "全部媒体",
+  "lib_mode_all_dirs": "全部目录",
+  "lib_info_action": "信息",
+  "lib_info_selected_count": "已选中 {count} 项",
+  "@lib_info_selected_count": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "lib_info_section_selected": "已选",
+  "lib_info_directories": "目录",
+  "lib_info_media_files": "媒体文件",
+  "lib_info_video": "  视频",
+  "lib_info_audio": "  音频",
+  "lib_info_section_recursive": "选中内容内（含子级）",
+  "lib_info_subdirs": "子目录",
+  "lib_info_total_size": "总大小",
+  "lib_info_played": "已播放",
+  "lib_info_unplayed": "未播放",
+  "lib_append_queue": "追加到队列",
+  "lib_not_in_database": "所选项目均不在媒体数据库中。",
+  "lib_delete_action": "删除",
+  "lib_delete_body": "从数据库中移除选中项？不会删除磁盘上的实际文件，重新扫描可导回。",
+  "lib_dont_show_again": "不再显示",
+  "lib_override_queue": "覆盖队列",
+  "lib_delete_source_body": "删除「{name}」源？",
+  "@lib_delete_source_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "lib_new_name_label": "新名称",
+  "lib_file_name_hint": "文件名",
+  "gest_reset_title": "重置编辑",
+  "gest_reset_body": "将未保存的修改还原到已保存的设置，是否继续？",
+  "gest_reset_confirm": "重置",
+  "gest_cancel_title": "放弃编辑",
+  "gest_cancel_body": "放弃未保存的修改并返回手势指引？",
+  "gest_cancel_confirm": "放弃",
+  "gest_save_title": "确认保存",
+  "gest_save_body": "将覆盖已保存的分区，是否继续？",
+  "gest_save_confirm": "保存",
+  "gest_keep_toggle_title": "至少保留一块控制栏开关",
+  "gest_keep_toggle_body": "单击分区至少保留一块“显示 / 隐藏控制栏”，否则控制栏可能再也唤不出来。已保留你的修改，请改回一块后再保存。",
+  "recycle_title": "删除文件",
+  "recycle_body": "将把当前播放的文件移入回收站：\n{file}\n\n是否继续？",
+  "@recycle_body": {
+    "placeholders": {
+      "file": {"type": "String"}
+    }
+  },
+  "recycle_delete": "删除",
+  "recycle_unavailable_title": "无法移入回收站",
+  "recycle_unavailable_body": "是否永久删除该文件？此操作不可恢复。\n{path}",
+  "@recycle_unavailable_body": {
+    "placeholders": {
+      "path": {"type": "String"}
+    }
+  },
+  "recycle_permanent": "永久删除",
+  "recycle_cancel": "取消",
+  "dlg_force_append": "强制空追加",
+  "dlg_play_failed_prefix": "播放失败：{error}",
+  "@dlg_play_failed_prefix": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "legacy_title": "旧版兼容",
+  "legacy_gate_title": "使用元数据设置（关闭即回退旧模式）",
+  "legacy_gate_desc": "关闭后整站回退旧版行为；开启为元数据驱动",
+  "legacy_sync_title": "同步写入旧版存档",
+  "legacy_sync_desc": "仅元数据模式开启时有效（双写、可随时回滚）",
+  "legacy_title_bar": "使用旧版经典标题栏",
+  "legacy_control_bar": "使用旧版控制栏",
+  "legacy_storage": "使用旧版存储/播放队列后端",
+  "legacy_close": "关闭",
+  "gest_layout_title": "手势布局",
+  "gest_portrait_label": "竖屏",
+  "gest_portrait_desc": "Region 常规（含顶部二 15% Tag / 中部下部 30% Tag，共六格）",
+  "gest_portrait_region": "Region 常规",
+  "gest_portrait_only": "竖屏仅常规布局",
+  "gest_landscape_label": "横屏",
+  "gest_region_normal": "Region 常规",
+  "gest_region_normal_desc": "顶部二 15% Tag，六格（30% 一条线划开中部 Tag）",
+  "gest_region_right": "Region 右侧",
+  "gest_region_right_desc": "顶部二 15% Tag，八宫格",
+  "gest_region_left": "Region 左侧",
+  "gest_region_left_desc": "顶部二 15% Tag，八宫格",
+  "gest_no_region": "无分区（仅旧版默认）",
+  "gest_no_region_desc": "根本无分区，仅最旧默认手势（无 Tag）",
+  "gest_edit_regions": "编辑分区",
+  "gest_reset": "重置",
+  "gest_confirm": "确定",
+  "sld_title": "侧滑面板设置",
+  "sld_mode_label": "滑条类型",
+  "sld_mode_normal": "普通",
+  "sld_mode_sideway": "侧滑",
+  "sld_side_left": "左",
+  "sld_side_right": "右",
+  "sld_side_center": "中",
+  "sld_pos_h": "位置 · 左中右",
+  "sld_pos_v": "位置 · 上中下",
+  "sld_pos_top": "上",
+  "sld_pos_middle": "中",
+  "sld_pos_bottom": "下",
+  "sld_kind_dial": "拨环",
+  "sld_kind_circle": "简易圆弧",
+  "sld_corner_desc": "边角隐藏 — 垂直 / 水平 / 对角（默认垂直）",
+  "sld_corner_vertical": "垂直",
+  "sld_corner_horizontal": "水平",
+  "sld_corner_diagonal": "对角",
+  "sld_panel_width": "总 Panel 宽度",
+  "sld_panel_height": "总 Panel 高度",
+  "sld_size_pct": "{label}  {pct}%  ·  ~{px} px",
+  "@sld_size_pct": {
+    "placeholders": {
+      "label": {"type": "String"},
+      "pct": {"type": "int"},
+      "px": {"type": "int"}
+    }
+  },
+  "sld_size_px": "{label}  {px} px · max {max}",
+  "@sld_size_px": {
+    "placeholders": {
+      "label": {"type": "String"},
+      "px": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "sld_value_pct": "{pct}%",
+  "@sld_value_pct": {
+    "placeholders": {
+      "pct": {"type": "int"}
+    }
+  },
+  "sld_value_px": "{px} px",
+  "@sld_value_px": {
+    "placeholders": {
+      "px": {"type": "int"}
+    }
+  },
+  "sld_dial_tuning": "拨环微调",
+  "sld_circle_tuning": "简易圆弧微调",
+  "sld_center_action": "中心点按动作",
+  "sld_action_none": "无",
+  "sld_action_toggle": "切换控制栏",
+  "sld_action_play_pause": "播放/暂停",
+  "sld_action_switch_group": "切换按钮组",
+  "set_group_center_zone": "中心点按扇区",
+  "center_zone_inward": "向内（朝屏幕中心）",
+  "center_zone_outward": "向外（朝屏幕边缘）",
+  "center_zone_top": "中上",
+  "center_zone_bottom": "中下",
+  "desktop_center_zone_phone_mode": "使用手机中心扇区方案",
+  "desktop_center_zone_phone_mode_desc": "开启后桌面端采用与手机一致的四扇区中心点按（含切换底部按钮组）；关闭时保持旧行为：四扇区均为切换控制栏。",
+  "control_group_floating_button": "浮动切换按钮",
+  "control_group_button_tip": "切换底部控制组",
+  "control_group_playback": "播放控制组",
+  "control_group_background": "副音控制组",
+  "phone_mode_normal": "普通控制",
+  "phone_mode_right": "右侧控制",
+  "phone_mode_left": "左侧控制",
+  "phone_slider_title": "滑条类型",
+  "phone_slider_normal": "正常",
+  "phone_slider_right": "右侧",
+  "phone_slider_left": "左侧",
+  "phone_slider_close": "关闭",
+  "scrub_kind_title": "单手滑杆样式",
+  "scrub_kind_close": "关闭",
+  "scrub_dial_label": "双环拨盘",
+  "scrub_dial_desc": "双环拨盘：内圈分块、外圈当前块公转、步进轴与边角按钮。",
+  "scrub_classic_label": "简易圆弧",
+  "scrub_classic_desc": "原始圆环滑条（左/右圆环），位于所选一侧。",
+  "tag_cells_permanent": "永久",
+  "tag_cells_year": "年",
+  "tag_cells_month": "月",
+  "tag_cells_day": "日",
+  "tag_cells_hour": "时",
+  "tag_cells_minute": "分",
+  "tag_cells_second": "秒",
+  "snake_title": "微调范围",
+  "snake_preview": "±{sec}秒（悬浮 + 固定共用）",
+  "@snake_preview": {
+    "placeholders": {
+      "sec": {"type": "int"}
+    }
+  },
+  "snake_minutes": "分",
+  "snake_seconds": "秒",
+  "snake_hint": "5秒..600秒，随面板自适应；小面板推荐 15–45秒。",
+  "snake_cancel": "取消",
+  "snake_save": "保存",
+  "menu_tag_play": "Tag 播放",
+  "menu_virtual_media": "虚拟媒体",
+  "menu_jump_to_time": "跳转到时间",
+  "menu_side_panel": "侧边面板 {w}% × {h}%",
+  "@menu_side_panel": {
+    "placeholders": {
+      "w": {"type": "String"},
+      "h": {"type": "String"}
+    }
+  },
+  "menu_side_panel_px": "侧边面板 {w} × {h} px",
+  "@menu_side_panel_px": {
+    "placeholders": {
+      "w": {"type": "String"},
+      "h": {"type": "String"}
+    }
+  },
+  "menu_side_panel_desc": "总 Panel / Dial ring / Circle arc 统一设置",
+  "menu_frame_tools": "逐帧工具",
+  "menu_screenshot": "截存当前帧",
+  "menu_fine_tune": "微调范围：±{sec}秒",
+  "@menu_fine_tune": {
+    "placeholders": {
+      "sec": {"type": "int"}
+    }
+  },
+  "jump_overflow_body": "输入 {input} 超出总时长 {total}。\n跳转到 {target}（片尾前 1 秒）？",
+  "@jump_overflow_body": {
+    "placeholders": {
+      "input": {"type": "String"},
+      "total": {"type": "String"},
+      "target": {"type": "String"}
+    }
+  },
+  "jump_cancel": "取消",
+  "jump_continue": "继续",
+  "jump_current_prefix": "当前 {pos} / {total}",
+  "@jump_current_prefix": {
+    "placeholders": {
+      "pos": {"type": "String"},
+      "total": {"type": "String"}
+    }
+  },
+  "jump_current_only": "当前 {pos}",
+  "@jump_current_only": {
+    "placeholders": {
+      "pos": {"type": "String"}
+    }
+  },
+  "jump_go": "跳转",
+  "ring_box_height": "盒子高度",
+  "ring_side_inner": "内圈",
+  "ring_side_outer": "外圈",
+  "ring_assign_inner": "分块在内",
+  "ring_assign_outer": "分块在外",
+  "ring_hide_unchunked": "无分块时隐藏分块环",
+  "ring_lock_vm_progress": "进度环限制在当前文件内",
+  "ring_position": "圆环位置",
+  "ring_outer_radius": "外环（物理）",
+  "ring_inner_radius": "内环（物理）",
+  "circle_scale": "圆环缩放",
+  "circle_pos_x": "位置 X",
+  "circle_pos_y": "位置 Y",
+  "circle_note": "不遮挡控制栏 slider：弹窗锚于面板对侧，圆位置/大小在面板内相对调节。",
+  "scan_title": "扫描选项",
+  "scan_probe_label": "尝试读取媒体信息（时长 / 分辨率）",
+  "scan_purpose": "用途：为按时长分组、分辨率排序与总时长统计提供数据；播放视频时也会自动补录缺失信息。",
+  "scan_strategy_win": "电脑：直接读取文件属性（与资源管理器详情页同源，不解码，速度很快）。",
+  "scan_strategy_android": "手机：调用系统媒体探查器读取，支持存储路径与 SAF 内容地址。",
+  "scan_strategy_none": "当前平台暂无探测方案，可稍后播放时自动补录。",
+  "scan_estimate_remote": "网络存储不支持探测时长：扫描只建目录索引，深层信息缺失的文件排在后面，时长在播放时自动补录；可随时暂停或停止扫描。",
+  "scan_estimate_win": "预计耗时：电脑本地直接读取文件属性，不解码，一般每文件几十毫秒——百级文件多几秒，千级约半分钟；可随时暂停或停止扫描。",
+  "scan_estimate_android": "预计耗时：手机本地逐个调用系统探查器，一般每文件约 50–200ms，千级文件约 1–3 分钟，文件很多时明显变慢；可随时暂停或停止扫描。",
+  "scan_estimate_none": "当前平台暂无探测方案：时长在播放时自动补录；可随时暂停或停止扫描。",
+  "scan_caveat": "注意：不支持的封装格式、损坏文件或受限存储可能读不到信息——这些文件会统一排在有信息的后面（无论升序降序），并在播放时自动补录。",
+  "scan_cancel": "取消",
+  "scan_start": "开始扫描",
+  "scan_status_scanning": "扫描中…",
+  "scan_status_done": "任务完成。",
+  "scan_status_stopped": "已停止。",
+  "scan_status_error": "错误：{error}",
+  "scan_discovering": "正在发现 {total} 个目录 · 已扫描 {scanned} — {path}",
+  "scan_progress_dirs": "{percent}% · {scanned}/{total} 个目录",
+  "scan_progress_percent": "{percent}%",
+  "scan_closing_in": "将在 {seconds} 秒后关闭",
+  "scan_elapsed": "已耗时：{time}",
+  "scan_eta": "预计剩余：约 {time}",
+  "scan_eta_estimating": "预计剩余：估算中…",
+  "scan_probe_progress": "正在探测 {done}/{total}",
+  "lib_delete_libraries_body": "删除选中的 {count} 个媒体库？",
+  "@lib_delete_libraries_body": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "lib_info_type": "类型",
+  "lib_info_directory": "目录",
+  "lib_info_path": "路径",
+  "lib_info_size": "大小",
+  "lib_info_modified": "修改时间",
+  "lib_add_to_library": "添加到媒体库",
+  "lib_info_files": "文件",
+  "lib_info_selected_items": "已选：{count} 项",
+  "@lib_info_selected_items": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "lib_added_sources": "已向媒体库添加 {count} 个源",
+  "@lib_added_sources": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "scn_changed_body": "「{name}」自上次播放后已被修改。\n\n使用最新版本继续？",
+  "@scn_changed_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "scn_override_body": "当前播放队列将被\n「{name}」替换。\n\n这会清除当前播放的源与排除项。如有需要，可先保存当前播放再覆盖。",
+  "@scn_override_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "gate_unscanned_title": "目录尚未完整扫描",
+  "gate_unscanned_body": "「{dir}」从未进行过完整递归扫描。\n\n播放列表可能不完整或缺少最新文件。是否立即完整扫描？",
+  "@gate_unscanned_body": {
+    "placeholders": {
+      "dir": {"type": "String"}
+    }
+  },
+  "gate_scanning_title": "目录正在扫描中",
+  "gate_scanning_body": "「{dir}」正在扫描。\n\n可以继续播放当前已扫描到的内容。",
+  "@gate_scanning_body": {
+    "placeholders": {
+      "dir": {"type": "String"}
+    }
+  },
+  "gate_error_title": "上次扫描出错",
+  "gate_error_body": "「{dir}」上次递归扫描失败。\n\n是否重新完整扫描？",
+  "@gate_error_body": {
+    "placeholders": {
+      "dir": {"type": "String"}
+    }
+  },
+  "gate_stale_title": "距上次完整扫描已超过提醒时间",
+  "gate_stale_body": "「{dir}」距离上次完整扫描已超过{age}，建议重新扫描。",
+  "@gate_stale_body": {
+    "placeholders": {
+      "dir": {"type": "String"},
+      "age": {"type": "String"}
+    }
+  },
+  "gate_play_anyway": "仍然播放",
+  "gate_scan_now": "立即完整扫描",
+  "gate_resume_title": "扫描完成",
+  "gate_resume_body": "是否继续播放刚才的内容？",
+  "gate_resume_continue": "继续播放",
+  "gate_storage_root": "存储根目录",
+  "gate_stale_hm": "{h}小时{m}分",
+  "@gate_stale_hm": {
+    "placeholders": {
+      "h": {"type": "String"},
+      "m": {"type": "String"}
+    }
+  },
+  "gate_stale_h": "{h}小时",
+  "@gate_stale_h": {
+    "placeholders": {
+      "h": {"type": "String"}
+    }
+  },
+  "gate_stale_m": "{m}分",
+  "@gate_stale_m": {
+    "placeholders": {
+      "m": {"type": "String"}
+    }
+  },
+  "vm_dscan_title": "虚拟合并缺失时长",
+  "vm_dscan_body": "“{group}”（共{total}段）中有 {count} 个片段在数据库中没有时长，无法合并为一个视频：\n{names}\n\n现在扫描获取时长吗？扫完即可合并播放。",
+  "@vm_dscan_body": {
+    "placeholders": {
+      "group": {"type": "String"},
+      "total": {"type": "int"},
+      "count": {"type": "int"},
+      "names": {"type": "String"}
+    }
+  },
+  "vm_dscan_play_normal": "取消合并，普通播放",
+  "vm_dscan_scan_now": "立即扫描",
+  "vm_dscan_cancel_scan": "取消扫描",
+  "vm_dscan_stop_scan": "停止扫描并普通播放",
+  "vm_harvest_stop": "停止获取并普通播放",
+  "vm_preflight_title": "虚拟合并预检",
+  "vm_preflight_cancel": "取消播放",
+  "vm_preflight_report_title": "虚拟合并预检报告",
+  "vm_slow_title": "仍有缺失时长",
+  "vm_slow_body": "“{group}”快速扫描后仍有 {count} 个片段没有时长：\n{names}\n\n继续后台慢速获取吗？每个文件最多等待约20秒，可能很慢。",
+  "@vm_slow_body": {
+    "placeholders": {
+      "group": {"type": "String"},
+      "count": {"type": "int"},
+      "names": {"type": "String"}
+    }
+  },
+  "vm_slow_normal": "仅普通播放",
+  "vm_slow_continue": "继续慢扫",
+  "vm_resolve_harvest_title": "后台获取时长",
+  "vm_harvest_report": "后台获取完成：{summary}。\n未取到：{missing}\n已保持普通播放，可稍后重试。",
+  "@vm_harvest_report": {
+    "placeholders": {
+      "summary": {"type": "String"},
+      "missing": {"type": "String"}
+    }
+  },
+  "vm_title_root_dir": "根目录",
+  "vm_title_cross_dir": "跨目录",
+  "vm_error_title": "虚拟媒体播放",
+  "vm_error_session_stopped": "连续多个片段无法播放，虚拟媒体会话已停止。",
+  "vm_error_segment_unplayable": "片段无法播放，虚拟媒体播放已停止。",
+  "vm_scan_summary": "时长扫描：{parts}，耗时{secs}s",
+  "@vm_scan_summary": {
+    "placeholders": {
+      "parts": {"type": "String"},
+      "secs": {"type": "String"}
+    }
+  },
+  "vm_scan_part_ok": "成功{count}",
+  "@vm_scan_part_ok": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_scan_part_skipped": "跳过{count}",
+  "@vm_scan_part_skipped": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_scan_part_failed": "失败{count}",
+  "@vm_scan_part_failed": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_scan_part_cancelled": "已取消",
+  "vm_scan_part_timeout": "超时",
+  "vm_scan_part_sep": "，",
+  "vm_scan_timeout": "扫描超时（>{secs}秒）：已扫{done}/{total}，剩余{left}个未扫，已扫结果已保存。",
+  "@vm_scan_timeout": {
+    "placeholders": {
+      "secs": {"type": "int"},
+      "done": {"type": "int"},
+      "total": {"type": "int"},
+      "left": {"type": "int"}
+    }
+  },
+  "vm_preflight_timeout": "虚拟合并预检超时（>{secs}秒）：规则={rule} scope={scope} 已验={done}/{total} 卡住={key}。已降级为普通播放，请上报此信息。",
+  "@vm_preflight_timeout": {
+    "placeholders": {
+      "secs": {"type": "int"},
+      "rule": {"type": "String"},
+      "scope": {"type": "String"},
+      "done": {"type": "int"},
+      "total": {"type": "int"},
+      "key": {"type": "String"}
+    }
+  },
+  "vm_fail_missing_node": "数据库中找不到该文件（可能已删除/未扫描），无法参与虚拟合并，已降级为普通播放",
+  "vm_fail_zero_duration": "未知时长（数据库无 duration），无法参与虚拟合并，已降级为普通播放",
+  "vm_fail_verify_error": "预检读取失败（{error}），已降级为普通播放",
+  "@vm_fail_verify_error": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "editor_prefix_empty_title": "前缀不能为空",
+  "editor_prefix_empty_body": "规则名称前缀不能为空，已保留原值。",
+  "vm_fail_group_zero": "同组合并失败：组内存在未知时长片段（{names}），已降级为普通播放",
+  "@vm_fail_group_zero": {
+    "placeholders": {
+      "names": {"type": "String"}
+    }
+  },
+  "vm_fail_degraded": "虚拟合并失败，已降级为普通播放",
+  "vm_unavailable_title": "虚拟媒体",
+  "vm_unavailable_body": "该功能依赖元数据驱动设置系统（且需关闭旧版存储持久化），当前不可用。",
+  "guide_intent_tap": "单击",
+  "guide_intent_double_tap": "双击",
+  "guide_intent_long_press": "长按",
+  "guide_intent_long_press_pan_h": "长按横滑",
+  "guide_intent_long_press_pan_v": "长按竖滑",
+  "guide_intent_pan_h": "横向滑动",
+  "guide_intent_pan_v": "纵向滑动",
+  "guide_intent_hover": "悬停",
+  "guide_action_none": "未设置",
+  "guide_action_play_pause": "播放 / 暂停",
+  "guide_action_toggle_controls": "显示 / 隐藏控制栏",
+  "guide_action_seek_forward": "快进",
+  "guide_action_seek_forward_secs": "快进 {secs} 秒",
+  "@guide_action_seek_forward_secs": {
+    "placeholders": {
+      "secs": {"type": "int"}
+    }
+  },
+  "guide_action_seek_backward": "快退",
+  "guide_action_seek_backward_secs": "快退 {secs} 秒",
+  "@guide_action_seek_backward_secs": {
+    "placeholders": {
+      "secs": {"type": "int"}
+    }
+  },
+  "guide_action_seek_to": "滑动进度",
+  "guide_action_adjust_step": "滑动调整步长",
+  "guide_action_speed_on": "长按倍速播放",
+  "guide_action_speed_update": "倍速滑动调节",
+  "guide_action_speed_off": "结束倍速",
+  "guide_action_speed_menu": "长按弹出倍速盘",
+  "guide_action_speed_pick": "滑动选倍速",
+  "guide_action_show_progress": "显示进度条",
+  "guide_action_fullscreen": "全屏切换",
+  "guide_action_open_tag": "打开 Tag 视图",
+  "guide_action_volume": "调节音量",
+  "guide_action_brightness": "调节亮度",
+  "guide_auto_follow_badge": "生效中 · tag 视图自动跟随",
+  "guide_legacy_caption": "经典手势 · 无分区",
+  "guide_tip_finish_edit": "完成编辑",
+  "guide_tip_direct_edit": "直接编辑当前动作分区",
+  "guide_tip_settings": "手势区域设置",
+  "guide_tip_reset": "重置手势布局",
+  "guide_tip_close": "返回播放器",
+  "guide_profile_default": "默认",
+  "guide_profile_right": "右侧",
+  "guide_profile_left": "左侧",
+  "guide_badge_active": "生效中",
+  "guide_badge_current": "当前",
+  "guide_intent_type_tap": "单击",
+  "guide_intent_type_double_tap": "双击",
+  "guide_intent_type_pan_v": "纵向滑动",
+  "guide_intent_type_long_press": "长按",
+  "guide_editor_reset_saved": "重置到已保存",
+  "guide_editor_cancel_back": "取消返回",
+  "guide_editor_confirm_save": "确认保存",
+  "speed_title": "变速",
+  "speed_hint_v": "上下 1.0",
+  "speed_hint_h": "左右 0.1",
+  "speed_chip_h": "横 0.1",
+  "speed_chip_v": "纵 1.0",
+  "speed_footer_hint": "滑动中可随时变向，取当前主导方向",
+  "osd_volume": "音量",
+  "osd_muted": "已静音",
+  "osd_unmuted": "取消静音",
+  "osd_speed": "变速",
+  "osd_speed_reset": "变速（已重置）",
+  "osd_seek": "定位",
+  "osd_seek_delta": "定位 {delta}",
+  "osd_seek_step": "步进",
+  "@osd_seek_delta": {
+    "placeholders": {
+      "delta": {"type": "String"}
+    }
+  },
+  "osd_next_frame": "下一帧",
+  "osd_prev_frame": "上一帧",
+  "osd_sub_sync": "字幕同步",
+  "osd_audio_sync": "音频同步",
+  "osd_loop_on": "循环开",
+  "osd_loop_off": "循环关",
+  "osd_fit": "适应",
+  "osd_display_mode": "视频显示模式",
+  "osd_window_fit": "窗口适应视频",
+  "osd_window_fixed": "固定窗口大小",
+  "osd_window_fit_desc": "每次打开视频按分辨率适配窗口",
+  "osd_window_fixed_desc": "保持当前窗口大小",
+  "osd_subtitle": "字幕",
+  "osd_audio": "音频",
+  "osd_subtitles_on": "字幕开",
+  "osd_subtitles_off": "字幕关",
+  "osd_repeat": "循环",
+  "osd_shuffle_on": "随机开",
+  "osd_shuffle_off": "随机关",
+  "osd_on_top_on": "窗口置顶开",
+  "osd_on_top_off": "窗口置顶关",
+  "osd_fullscreen": "全屏",
+  "osd_windowed": "窗口",
+  "osd_shot_saved": "截屏已保存",
+  "osd_shot_failed": "截屏失败",
+  "osd_moved_recycle": "已移入回收站",
+  "osd_previous": "上一个",
+  "osd_next": "下一个",
+  "osd_paused": "已暂停",
+  "osd_playing": "播放中",
+  "disp_contain": "适应窗口",
+  "disp_fill": "拉伸填充",
+  "disp_cover": "裁剪填充",
+  "disp_adaptive": "原始尺寸 · 自适应",
+  "disp_forced": "原始尺寸 · 100%",
+  "window_label": "窗口",
+  "dock_playlist": "播放列表",
+  "dock_tip_docked": "当前：侧边停靠 · 点击切换为浮动",
+  "dock_tip_floating": "当前：浮动 · 点击切换为侧边停靠",
+  "dock_stay_open": "保持列表打开",
+  "dock_close_on_play": "播放后关闭",
+  "dock_tip_docked_full": "当前：侧边停靠（右侧与视频并列，可拖拽调宽）· 点击切换为浮动弹窗（{hint}）",
+  "@dock_tip_docked_full": {
+    "placeholders": {
+      "hint": {"type": "String"}
+    }
+  },
+  "dock_tip_floating_full": "当前：浮动弹窗 · 点击切换为侧边停靠（{hint}）",
+  "@dock_tip_floating_full": {
+    "placeholders": {
+      "hint": {"type": "String"}
+    }
+  },
+  "dock_mode_docked": "已停靠侧边 · 点击隐藏/显示",
+  "dock_mode_floating": "浮动弹窗",
+  "tag_no_tag": "无tag",
+  "track_subtitle": "字幕",
+  "track_audio": "音频",
+  "track_sync_reset": "复位",
+  "osd_dock_shown": "播放列表侧边已显示",
+  "osd_dock_hidden": "播放列表侧边已隐藏",
+  "osd_dock_docked": "播放列表：侧边停靠",
+  "osd_dock_floating": "播放列表：浮动",
+  "osd_playback_closed": "播放已关闭",
+  "osd_auto_fit_on": "窗口适应视频 开",
+  "osd_auto_fit_on_desc": "已按视频比例自动调整窗口大小",
+  "osd_auto_fit_off": "窗口适应视频 关",
+  "osd_auto_fit_off_desc": "已关闭自动调整",
+  "browser_back": "返回",
+  "browser_home": "首页",
+  "browser_search": "搜索",
+  "browser_close": "关闭",
+  "browser_go_current": "定位到当前",
+  "browser_select_all": "全选",
+  "browser_deselect_all": "取消全选",
+  "browser_invert": "反选",
+  "browser_jump_title": "跳转到页面",
+  "browser_jump_hint": "页码（1 到 {total}）",
+  "@browser_jump_hint": {
+    "placeholders": {
+      "total": {"type": "int"}
+    }
+  },
+  "browser_jump_label": "页面",
+  "browser_jump_invalid": "无效的页码",
+  "browser_jump_go": "前往",
+  "browser_size_title": "每页条数",
+  "browser_size_total": "共 {total} 项",
+  "@browser_size_total": {
+    "placeholders": {
+      "total": {"type": "int"}
+    }
+  },
+  "browser_size_hint": "请输入 1 到 100,000 之间的数值。",
+  "browser_size_helper": "{total}\n{hint}",
+  "@browser_size_helper": {
+    "placeholders": {
+      "total": {"type": "String"},
+      "hint": {"type": "String"}
+    }
+  },
+  "browser_size_input_hint": "每页条数",
+  "browser_size_label": "每页大小",
+  "browser_size_invalid": "请输入 1 到 100,000 之间的数字",
+  "browser_size_apply": "应用",
+  "browser_load_failed": "加载浏览器内容失败。",
+  "browser_retry": "重试",
+  "browser_empty": "没有找到条目。",
+  "browser_error_unreachable": "无法连接到服务器。",
+  "browser_error_unauthorized": "服务器拒绝了用户名或密码（401/403）。",
+  "browser_error_timeout": "服务器响应超时。",
+  "browser_error_http_blocked": "系统禁止明文 HTTP —— 请改用 https，或为该主机放行明文。",
+  "browser_error_unknown": "读取目录失败。",
+  "browser_error_detail": "详情：{detail}",
+  "storage_connect_failed": "无法连接到 {endpoint}",
+  "@storage_connect_failed": {
+    "placeholders": {
+      "endpoint": {"type": "String"}
+    }
+  },
+  "storage_connect_offline_note": "已入库内容置灰、仅可浏览，恢复连接后自动恢复。",
+  "storage_offline": "离线",
+  "storage_lost_play_blocked": "存储已离线。资料库条目置灰，恢复连接前无法播放。",
+  "play_error_reason_detail": "{reason}\n\n详情：{detail}",
+  "browser_search_query": "搜索：“{query}”",
+  "@browser_search_query": {
+    "placeholders": {
+      "query": {"type": "String"}
+    }
+  },
+  "browser_sources": "来源",
+  "search_bar_hint": "输入以搜索",
+  "search_bar_clear": "清除",
+  "search_bar_history": "搜索历史",
+  "search_bar_no_history": "无搜索历史",
+  "search_bar_clear_all": "清除全部历史",
+  "browser_no_tabs": "没有可用的选项卡",
+  "browse_path": "路径：{path}",
+  "@browse_path": {
+    "placeholders": {
+      "path": {"type": "String"}
+    }
+  },
+  "browse_search": "搜索",
+  "browse_set_source": "设为来源",
+  "browse_exclude_dir": "排除目录",
+  "browse_add_scenario": "添加到场景",
+  "browse_exclude_media": "排除媒体",
+  "scrubber_time_lens": "时间透镜",
+  "scrubber_ring": "环形擦洗",
+  "dial_tip_random": "随机跳转",
+  "dial_tip_speed": "变速 {rate}",
+  "@dial_tip_speed": {
+    "placeholders": {
+      "rate": {"type": "String"}
+    }
+  },
+  "storages_stay_open": "保持存储库打开",
+  "storages_close_on_play": "播放后关闭",
+  "storages_folder": "文件夹",
+  "storages_play_override": "覆盖播放",
+  "storages_play_append": "追加播放",
+  "storages_create_scenario": "创建场景",
+  "storages_scenarios": "场景",
+  "files_refresh": "刷新当前",
+  "files_scan_recursive": "递归扫描",
+  "entry_new": "新建桌面条目",
+  "entry_edit": "编辑条目",
+  "entry_choose_image": "选择图片",
+  "entry_change_image": "更换图片",
+  "entry_image_missing": "原图已丢失（被删除或移动）。请选择新图片——旧图标无法恢复。",
+  "entry_image_required": "请先选择图片后再保存。",
+  "entry_name_label": "名称",
+  "entry_bind_none": "— 无 —",
+  "entry_mode_independent": "独立 system play 状态",
+  "entry_mode_shared": "共用默认状态",
+  "entry_mode_shared_desc": "该条目只是默认入口的自定义图标与名称，共用同一份播放状态。",
+  "entry_seed_scenario": "初始场景（可选）",
+  "entry_seed_tag": "初始标签（可选）",
+  "entry_seed_note": "仅用于首次启动时初始化此条目；之后场景/标签的修改不会再回写到这里。",
+  "entry_create_pin": "创建并固定",
+  "entry_save_update": "保存并更新",
+  "entry_invalid_name": "名称无效：{error}",
+  "@entry_invalid_name": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "entry_apply_failed": "应用失败：{error}",
+  "@entry_apply_failed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "entry_title": "自定义条目",
+  "entry_delete_title": "删除条目",
+  "entry_delete_body": "删除“{name}”？\n\n注意：在 Android 上，已固定的快捷方式无法由应用删除——请在主屏幕上长按它删除。",
+  "@entry_delete_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "entry_check_pinned": "检查已固定的快捷方式",
+  "entry_close_esc": "关闭（Esc）",
+  "entry_new_short": "新建条目",
+  "entry_empty_title": "还没有自定义条目。",
+  "entry_empty_body": "创建一个，将个性化的 IRIS 图标与名称固定到主屏幕：可拥有各自独立的播放状态，或共用默认状态。",
+  "entry_active": "当前条目",
+  "entry_regenerate": "重新生成",
+  "entry_edit_short": "编辑",
+  "entry_delete_short": "删除",
+  "entry_independent": "独立",
+  "entry_shared_default": "共用默认",
+  "entry_chip_scenario": "场景",
+  "entry_chip_tag": "标签",
+  "entry_pinned": "已固定",
+  "entry_launch_stale": "此快捷方式已不再存在于 IRIS。\n请在「设置 → 自定义桌面条目」中重新创建。",
+  "entry_activation_failed": "入口激活失败：\n{error}",
+  "@entry_activation_failed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "entry_seed_scenario_gone": "“{name}” 的初始场景已不存在，入口将以空白队列开始。",
+  "@entry_seed_scenario_gone": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "entry_apply_android_only": "自定义桌面条目仅在 Android 上可用。",
+  "entry_pin_requires_android8": "固定快捷方式需要 Android 8.0 或更高版本。",
+  "entry_pin_launcher_unsupported": "你的桌面启动器不支持添加快捷方式，请尝试更换启动器。",
+  "entry_pin_rejected": "桌面拒绝了该快捷方式：{message}",
+  "@entry_pin_rejected": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+  "entry_shortcut_failed": "快捷方式操作失败：{message}",
+  "@entry_shortcut_failed": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+  "entry_icon_missing": "入口的图片文件已丢失，请重新选择图片后再生成快捷方式。",
+  "entry_image_file_empty": "所选图片为空。",
+  "entry_image_pick_failed": "选择图片失败：{error}",
+  "@entry_image_pick_failed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "entry_no_source_image": "没有可用的源图片。",
+  "crop_title": "裁剪图标",
+  "crop_pick_other": "选择其他图片",
+  "crop_hint": "双指缩放，拖动定位。\n方形框即最终图标区域。",
+  "crop_use": "使用裁剪",
+  "crop_decode_failed": "无法解码该图片",
+  "crop_choose": "选择图片",
+  "tag_input_placeholder": "*3 播放 · *0 无tag · +1.2 添加 · -2.4 移除 · / 关闭",
+  "tag_input_send": "执行",
+  "tag_input_banner_title": "Tag 序号输入",
+  "tag_input_banner_body": "*3 → 播放第 3 个 tag（没有媒体的 tag 无法播放）· *0 → 无 tag 播放（原始列表）\n+1.2.5 → 把当前文件加入第 1、2、5 个 tag\n-2.4 → 把当前文件从第 2、4 个 tag 移除\nEnter → 执行后保持窗口打开，可继续输入下一条命令\n/ → 取消输入并关闭窗口（不影响播放）",
+  "tag_input_hint_close_title": "关闭此提示？",
+  "tag_input_hint_close_body": "仅本次关闭，还是永久不再显示？永久关闭后可在 设置 → Tag 播放 中重新开启。",
+  "tag_input_hint_close_session": "仅本次",
+  "tag_input_hint_close_permanent": "不再显示",
+  "tag_input_err_empty": "请输入命令，例如 +1.2",
+  "tag_input_err_missing_operator": "以 +、- 或 * 开头",
+  "tag_input_err_no_ordinals": "至少输入一个 tag 序号",
+  "tag_input_err_play_single": "* 只能接一个序号",
+  "tag_input_err_unknown": "不存在序号 {ordinals}",
+  "@tag_input_err_unknown": {
+    "placeholders": {
+      "ordinals": {"type": "String"}
+    }
+  },
+  "tag_input_err_no_file": "当前没有可打标的播放文件",
+  "tag_input_err_view_unavailable": "切换 Tag 视图需要开启场景驱动播放",
+  "tag_input_err_empty_view": "该 Tag 在此没有可播放的媒体",
+  "tag_bookmark_lost_title": "上次播放的文件已丢失",
+  "tag_bookmark_lost_body": "该 Tag 记录的上次播放文件已不在列表中（可能已删除或移动），播放已停止。按播放键将从列表第一项开始。",
+  "set_tag_play_input_bar": "Tag 序号输入栏",
+  "set_tag_play_input_bar_desc": "在 Tag 播放窗口中显示命令输入栏。手机端默认关闭（直接点按行更方便）；电脑端为数字键盘快捷键始终开启。",
+  "set_tag_play_input_bar_forced": "电脑端始终开启（数字键盘快捷键需要）",
+  "set_tag_play_input_hint": "命令提示横幅",
+  "set_tag_play_input_hint_desc": "在 Tag 播放窗口中显示示例提示横幅。关闭即永久不再显示。",
+  "set_tag_play_view_stack": "启用「上一视图」返回行",
+  "set_tag_play_view_stack_desc": "切换 Tag 时显示「上一视图」行，可返回上一个 Tag。默认关闭——单选圈已显示当前选中的 Tag，无需回退。",
+  "group_tag_play": "Tag 播放",
+  "seed_temp_name": "临时标记",
+  "seed_temp_desc": "30 分钟回切 · 6 小时过期删除",
+  "seed_perm_name": "永久收藏",
+  "seed_perm_desc": "永久收藏 · 回切永久",
+  "tag_gate_meta_body": "Tag 功能仅在元数据设置模式（meta-driven）下可用。\n请在 设置 中开启「使用元数据设置」。",
+  "tag_gate_scenario_body": "Tag 视图切换仅在情景驱动播放模式下可用。\n请在 设置 中开启「使用情景驱动播放」。",
+  "portable_fallback_title": "便携模式不可用",
+  "portable_fallback_body": "便携目录(userdata)无法写入，常见原因是程序被解压到了只读位置(如 Program Files)。本次将使用常规数据位置继续运行。",
+  "vm_banner_dismiss": "不再显示",
+  "app_overview_title": "IRIS 有何不同",
+  "app_overview_intro": "IRIS 以「场景」组织播放，加入了一些过去普通播放器没有的能力。以下按用途与用法简述；可在「设置 → 关于」重开。",
+  "app_overview_about_tile_title": "IRIS 功能导览",
+  "app_overview_about_tile_sub": "与一般播放器的差异说明",
+  "app_overview_scenario_title": "场景与「正在播放」工作区",
+  "app_overview_scenario_body": "在多个播放源之间切换，无需重新选择文件。\n一切播放使用同一「正在播放」工作区，以指定源的形式算出实际需要的文件；保存的场景作为计划，用「覆盖」载入或用「追加」并入当前队列。",
+  "app_overview_tag_title": "标签与数字命令",
+  "app_overview_tag_body": "用于在大量视频之间来回切换。如标记第x个视频后又播放到第x+1000个视频，依旧可以快速互切播放x与x+1000。\n标签是集合而非文件夹。\n电脑端快捷键 +n.m.x / -n 增删当前文件到对应序号标签，*n / *0 在播放中切换队列视图。",
+  "app_overview_vm_title": "虚拟媒体（合并播放）",
+  "app_overview_vm_body": "多段视频合为一条连续时间轴播放，便于进度条跳转连播。\n可自定义规则自动合并播放，匹配基于持久媒体库（数据库）；实际是二维播放列表，磁盘文件不被修改。",
+  "app_overview_bg_title": "副音（第二播放器）",
+  "app_overview_bg_body": "画面可接受但对音频不满意时，可改播另一视频音频。\n副音作为第二播放器与原画并行播放；控制条操作副音时外框变蓝。",
+  "app_overview_identity_title": "自定义应用入口（名称/图标/场景）",
+  "app_overview_identity_body": "自定义应用名，或把不同播放习惯固定到不同入口，直接启动而不必翻文件夹。\n可创建额外的桌面/主屏入口，各自设定名称、图标并绑定场景（可带标签），启动即进入对应工作区。",
+  "app_overview_library_title": "扫描式媒体库（全部媒体 / 全部目录 / 路径树）",
+  "app_overview_library_body": "以「全部媒体 / 全部目录 / 路径树」视图浏览媒体库。\n媒体库为持久数据库，扫描在文件浏览器的刷新菜单启动，离线文件可见（置灰）。",
+  "app_overview_desktop_title": "电脑端（PotPlayer 风格操作）",
+  "app_overview_desktop_body": "尽量对齐 PotPlayer 键位与操作习惯。\n提供 PotPlayer 风格键盘方案，仅提供实际支持的功能。",
+  "app_overview_phone_title": "手机端单手操作（横屏环形拨盘 + 屏幕手势）",
+  "app_overview_phone_body": "横屏视频的单手操作优化，可在「手势指引」中查看与修改。\n提供单手环形拨盘进度条，便于单手全控。",
+  "about_update_title": "更新说明",
+  "about_update_body": "二次开发条件限制，不提供检查更新功能；如需更新请自行获取新版本（开源软件）。",
+  "set_legacy_compat_row": "Legacy 兼容",
+  "set_storage_info_title": "数据与密码存储说明",
+  "set_storage_info_sub": "数据位置、密码保管方式与安全提醒",
+  "known_issues_title": "已知问题",
+  "known_issues_sub": "当前限制与上游问题",
+  "dlg_known_issues_title": "已知问题",
+  "dlg_known_issues_got_it": "知道了",
+  "dlg_known_issues_none": "当前平台暂无已知问题。",
+  "dlg_known_issues_fullscreen_header": "画面全屏切换（Windows）",
+  "dlg_known_issues_fullscreen_body": "在“窗口全屏（最大化）”与“画面全屏”之间切换时，会先短暂还原出最大化状态，并等待还原完成后才开始切换，以规避 window_manager 的原生线程死锁。切换瞬间窗口可能闪回浮动尺寸，但播放与全屏状态本身不受影响。",
+  "dlg_known_issues_thread_header": "Windows 线程模式",
+  "dlg_known_issues_thread_body": "应用将 UI isolate 与平台线程分离运行（启动时引擎会打印相关警告）。这是为规避 Flutter 3.35+ 在切换窗口模式时的死锁。",
+  "dlg_known_issues_mediakit_header": "退出异常提示（media_kit）",
+  "dlg_known_issues_mediakit_body": "强制关闭或退出时可能看到 “Callback invoked after it has been deleted” 并中断进程。这是 media_kit 已知的 FFI 析构竞态（media-kit #1324 / #1340），不影响播放本身。",
+  "dlg_known_issues_vm_scale_header": "虚拟媒体合并在大规模下的限制",
+  "dlg_known_issues_vm_scale_body": "未启用任何虚拟媒体合并规则时，即使 50 万+条目也能正常解析与播放（按页惰性解析）。一旦启用任意一条合并规则，播放队列目前会在每次解析时物化整条流：约 5,000 条以内稳定（可缓存）；5,000～10,000 条可用但明显卡顿，且每次翻页都会重新遍历全流；超过 10,000 条后深位定位与末尾回绕可能失效，每次操作都重走全流；超过 100,000 条低端设备随时可能内存溢出；50 万条必崩。本轮不做代码修改，流式修复已在规划中。",
+  "dlg_known_issues_vm_scale_fix_header": "虚拟媒体合并的性能与存储（本次优化）",
+  "dlg_known_issues_vm_scale_fix_body": "针对上一条所述的限制，本次更新已重构该路径：合并规则下的播放队列改为持久化的“共享派生索引”。结构上，同一存储（按排序字段/方向/媒体类型区分）只保留一份全局顺序（int32 节点 id，约 4B/条目），所有场景共用；每个场景只额外保存两张位图与一份稀疏覆盖——每源成员位图、accepted 位图各 1 bit/条目（50 万条目约 61KB/张，内部按 512 位分块，rank 为 O(1) 查表、select 为 O(log n)），覆盖层只存“例外”（合并组行及其成员表、占位行、出现次数），普通条目零额外成本。读路径因此变成位图上的 rank/select：每页 O(页大小)、任意定位 O(log n)，不再遍历整条流；洗牌改为读时按种子即时置换，换种子不产生任何写入。空间上每场景约 5.3B/条目（5 千约 0.03MB、5 万约 0.25MB、50 万约 2.6MB），同形状的旧行式索引约 74B/成员（50 万约 37.7MB），且旧表已删除并回收。参考量级（单存储、每 10 条合并为 1 项、每页 50 条，开发机实测，实际随设备与目录结构浮动）：5,000 条翻页约 7ms、定位约 3ms；50,000 条翻页约 7ms、定位约 2ms；500,000 条翻页约 8ms、定位约 3ms，全量翻完一遍内存增长约 4～12MB。一次性成本：首次进入或规则变更后需重建一次索引（要完整遍历一次全流），实测 5,000 条约 1 秒、50,000 条约 20 秒；500,000 条因单次构建耗时过长，本轮未完成实测，故不给出该档数字（这是目前唯一仍随条目数增长的开销，超大场景请留意首次建立索引的等待时间）。此外，虚拟组搜索仍按组数线性增长（约 5,000 组 0.4s、50,000 组数秒）；少数无法用共享顺序表示的组合会自动退回旧版解析路径，仍能正常播放但性能回到旧版水平。若实际表现与上述量级明显不符，请联系相关人员进行修复。",
+  "dlg_known_issues_vm_delete_header": "删除虚拟文件内的真实文件（电脑端）",
+  "dlg_known_issues_vm_delete_body": "在电脑端删除虚拟文件内包含的真实文件时，可能导致整个虚拟文件项目无法播放。修复完成前，请勿对属于虚拟文件的真实文件使用删除功能。",
+  "dlg_known_issues_vm_multiselect_header": "虚拟合并条目不支持多选",
+  "dlg_known_issues_vm_multiselect_body": "场景播放队列中，虚拟合并条目（带 [vm] 前缀的行）不参与多选：不显示勾选框，批量排除、从 Tag 移除与键盘批量移除都会跳过它，点击播放不受影响。需要排除或取消打标签时，请改对组成该合并项的单个真实文件操作。",
+  "play_backend_mediakit": "Media Kit",
+  "play_backend_fvp": "FVP",
+  "play_landscape_controls": "手机横屏控制",
+  "play_mode_normal": "常规控制",
+  "play_mode_right": "右侧控制",
+  "play_mode_left": "左侧控制",
+  "play_scrubber_design": "单手滑杆设计",
+  "play_scrubber_arc": "环形滑杆",
+  "play_scrubber_time_lens": "时间透镜滑杆",
+  "play_scrubber_snake": "Snake 五轴",
+  "play_scrubber_dial": "转盘",
+  "play_scrubber_classic": "简易圆弧",
+  "play_fine_range": "微调范围",
+  "play_fine_shared": "±{sec}s（共用）",
+  "@play_fine_shared": {
+    "placeholders": {
+      "sec": {"type": "int"}
+    }
+  },
+  "play_gesture_layout": "手势布局",
+  "scan_reminder_title": "重扫提醒窗口",
+  "scan_reminder_body": "目录距上次完整扫描超过该时间后，播放前会提醒重新扫描。\n设为 0 可关闭提醒。",
+  "scan_reminder_over": "超过",
+  "scan_reminder_hm": "时 : 分",
+  "search_empty_type": "输入以搜索",
+  "search_empty_no_match": "无匹配",
+  "menu_background_playback": "副音播放",
+  "bg_gate_meta_body": "副音播放仅在元数据设置模式（meta-driven）下可用。\n请在 设置 中开启「使用元数据设置」。",
+  "bg_no_candidates_body": "还没有可用的副音候选。\n请先给一些视频打上「副音备选」标签，再重新启动副音播放。",
+  "bg_target_foreground": "前台视频",
+  "bg_target_background": "副音",
+  "bg_close_tooltip": "关闭副音播放",
+  "bg_previous": "上一首",
+  "bg_play_pause": "播放 / 暂停",
+  "bg_next": "下一首",
+  "bg_shuffle_tooltip": "随机播放",
+  "bg_rate_label": "播放速度",
+  "bg_show_video": "显示副音画面",
+  "bg_foreground_volume": "前台音量",
+  "bg_background_volume": "副音音量",
+  "bg_refresh_candidates": "重新载入副音候选",
+  "bg_queue_title": "副音播放队列",
+  "bg_queue_empty": "暂无副音候选。请先给视频打上“副音备选”标签，再开启副音播放。",
+  "bg_panel_toggle": "副音控制面板",
+  "bg_panel_minimize": "折叠",
+  "bg_panel_expand": "展开",
+  "bg_title_bar_sub": "副音 ▸ {name}",
+  "@bg_title_bar_sub": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "bg_rate_locked": "倍速已锁定跟随前台视频——请到 设置 关闭锁定后调整",
+  "set_group_background_playback": "副音播放",
+  "bg_menu_tooltip": "副音播放",
+  "bg_scope_on_current": "开启副音（仅当前）",
+  "bg_scope_off_current": "关闭副音（仅当前）",
+  "bg_scope_on_all": "开启副音（全部）",
+  "bg_scope_off_all": "关闭副音（全部）",
+  "bg_display_to_bg": "显示副音画面",
+  "bg_display_to_fg": "显示前台画面",
+  "bg_control_to_bg": "控制副音",
+  "bg_control_to_fg": "控制前台",
+  "bg_volume_ratio": "音量比例",
+  "bg_volume_ratio_desc": "副音播放时，两侧占共用音量的比例。全局比例对所有媒体生效；单媒体覆盖值仅对它自己生效。",
+  "bg_ratio_scope_global": "全局",
+  "bg_ratio_scope_current": "仅当前媒体",
+  "bg_ratio_use_saved": "使用保存的比例",
+  "bg_ratio_use_saved_off_hint": "已关闭——两侧都按共用音量播放。",
+  "bg_ratio_live_hint": "实时模式：拖动立即生效，抬手时保存。",
+  "bg_ratio_no_current_media": "当前没有播放媒体，只能调整全局比例。",
+  "bg_align_title": "副音对齐",
+  "bg_align_mode_from_fg_head": "同一时间轴（00:00 ↔ 00:00）：副音跟随视频时钟",
+  "bg_align_mode_at_position": "副音 00:00 对齐到视频当前位置",
+  "bg_align_section_align": "对齐设置",
+  "bg_align_section_other": "其它设置",
+  "bg_align_scope_update": "更新对齐",
+  "bg_align_scope_default": "默认对齐",
+  "bg_align_default_current": "当前默认：{value}",
+  "@bg_align_default_current": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "bg_align_default_effect_hint": "下次对齐时生效，不影响当前播放。",
+  "bg_align_percent_adjust_hint": "先在这里调好比例，再点上面的百分比方案。",
+  "bg_align_hint_hide_forever": "不再显示（可在 设置 → 警告对话框 中恢复）",
+  "bg_align_mode_bg_percent_value": "从副音的 {percent}% 开始",
+  "@bg_align_mode_bg_percent_value": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "bg_align_percent_title": "副音起始比例",
+  "bg_align_percent_suffix_short": "%",
+  "bg_exhausted_section": "当前副音文件播完时",
+  "bg_exhausted_section_note": "用于单一视频内副音先播完的处理，与作用范围无关。",
+  "bg_exhausted_next_bg": "接下一首副音，从上一首结束的视频位置开始",
+  "bg_exhausted_stop_restore": "暂停副音，恢复视频原音",
+  "bg_align_default_fg_head": "同一时间轴",
+  "bg_align_default_fg_position": "副音从 00:00 开始",
+  "bg_align_default_bg_percent": "从记录比例",
+  "bg_exhausted_next_bg_short": "接下一首副音",
+  "bg_exhausted_stop_restore_short": "暂停并恢复原音",
+  "bg_align_update_to_current": "更新到当前",
+  "bg_align_auto_pause_label": "对齐副音播完前先询问",
+  "bg_align_auto_pause_desc": "对齐后副音剩余时间少于该值时，弹出对齐窗口。结束动作为『继续播放下一首副音』时自动续播、不再弹出。",
+  "bg_align_auto_pause_off": "关闭",
+  "bg_align_button": "对齐方式",
+  "bg_align_auto_pause_seconds": "{seconds} 秒",
+  "@bg_align_auto_pause_seconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "bg_align_head_option": "副音 00:00 —— 对齐视频当前位置",
+  "bg_align_percent_prefix": "从副音的",
+  "bg_align_percent_suffix": "% 开始，对齐视频当前位置",
+
+  "bg_align_from_head": "从头开始（对齐视频当前位置）",
+  "bg_align_from_mid": "按记住的比例",
+  "bg_align_ask": "每次询问",
+  "bg_align_remember": "记住该方案，不再提示",
+  "bg_align_remember_hint": "勾选后，副音较短时不再弹窗。随时可用「恢复每次询问」或在 设置 → 副音对齐默认方案 中恢复。",
+  "bg_align_restore_ask": "恢复「每次询问」",
+  "bg_align_fg_head_option": "视频从头开始 — 副音也从 00:00 开始",
+  "bg_continuation_title": "副音跨文件继续",
+  "bg_continuation_intro": "副音文件已在视频播放完之前结束。正在按副音列表循环继续：",
+  "bg_continuation_from_align": "本次对齐使当前视频位置没有副音。若为自然播放结束，会经过以下副音：",
+  "bg_continuation_now_at": "现在对齐到：{name}  {duration}  {position}",
+  "@bg_continuation_now_at": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      },
+      "position": {
+        "type": "String"
+      }
+    }
+  },
+  "bg_continuation_omitted": "…（已省略更早的项）",
+  "dlg_warn_bg_continuation_title": "副音跨文件继续说明",
+  "dlg_warn_bg_continuation_desc": "副音文件先于视频播放完时，说明副音列表的经过与继续位置",
+  "bg_sources_storage_id_hint": "存储 ID",
+  "bg_step_swap_only": "上/下一集：仅切换副音（视频位置不动）",
+  "bg_step_follow_link": "上/下一集：同时带动视频（跟随联动）",
+  "bg_step_mode_swap_only": "仅换副音",
+  "bg_step_mode_follow_link": "跟随联动",
+  "set_bg_step_mode": "副音上/下一集行为",
+  "set_bg_step_mode_desc": "切换副音时是否同时移动视频。「仅换副音」只更换副音轨、视频停在原处；「跟随联动」把视频滚到映射位置（可跨文件）。",
+  "set_bg_align_warn": "副音播完前询问（秒）",
+  "set_bg_align_warn_desc": "对齐后副音剩余少于该秒数时弹出对齐窗口（默认 5，范围 1–120）。结束动作为『继续播放下一首副音』时自动续播、不再弹出。",
+  "set_bg_exhausted_action": "副音文件播完时",
+  "set_bg_exhausted_action_desc": "用于『单一视频内副音先播完』（与作用范围无关）：接队列中的下一首副音，按副音列表循环，保证始终有副音；或暂停副音并恢复视频原音。",
+  "bg_switch_on": "开启副音",
+  "bg_switch_off": "关闭副音",
+  "bg_gate_play": "对当前视频播放副音",
+  "bg_gate_stop": "对当前视频停止副音（功能保持开启）",
+  "bg_feature_on": "开启副音功能",
+  "bg_feature_off": "关闭副音功能",
+  "bg_apply_on_current": "对当前视频使用副音",
+  "bg_apply_off_current": "对当前视频不使用副音",
+  "bg_no_current_media_body": "当前没有正在播放的视频，无法对当前视频使用副音。",
+  "bg_quick_panel_drag": "拖动调整位置",
+  "bg_scope_button": "作用范围",
+  "bg_scope_dialog_title": "副音作用范围",
+  "bg_scope_current_only": "仅当前",
+  "bg_scope_current_only_desc": "只对当前播放的视频使用副音；切走后暂停副音，功能保持开启。",
+  "bg_scope_smart": "智能",
+  "bg_scope_smart_desc": "新打开的视频默认关闭；但已保存副音配对的视频会自动开启（已保存副音自动播放）。",
+  "bg_scope_all": "全部",
+  "bg_scope_all_desc": "切换视频时副音继续播放自己的列表。",
+  "bg_scope_persist": "跨重启保存",
+  "bg_scope_persist_desc": "勾选：该范围选择在应用重启后仍然有效。不勾选：仅本次运行有效。",
+  "set_bg_start_armed": "启动时开启副音功能",
+  "set_bg_start_armed_desc": "开启（默认）：应用打开时副音功能已开启但处于停止状态——按下播放或命中已保存配对前不会出声。关闭：副音功能完全关闭，需手动开启。与下方「启动时保有副音播放器」相互独立，修改在下次启动生效。",
+  "set_bg_gate_stop_behavior": "副音按钮停止行为",
+  "set_bg_gate_stop_behavior_desc": "快速栏停止按钮的行为。暂停：保留已加载媒体，下次重新对齐。卸载：释放媒体资源，下次重新载入。运行状态与预热播放器始终保留。",
+  "bg_gate_stop_pause": "暂停媒体（下次重新对齐）",
+  "bg_gate_stop_unload": "卸载媒体资源（下次重新载入）",
+  "set_bg_keep_warm": "启动时保有副音播放器",
+  "set_bg_keep_warm_desc": "提前为后台副音播放做载入，开启副音时瞬间生效。代价是全程占用一个空闲播放器。",
+  "set_bg_keep_warm_off_notice": "该功能用于提前为后台副音播放做载入。不常用副音播放可以取消；取消后开启副音会稍有等待，并可能出现闪屏。",
+  "set_bg_align_default": "副音对齐默认方案",
+  "set_bg_align_default_desc": "每次副音对齐时采用的方案。可在对齐窗口中即时更新并保存为默认。",
+  "set_bg_fg_window_zoom": "APB 前景缩放倍率",
+  "set_bg_fg_window_zoom_desc": "当前景远长于副音文件时，前景轴只显示「副音长度 × 该倍率」的范围，避免 A–B 映射被压缩成一个点。1 表示不缩放（范围 1.0–10.0）。",
+  "set_bg_fg_window_push_bg": "q 点推动副音映射",
+  "set_bg_fg_window_push_bg_desc": "当 q 手柄把前景窗口平移越过 A/B 端点（12/11 点钟）时：关闭则卡住平移；开启则在固定的副音窗口上滑动映射，从而修改对齐。",
+  "set_bg_min_segment_span": "最小片段长度",
+  "set_bg_min_segment_span_desc": "A–B 映射片段允许的最短长度（毫秒，默认 500，范围 100–5000）。拖动不可能把片段压缩到该值以下。",
+  "set_bg_p_align_keep_length": "P 保留已密封的堆积",
+  "set_bg_p_align_keep_length_desc": "P 手柄离开视频头/尾时，先只消耗压向边界新产生的堆积：开启保留你在空中打好的包、永不消耗旧堆积；关闭可一路消耗到 0。",
+  "set_bg_sticky_consume": "两端黏着取用",
+  "set_bg_sticky_consume_desc": "决定哪些手柄在视频头/尾先消耗已堆积的副音、之后窗口才开始移动。P：P 手柄离开边界端时消耗该端堆积；A/B：向外拖 A 或 B 时，先耗尽自己一侧，再消耗对端堆积。关闭为立即平移；仅 P / 仅 A/B 只对一种手柄生效；全开（默认）两者都生效。",
+  "bg_sticky_consume_off": "关闭",
+  "bg_sticky_consume_p_only": "仅 P",
+  "bg_sticky_consume_ab_only": "仅 A/B",
+  "bg_sticky_consume_all": "全开",
+  "set_bg_segment_guide": "副音说明指南",
+  "set_bg_segment_guide_desc": "解释 A / P / B 三点、被丢弃时间的读数，以及最小片段长度。",
+  "bg_segment_guide_title": "副音映射说明",
+  "bg_segment_guide_body": "A —— 视频中开始使用副音的位置。\nB —— 视频中结束使用副音的位置（A–B 至少要有最小片段长度）。\nP —— 对齐手柄：拖动它会整体移动 A–B 窗口，从而改变每个视频位置对应播放的副音内容。\n\nA 旁的 −mm:ss 是在 A 之前被丢弃的副音；B 旁的是 B 之后没用到的时间。当片段用不完副音时会显示。\n\n当 A 或 B 还有可丢弃时间时，向外拖（A 向左 / B 向右）会消耗这些时间；耗尽后，若对端正停在视频边界且还有未用堆积，会接着消耗对端堆积（见“两端黏着取用”设置），之后整段窗口才会移动。向内拖（A 向右 / B 向左）总是丢弃更多。",
+  "bg_segment_color_title": "片段颜色",
+  "bg_segment_color_random": "随机",
+  "bg_segment_color": "标注颜色",
+  "set_bg_ratio_explicit_save": "音量比例需显式保存",
+  "set_bg_ratio_explicit_save_desc": "开启：比例弹窗仅在点击保存后生效。关闭：拖动即时生效，抬手时保存。",
+  "menu_seek_step": "步进",
+  "bg_seek_link": "进度联动",
+  "bg_seek_linked": "联动",
+  "bg_seek_independent": "副音完全独立",
+  "bg_lock_level_high": "高（快进快退步 + 播放暂停）",
+  "bg_lock_level_low": "低（仅播放暂停）",
+  "bg_release_resources": "彻底关闭副音后台（释放资源）",
+  "bg_reenable_support": "重新开启副音功能支持",
+  "bg_cross_section": "跨视频切换",
+  "bg_cross_item_title": "前台切到新的列表项",
+  "bg_cross_item_desc": "含真实媒体与整个虚拟合并项（虚拟合并视频计为一个列表项）。",
+  "bg_cross_segment_title": "虚拟视频内部切段（真正换物理文件）",
+  "bg_cross_segment_desc": "在同一个虚拟合并项内，切段会加载另一个物理文件。",
+  "bg_cross_keep_playing": "正常连播",
+  "bg_cross_keep_playing_tiled": "正常连播（平铺）",
+  "bg_cross_new_bg": "切新 bg",
+  "set_bg_item_switch": "切换列表项时",
+  "set_bg_item_switch_desc": "前台切到新的列表项（真实媒体或整个虚拟合并项）时副音怎么走：继续播当前副音，或换一首新的副音",
+  "set_bg_segment_switch": "虚拟视频切段时",
+  "set_bg_segment_switch_desc": "虚拟合并视频切换到另一个物理分块时副音怎么走：正常连播（按列表一次算好循环平铺、顺序播放对应副音）或换一首新的副音；带已保存规则的分块、以及本次启动单独调整过的分块只替换该分块",
+  "bg_vm_scope_rule": "虚拟视频匹配",
+  "bg_vm_scope_per_block": "仅匹配当前片段",
+  "bg_vm_scope_whole": "虚拟全部",
+  "bg_vm_scope_per_block_desc": "仅将当前分块的实际视频作为「仅当前」的匹配对象，因此每次内部分块切换都视为一次换媒体。",
+  "bg_vm_scope_whole_desc": "将当时所在的整个虚拟视频视作一个完整视频：内部切块时副音持续应用，只有切到别的视频才停止。音量比例仍按各分块各自保存；之后切到的下一个虚拟合并退回按片段匹配，仅被保存的部分做替换。",
+  "bg_reactivate_title": "副音重新打开时（仅当前范围）",
+  "bg_reactivate_same": "同一个副音",
+  "bg_reactivate_next": "列表下一个",
+  "bg_reactivate_desc": "停止副音后再次打开时落在哪一首（仅当前范围）：列表下一个会循环切换队列，列表仅 1 首时仍为同一首。",
+  "bg_tiled_manual_title": "记住本片段的副音对齐？",
+  "bg_tiled_manual_desc": "你刚在本片段手动切换了副音。选择它的起播方式——该选择仅对本片段在本次启动内有效，其余片段仍按最初的平铺计算。",
+  "set_bg_vm_scope_mode": "虚拟视频匹配（仅当前范围）",
+  "set_bg_vm_scope_mode_desc": "针对「仅当前」作用范围：仅匹配当前分块的实际视频（独立块匹配，默认），或将整个虚拟视频视作一个视频、副音在其内部分块间持续播放。带已保存映射的分块始终优先",
+  "bg_quick_bar": "快速控制栏",
+  "bg_auto_control_title": "副音已接管控制权",
+  "bg_auto_control_body": "副音已开启，控制栏（及快捷键、手势）现在操作副音——其外框标记为蓝色。可在副音菜单中切回。",
+  "bg_align_left": "左对齐",
+  "bg_align_right": "右对齐",
+  "dlg_warn_bg_auto_control_title": "副音接管控制提示",
+  "dlg_warn_bg_auto_control_desc": "首次副音接管控制时：说明蓝色外框的控制条操作副音",
+  "dlg_warn_scenario_workspace_title": "播放会替换工作区",
+  "dlg_warn_scenario_workspace_desc": "首次播放文件夹/多选前：说明播放会替换「正在播放」工作区，已保存场景需用覆盖/追加载入",
+  "dlg_scenario_workspace_body": "播放文件夹、多选或整个媒体库时的行为：\n播放都在同一「正在播放」工作区；上述操作会替换它（清空来源与显式项目），而非追加。保存的场景是计划：用「播放（覆盖）」载入，或用菜单「追加」并入当前队列。",
+  "dlg_warn_scenario_browse_play_title": "覆盖当前播放？",
+  "dlg_warn_scenario_browse_play_desc": "在浏览页执行「播放」前：说明会替换当前播放队列",
+  "dlg_warn_tag_grammar_title": "标签命令",
+  "dlg_warn_tag_grammar_desc": "首次打开标签面板前：说明 +n / -n / *n 数字命令",
+  "dlg_tag_grammar_body": "在播放中标记文件；各标签各自记录列表中的当前进度，而同一视频的播放进度在所有场景/标签间一致，不分别保存。\n标签是集合而非文件夹，用数字命令：\n\n• +n — 加入标签 n\n• -n — 从标签 n 移除\n• *n — 播放切换到标签 n 视图\n• *0 — 回到无标签列表\n\n序号用点连接（如 +1.2）。数字为列表中标签的位置，置顶在前。",
+  "dlg_warn_vm_concept_title": "合并播放",
+  "dlg_warn_vm_concept_desc": "首次创建虚拟媒体规则前：说明短片会合并为一条连续时间轴播放",
+  "dlg_vm_concept_body": "把多个视频合并为一条连续时间轴播放，便于进度条控制与连播。\n虚拟媒体规则基于持久媒体库（数据库）中已扫描的记录进行匹配，并在播放时把连续匹配的视频连接成一条时间轴、依次播放真实文件：\n\n• 实际文件不被修改、移动或拼接。\n• 续播跟随实际观看的文件，中断后回到最新看过的部分。\n• 某段时长未知时，该组退化为普通单文件（标黄表示代码存在 bug 异常）。",
+  "dlg_warn_app_overview_title": "IRIS 功能导览",
+  "dlg_warn_app_overview_desc": "首次启动的功能导览；可随时从「设置 → 关于」重新打开",
+  "set_bg_auto_focus": "开启副音时先切换控制权",
+  "set_bg_auto_focus_desc": "开启副音后，控制栏、快捷键与手势改为操作副音而非视频（以蓝色外框标记）。关闭则仍控制视频",
+  "set_bg_seek_link": "进度联动",
+  "set_bg_seek_link_desc": "联动：任一侧跳转都会带动另一侧。完全独立：两个播放器互不影响",
+  "set_bg_use_saved_mapping": "自动使用已保存的映射",
+  "set_bg_use_saved_mapping_desc": "开启（默认）：带已保存副音时间轴的视频会自动套用。关闭：忽略已保存的时间轴，副音按自己的队列播放",
+  "set_bg_lock_level": "进度锁定高低",
+  "set_bg_lock_level_desc": "高：快进快退步与播放暂停都跟随视频。低：仅播放暂停跟随。在「进度联动」为完全独立时不生效",
+  "set_bg_align_ring": "对齐编辑器环归属",
+  "set_bg_align_ring_desc": "侧边型对齐编辑器中，哪一环对应前景视频；副音占用另一环",
+  "set_bg_quick_bar": "快速控制栏",
+  "set_bg_quick_bar_desc": "在侧边面板旁显示一列，或在底栏内插入一行副音专属控制（控制权切换、画面切换、音量比例、时间轴映射、关闭）",
+  "set_bg_quick_bar_align": "快速控制栏对齐",
+  "set_bg_quick_bar_align_desc": "快速控制栏在底栏内的对齐方式（侧边面板固定吸附在朝向屏幕中心的一侧）",
+  "set_bg_follow_fg": "前台切换时副音跟随",
+  "set_bg_follow_fg_desc": "前台切到另一个视频时，按新视频当前位置重新解析其副音映射（默认关闭——副音绝不因前台切歌而停止或重启）",
+  "set_bg_rate_lock": "倍速与前台锁定",
+  "set_bg_rate_lock_desc": "自然播放的副音与前台视频保持相同倍速（默认开启）。映射段使用各自的对齐速率，不受此锁影响",
+  "set_bg_allow_same_file": "允许同一文件双开",
+  "set_bg_allow_same_file_desc": "允许同一个物理视频在前台与副音同时播放（默认关闭——副音队列会跳过与前台相同的文件）",
+  "set_bg_video_layout": "副音画面布局",
+  "set_bg_video_layout_desc": "全屏：控制目标为副音时画面切到副音视频。画中画与分屏为占位选项，尚未实现",
+  "bg_layout_fullscreen": "全屏",
+  "bg_layout_pip": "画中画（即将推出）",
+  "bg_layout_split": "分屏（即将推出）",
+  "set_bg_sources": "副音来源",
+  "set_bg_sources_desc": "按顺序解析的副音候选来源——标签成员、目录、单文件，或目录∩标签。匹配的媒体需已扫描入库",
+  "bg_sources_count_zero": "默认",
+  "bg_sources_empty_default": "尚未配置规则——副音候选来自内置默认（「副音备选」标签）。添加规则后将覆盖默认。",
+  "bg_sources_empty_hint": "点击“添加来源”可加入 标签 / 目录 / 文件 / 目录+标签 规则",
+  "bg_sources_add": "添加来源",
+  "bg_sources_remove": "移除来源",
+  "bg_sources_move_up": "上移",
+  "bg_sources_move_down": "下移",
+  "bg_sources_tags_error": "标签加载失败",
+  "bg_src_kind_tag": "标签",
+  "bg_src_kind_path": "目录",
+  "bg_src_kind_file": "文件",
+  "bg_src_kind_path_and_tag": "目录+标签",
+  "bg_src_field_tag": "标签",
+  "bg_src_field_storage": "存储 ID",
+  "bg_src_field_path": "路径",
+  "bg_src_field_path_hint": "该存储内的规范路径（需已扫描）",
+  "bg_src_field_name": "显示名（可选）",
+  "bg_src_kind_directory": "目录",
+  "bg_src_builtin_name": "音库纯 tag 源",
+  "bg_src_builtin_desc": "内置默认源——保留 tag「副音备选」的全部成员",
+  "bg_src_auto_dedupe": "自动去重",
+  "bg_src_auto_dedupe_desc": "同一文件被多个来源匹配时只保留一次（默认关闭——重复由你自行处理）",
+  "bg_src_refresh_now": "立即更新",
+  "bg_src_banner_fallback_title": "没有激活的来源",
+  "bg_src_banner_fallback_body": "所有来源规则都已关闭，将自动改用内置「音库纯 tag 源」。",
+  "bg_src_banner_refresh_body": "来源规则的改动仅在点「立即更新」或关闭再重开副音后生效。",
+  "bg_src_edit": "编辑",
+  "bg_src_duplicate": "复制",
+  "bg_src_delete": "删除",
+  "bg_src_pin": "置顶（优先显示）",
+  "bg_src_unpin": "取消置顶",
+  "bg_src_enabled": "已启用",
+  "bg_src_field_description": "描述",
+  "bg_src_field_kind": "来源方式",
+  "bg_src_field_sort": "排序",
+  "bg_src_field_direction": "方向",
+  "bg_src_field_tag_filter": "按 tag 过滤",
+  "bg_src_field_filter_tag": "过滤 tag",
+  "bg_src_pick_dir": "选择目录",
+  "bg_src_add_dir": "添加目录路径",
+  "bg_src_sort_tag_added": "标签添加时间",
+  "bg_src_sort_name": "名称",
+  "bg_src_sort_path": "路径",
+  "bg_src_sort_duration": "时长",
+  "bg_src_sort_modified": "修改时间",
+  "bg_src_sort_size": "大小",
+  "bg_src_new_rule": "新建来源规则",
+  "bg_src_edit_rule": "编辑来源规则",
+  "bg_src_delete_title": "删除规则",
+  "bg_src_delete_body": "确定删除「{name}」？",
+  "@bg_src_delete_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "bg_src_copy_name": "{name}（副本）",
+  "@bg_src_copy_name": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "bg_src_builtin_locked": "内置规则，不可删除",
+  "bg_src_dir_count": "{n} 个目录",
+  "@bg_src_dir_count": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
+  "bg_src_pattern_count": "{n} 个条件",
+  "@bg_src_pattern_count": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
+  "bg_src_summary_tag": "标签 · {tag}",
+  "@bg_src_summary_tag": {
+    "placeholders": {
+      "tag": {"type": "String"}
+    }
+  },
+  "bg_src_summary_dir": "{mode} · {scope}",
+  "@bg_src_summary_dir": {
+    "placeholders": {
+      "mode": {"type": "String"},
+      "scope": {"type": "String"}
+    }
+  },
+  "bg_src_summary_dir_tag": "{mode} · {scope} · 过滤标签 {tag}",
+  "@bg_src_summary_dir_tag": {
+    "placeholders": {
+      "mode": {"type": "String"},
+      "scope": {"type": "String"},
+      "tag": {"type": "String"}
+    }
+  },
+  "bg_src_summary_file": "文件 · {path}",
+  "@bg_src_summary_file": {
+    "placeholders": {
+      "path": {"type": "String"}
+    }
+  },
+  "set_bg_fallback_banner": "显示“无激活来源”提示",
+  "set_bg_fallback_banner_desc": "当没有任何来源规则激活、改用内置源时，在副音来源里显示可关闭的提示条",
+  "bg_mapping_missing_title": "映射文件不可用",
+  "bg_mapping_missing_body": "该映射段保存的副音文件缺失或未扫描：{name}。已改用自然副音播放。",
+  "@bg_mapping_missing_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "bg_open_failed_title": "副音无法播放该文件",
+  "bg_open_failed_body": "文件“{name}”无法打开。副音已停止它；可用「下一集」继续。",
+  "@bg_open_failed_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "bg_mapping_button": "时间轴映射",
+  "bg_ignore_saved_mapping": "忽略已保存",
+  "bg_mapping_use": "使用映射",
+  "bg_mapping_ignore_no_bg": "忽略静音段",
+  "bg_mapping_segment_play": "播放文件",
+  "bg_mapping_segment_silence": "不使用副音",
+  "bg_mapping_range_warning": "该段时长比超出支持的 0.5x–2.0x 范围，靠近段边界时对齐可能漂移。",
+  "bg_editor_empty": "该视频还没有映射段。添加一段可在指定窗口内用映射副音替代自然副音。",
+  "bg_editor_add": "添加映射段",
+  "bg_editor_current_bg": "当前播放",
+  "bg_editor_fg_range": "前台视频 (A) 区间",
+  "bg_editor_bg_range": "副音 (B) 区间",
+  "bg_editor_pick_fg": "取前台进度",
+  "bg_editor_pick_bg": "取副音进度",
+  "bg_editor_bg_file": "副音文件",
+  "bg_editor_no_bg_options": "当前没有可用的副音文件——请先启动副音播放或刷新候选。",
+  "bg_editor_bad_range": "区间无效——结束必须晚于开始。",
+  "bg_editor_conflict_title": "映射段重叠",
+  "bg_editor_conflict_body": "该区间与已有段重叠，请选择处理方式：",
+  "bg_editor_keep_front": "只保留新区间的前半段",
+  "bg_editor_keep_back": "只保留新区间的后半段",
+  "bg_editor_overwrite": "覆盖与其重叠的旧段",
+  "bg_editor_conflict_still": "该选择仍存在重叠——请改选或取消。",
+  "bg_segment_edit_title": "调整片段（A–B）",
+  "bg_segment_edit_frozen_hint": "调整期间传输已锁定——保存或取消前保持暂停。",
+  "bg_segment_add_bg": "添加副音片段",
+  "bg_segment_add_silence": "添加静音片段",
+  "bg_segment_need_bg": "当前没有可用的副音文件。请先开启副音，再添加片段。",
+  "bg_segment_conflict_title": "片段重叠",
+  "bg_segment_conflict_body": "该 A–B 区间与已有片段重叠，请选择处理方式：",
+  "bg_segment_conflict_overwrite": "覆盖被重叠的片段",
+  "bg_segment_conflict_trim": "移除本次新片段中重叠的部分",
+  "bg_segment_conflict_empty": "该区间已被现有片段完全覆盖，没有可保存的内容。",
+  "bg_segment_edit_no_span": "暂无可调整区间——开启副音后编辑器会自动生成。",
+  "bg_segment_need_enabled": "请先开启副音：A–B 编辑器用于调整视频与副音的对应关系。",
+  "bg_segment_no_bg": "无副音文件",
+  "bg_segment_policy_title": "当区间与已有片段重叠时：",
+  "bg_segment_policy_block": "卡死——不产生重叠",
+  "bg_segment_policy_overwrite": "覆盖被重叠的部分（未重叠的保持）",
+  "bg_segment_policy_trim": "丢弃本次区间的重叠部分（未重叠的保持）",
+  "bg_segment_save_ok_title": "已保存",
+  "bg_segment_save_ok_body": "已保存 {count} 个片段。",
+  "@bg_segment_save_ok_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bg_segment_save_fail_title": "未保存",
+  "bg_segment_save_missing_draft": "当前没有正在调整的区间。",
+  "bg_segment_save_no_fg": "视频尚未就绪（无时长）。",
+  "bg_segment_save_empty_span": "A–B 区间为空——请把 A 拖到 B 之前。",
+  "bg_segment_save_overlap_blocked": "该区间与已有片段重叠，且策略为「卡死」。请调整区间或改选其它策略。",
+  "bg_segment_save_fully_covered": "该区间已被现有片段完全覆盖，没有可保存的内容。",
+  "bg_segment_save_write_failed": "写入时间轴失败。",
+  "bg_segment_save_verify_failed": "写入无法校验——时间轴读取失败。",
+  "bg_segment_save_count_mismatch": "预期保存 {expected} 个片段，实际保存 {actual} 个。",
+  "@bg_segment_save_count_mismatch": {
+    "placeholders": {
+      "expected": {
+        "type": "int"
+      },
+      "actual": {
+        "type": "int"
+      }
+    }
+  },
+  "bg_mapping_manager_title": "副音映射管理",
+  "bg_mapping_manager_empty": "还没有已保存的副音映射。",
+  "bg_mapping_manager_no_duration": "缺少前台视频时长，该项无法打开。",
+  "bg_mapping_manager_close": "关闭",
+  "bg_mapping_manager_back": "返回",
+  "bg_mapping_manager_segment_count": "{count, plural, =1{1 段} other{{count} 段}}",
+  "@bg_mapping_manager_segment_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bg_mapping_manager_bg_names": "副音：{names}",
+  "@bg_mapping_manager_bg_names": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "bg_mapping_manager_overview_label": "前台映射总览",
+  "bg_mapping_manager_silence": "静音段",
+  "bg_mapping_manager_gap": "无映射",
+  "bg_mapping_manager_uncovered": "副音缺失",
+  "bg_mapping_manager_unknown_bg": "未知副音",
+  "bg_mapping_manager_staged": "已暂存",
+  "bg_mapping_manager_apply": "应用",
+  "bg_mapping_manager_discard": "放弃",
+  "bg_mapping_manager_delete_segment": "删除片段",
+  "bg_mapping_manager_replace_bg": "替换副音",
+  "bg_mapping_manager_activate": "启用该片段",
+  "bg_mapping_manager_deactivate": "停用（保留已保存数据）",
+  "bg_mapping_manager_active_order": "激活 #{order}",
+  "@bg_mapping_manager_active_order": {
+    "placeholders": {
+      "order": {
+        "type": "int"
+      }
+    }
+  },
+  "bg_mapping_manager_save_source_title": "保存映射",
+  "bg_mapping_manager_save_source_body": "该视频已在使用一个已保存映射（{name}）。要覆盖那个片段，还是保存为新片段？",
+  "@bg_mapping_manager_save_source_body": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bg_mapping_manager_save_overwrite": "覆盖原片段（默认）",
+  "bg_mapping_manager_save_as_new": "保存为新片段",
+  "bg_mapping_manager_save_preview_title": "已保存",
+  "bg_mapping_manager_save_preview_body": "映射已保存。下方总览显示本次保存后的结果。",
+  "bg_mapping_manager_pick_bg_title": "选择副音文件",
+  "bg_mapping_manager_pick_bg_empty": "没有可用的副音候选。",
+  "bg_mapping_manager_edit_segment": "编辑片段",
+  "bg_mapping_manager_staged_ok_body": "已暂存。返回映射管理页点「应用」以保存。",
+  "bg_mapping_manager_edit_no_fg": "无法加载该视频文件用于编辑。",
+  "bg_mapping_manager_edit_no_bg": "没有可用的副音候选，无法打开编辑器。",
+  "bg_mapping_manager_staged_hint": "暂存的改动在应用前不会生效。",
+  "bg_mapping_manager_apply_ok_title": "已应用",
+  "bg_mapping_manager_apply_ok_body": "已保存暂存的副音映射。",
+  "bg_mapping_manager_conflict_title": "映射已在别处变更",
+  "bg_mapping_manager_conflict_body": "该映射在你开始编辑后被修改。请放弃暂存改动并重新打开后再编辑。",
+  "bg_mapping_manager_apply_invalid_title": "无法应用",
+  "bg_mapping_manager_apply_failed_title": "未应用",
+  "bg_mapping_manager_segment_range": "{start} – {end}",
+  "@bg_mapping_manager_segment_range": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "bg_mapping_manager_bg_window": "副音 {start} – {end}",
+  "@bg_mapping_manager_bg_window": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "tag_system_reserved": "系统标签",
+  "tag_system_cannot_delete": "系统标签不可删除或改名",
+
+  "bg_align_edit_title": "副音对齐",
+  "bg_align_fg_slider": "视频",
+  "bg_align_bg_slider": "副音",
+  "bg_align_save": "保存对齐",
+  "bg_align_exit_no_save": "不保存退出",
+  "bg_align_exit_discard_title": "放弃本次对齐？",
+  "bg_align_exit_discard_body": "你调整过的 A–B 窗口尚未保存，现在退出将丢弃它。",
+  "bg_align_swap_rings": "互换哪一环是视频",
+  "bg_align_ring_fg_inner": "视频在内环",
+  "bg_align_ring_fg_outer": "视频在外环",
+  "bg_align_volume_distribute": "音量分配",
+  "bg_align_ratio_fg": "视频占比",
+  "bg_align_ratio_bg": "副音占比",
+  "bg_align_ratio_fg_mute": "前景静音",
+  "bg_align_ratio_bg_mute": "副音静音",
+  "bg_align_master_volume": "实际音量",
+  "bg_align_master_mute": "全部静音",
+  "bg_align_silence_no_file": "保存为静音（无文件）",
+  "bg_align_silence_no_file_title": "静音副音片段",
+  "bg_align_silence_no_file_body": "将不带任何副音文件保存该区间——副音在此静音。若想保留文件仅静音，请把副音占比设为 0%。",
+  "bg_align_snap_tooltip": "卡值：A / P / B 对齐已保存边界",
+  "set_bg_align_snap": "卡值（对齐已保存边界）",
+  "set_bg_align_snap_desc": "开启后，A、P、B 手柄移到已保存片段边界时会像碰到 0% / 100% 端点一样精确卡住；抬手后继续拖动可临时穿过。",
+  "set_bg_align_snap_release_limit": "最多保留已解除卡值数",
+  "set_bg_align_snap_release_limit_desc": "最近解除的边界可保留几个可穿透；撞到新边界且已满时，取消最早的解除（1–10000）。",
+  "bg_align_snap_guide_title": "卡值（对齐已保存边界）使用说明",
+  "bg_align_snap_guide_body": "开启卡值后，每个已保存前景片段的边界都会成为 APB 环上的一道墙：A、P、B 会精确停在墙上，就像碰到 0% / 100% 端点一样；端点本身不产生卡值。要越过一道墙：抬起手指后朝同一方向继续拖动——你撞到的那道墙会被解除，此后可自由穿过。撞到另一道墙会解除它；只保留最近解除的 N 个（见解除数量设置），更早的解除会被取消并重新生效。被解除的墙不再绘制。前景缩放时，只绘制可视范围内的卡值。开关卡值会清空所有解除记录。",
+  "bg_align_snap_none_title": "暂无可用卡值",
+  "bg_align_snap_none_body": "卡值已开启，但当前可视范围内没有已保存片段的边界（0% / 100% 端点不计）。请先保存一个片段，A / P / B 才能卡到它的边上。",
+  "bg_align_force_seek_title": "跳回该已保存片段？",
+  "bg_align_force_seek_body": "当前播放进度已远在该视频的副音片段之外。打开对齐编辑器会把播放位置强制拉回到 A 点（{a}），以便显示该映射。",
+  "@bg_align_force_seek_body": {
+    "placeholders": {
+      "a": {
+        "type": "String"
+      }
+    }
+  },
+  "bg_align_force_seek_confirm": "继续",
+  "bg_align_locked_hint": "编辑中：已锁定当前文件，拖动进度两侧同步。拖动 P 手柄整体移动 A–B 段。",
+  "dlg_warn_bg_align_exit_title": "放弃对齐编辑",
+  "dlg_warn_bg_align_exit_desc": "确认在未保存 A–B 窗口的情况下退出对齐编辑器",
+  "dlg_warn_bg_align_silence_title": "静音（无文件）保存",
+  "dlg_warn_bg_align_silence_desc": "首次说明：保存静音片段会不带副音文件地存储该区间",
+  "dlg_warn_bg_align_default_hint_title": "默认对齐提示",
+  "dlg_warn_bg_align_default_hint_desc": "对齐编辑器内显示已存默认值及下次生效说明的行内提示",
+  "dlg_warn_bg_align_percent_hint_title": "比例滑杆提示",
+  "dlg_warn_bg_align_percent_hint_desc": "对齐编辑器百分比滑杆下方的行内说明",
+  "dlg_warn_bg_align_snap_title": "卡值使用说明",
+  "dlg_warn_bg_align_snap_desc": "首次说明对齐编辑器的卡值（对齐已保存边界）功能",
+  "dlg_warn_bg_align_snap_none_title": "无可用卡值提示",
+  "dlg_warn_bg_align_snap_none_desc": "开启卡值但没有可用已保存边界时显示",
+  "dlg_warn_bg_align_force_seek_title": "对齐编辑跳转位置",
+  "dlg_warn_bg_align_force_seek_desc": "播放进度远离已保存片段时，打开副音对齐编辑器前会询问；确认后会把播放位置拉回到 A 点。关闭此项后，打开编辑器将不再询问、默认直接跳回 A 点。",
+  "bg_align_move_a_here": "把 A 移到当前位置",
+  "bg_align_move_p_here": "把 P（中心）移到当前位置",
+  "bg_align_move_b_here": "把 B 移到当前位置",
+  "bg_align_move_hint_title": "移动 A / B",
+  "bg_align_move_hint_body": "必须始终 A 在 P 之前、B 在 P 之后。当前播放点在中心左侧时可移动 A，在右侧时可移动 B；另一侧按钮会置灰。",
+  "dlg_warn_bg_align_move_title": "移动 A/B 提示",
+  "dlg_warn_bg_align_move_desc": "把对齐端点移动到当前位置时的 A<P<B 规则说明",
+
+  "storage_name_template_title": "名称模板",
+  "storage_name_template_global": "全局生效",
+  "storage_name_separator_label": "分隔符",
+  "storage_name_preview_label": "预览",
+  "storage_name_reset": "重置",
+  "storage_name_tag_type": "类型",
+  "storage_name_tag_account": "账户",
+  "storage_name_tag_host": "主机",
+  "storage_name_tag_port": "端口",
+  "storage_name_tag_path": "路径",
+  "storage_keep_saved_password_hint": "留空保持原密码",
+
+  "storage_shared_library_title": "共用同一媒体库？",
+  "storage_shared_library_message": "{name} 已使用该账户与路径树。新条目将共享其媒体库，不重复存储节点。",
+  "@storage_shared_library_message": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "webdav_shared_host_confirm_title": "主机已被占用",
+  "webdav_shared_host_confirm_message": "另一条目已使用 {host}。仍要将本条连接到同一主机吗？",
+  "@webdav_shared_host_confirm_message": {
+    "placeholders": {
+      "host": {"type": "String"}
+    }
+  },
+  "webdav_shared_host_prompt_title": "重复主机连接提示",
+  "webdav_shared_host_prompt_desc": "当两个同账户条目使用同一主机时先询问。关闭后始终允许。",
+
+  "dragdrop_scope_restricted_title": "受浏览范围限制",
+  "dragdrop_scope_restricted_body": "拖入的部分内容不在当前浏览媒体范围内，已忽略；只播放在范围内的媒体。",
+  "dragdrop_scope_restricted_continue": "继续",
+  "dlg_warn_dragdrop_scope_title": "拖入内容范围提示",
+  "dlg_warn_dragdrop_scope_desc": "首次说明：拖入的文件或文件夹若不在浏览媒体范围内会被忽略",
+
+  "drop_zone_append_label": "添加到播放列表",
+  "drop_zone_play_label": "播放",
+  "set_drop_append_zone_percent": "拖放区域分割",
+  "set_drop_append_zone_percent_desc": "播放器顶部该比例高度用于把拖入内容追加到播放列表，其余区域直接播放",
+  "set_playback_cache_preset": "视频缓存大小",
+  "set_playback_cache_preset_desc": "缓存越大，快退越顺畅，但占用更多内存。仅对 Media Kit 后端生效。",
+  "set_cache_preset_low": "低",
+  "set_cache_preset_balanced": "均衡",
+  "set_cache_preset_high": "高",
+  "startup_failed_title": "启动失败",
+  "startup_failed_body": "IRIS 无法完成启动。你的数据没有被修改。\n\n$error",
+  "@startup_failed_body": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "startup_failed_retry": "重试",
+  "startup_failed_quit": "退出"
 }

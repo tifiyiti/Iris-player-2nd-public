@@ -1,17 +1,26 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart' hide Chip;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
+import 'package:iris/features/meta_settings/engine/browse_scope_snapshot.dart'
+    show currentBrowseMediaScope;
 import 'package:iris/models/file.dart';
 import 'package:iris/models/progress.dart';
+import 'package:iris/models/storages/local.dart';
 import 'package:iris/models/storages/storage.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_history_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
+import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/utils/path_conv.dart';
+import 'package:iris/widgets/a11y_tooltip.dart';
 import 'package:iris/widgets/chip.dart';
+import 'package:iris/widgets/popup.dart';
+import 'package:iris/widgets/popups/storages/db/storages_db.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class History extends HookWidget {
@@ -23,8 +32,18 @@ class History extends HookWidget {
     final Map<String, Progress> history =
         useHistoryStore().select(context, (state) => state.history);
 
+    final useLegacy = useAppStore()
+        .select(context, (s) => s.useLegacyStoragePersistence);
+    final popupDirection = useAppStore()
+        .select(context, (s) => s.defaultPopupDirection);
+
     final List<MapEntry<String, Progress>> historyList = useMemoized(() {
-      final entries = history.entries.toList();
+      // Display-layer scope filter: out-of-scope entries stay persisted but
+      // never surface here.
+      final scope = currentBrowseMediaScope();
+      final entries = history.entries
+          .where((e) => e.value.file.matchesBrowseScope(scope))
+          .toList();
       entries.sort((a, b) => b.value.dateTime.compareTo(a.value.dateTime));
       return entries.sublist(0, min(entries.length, 100));
     }, [history]);
@@ -77,8 +96,12 @@ class History extends HookWidget {
                           "${fileSizeConvert(historyList[index].value.file.size)} MB"),
                     const Spacer(),
                     () {
-                      final Progress? progress = useHistoryStore()
-                          .findById(historyList[index].value.file.getID());
+                      final Progress? progress = useHistoryStore().findById(
+                          // historyList[index].value.file.getID());  // legacy
+                          canonicalProgressKey(
+                              historyList[index].value.file.storageId,
+                              historyList[index].value.file.path,
+                              uri: historyList[index].value.file.uri)); // unified
                       if (progress != null &&
                           progress.file.type == ContentType.video) {
                         if ((progress.duration.inMilliseconds -
@@ -119,6 +142,9 @@ class History extends HookWidget {
                   ],
                 ),
                 trailing: PopupMenuButton<FileOptions>(
+                  // Windows drops the payload (AXTree graft race, see
+                  // rowTooltip); other platforms keep "Show menu".
+                  tooltip: rowTooltip(null),
                   clipBehavior: Clip.hardEdge,
                   constraints: const BoxConstraints(minWidth: 200),
                   onSelected: (value) async {
@@ -131,8 +157,16 @@ class History extends HookWidget {
                         useHistoryStore().remove(historyList[index].value);
                         break;
                       case FileOptions.openInFolder:
-                        await openInFolder(
-                            context, historyList[index].value.file);
+                        if (useLegacy) {
+                          await openInFolder(
+                            context,
+                            historyList[index].value.file,
+                            direction: popupDirection,
+                          );
+                        } else {
+                          await _openInFolderDb(context,
+                              historyList[index].value.file, popupDirection);
+                        }
                         break;
                     }
                   },
@@ -183,5 +217,41 @@ class History extends HookWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _openInFolderDb(
+      BuildContext context, FileItem file, PopupDirection popupDirection) async {
+    if (file.path.isEmpty) return;
+    useStorageStore()
+        .updateCurrentPath(file.path.sublist(0, file.path.length - 1));
+
+    Storage? storage = useStorageStore().findById(file.storageId);
+
+    if (storage != null) {
+      useStorageStore().updateCurrentStorage(storage);
+    } else {
+      final localStorages = await getLocalStorages(context);
+      storage = localStorages.firstWhereOrNull(
+          (element) => element.basePath[0] == file.path[0]);
+      if (storage != null) {
+        useStorageStore().updateCurrentStorage(storage);
+      } else {
+        useStorageStore().updateCurrentStorage(
+          LocalStorage(
+            type: file.storageType,
+            name: file.path[0],
+            basePath: [file.path[0]],
+          ),
+        );
+      }
+    }
+
+    if (context.mounted) {
+      replacePopup(
+        context: context,
+        child: const StoragesDb(),
+        direction: popupDirection,
+      );
+    }
   }
 }

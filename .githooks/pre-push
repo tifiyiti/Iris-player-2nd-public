@@ -1,0 +1,24 @@
+#!/bin/sh
+# Light warning only (never blocks push): if split APKs still sit in the
+# build output, remind the author that manual device installs must use the
+# universal apk (see AGENTS.md:469 and scripts/check-apk-install.* threshold 600).
+set -eu
+found=""
+# shellcheck disable=SC2044,SC2154
+# 2>/dev/null lives outside the for-list: inside the [ ... ] tests the
+# unmatched-glob literal just fails -e, so no /dev/null guard is needed.
+for f in build/app/outputs/flutter-apk/app-*-release.apk IRIS-android-*.apk \
+    build/app/outputs/apk/*/release/*.apk; do
+  # shellcheck disable=SC2086
+  [ -e $f ] || continue
+  case "$f" in
+    *arm64*|*armeabi*|*x86_64*) found="$found $f" ;;
+  esac
+done
+if [ -n "$found" ]; then
+  echo "[pre-push] [warn] detected split apks:$found" >&2
+  echo "[pre-push] Manual installs must use the universal apk (app-tifi7-debug.apk, flutter build apk --debug --flavor tifi7)." >&2
+  echo "[pre-push] Pending versionCode jump >600 is blocked by scripts/check-apk-install.* (split +2000 vs universal)." >&2
+  echo "[pre-push] CI split apks (--split-per-abi) are for distribution only (ci.yml:96)." >&2
+fi
+exit 0

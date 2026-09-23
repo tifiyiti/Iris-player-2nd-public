@@ -2,7 +2,12 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "IRIS"
-#define MyAppVersion "1.5.2"
+#define MyAppDisplayName "IRIS"
+; Version tracks pubspec.yaml. CI / local scripts override it with
+; iscc /DMyAppVersion=<version>; the literal below is only a fallback.
+#ifndef MyAppVersion
+#define MyAppVersion "2.0.0"
+#endif
 #define MyAppPublisher "nini22P"
 #define MyAppURL "https://github.com/nini22P/iris"
 #define MyAppExeName "iris.exe"
@@ -36,7 +41,7 @@ DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only).
 ;PrivilegesRequired=lowest
 OutputDir=build\windows\x64\runner\Release
-OutputBaseFilename=IRIS-windows-installer
+OutputBaseFilename=IRIS-windows-installer-v{#MyAppVersion}
 SolidCompression=yes
 WizardStyle=modern
 CloseApplications=force
@@ -181,8 +186,8 @@ Root: HKLM; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\{#MyApp
 Root: HKLM; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\{#MyAppExeName}"; ValueType: string; ValueName: "Path"; ValueData: "{app}"
 
 [Icons]
-Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{autoprograms}\{#MyAppDisplayName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{autodesktop}\{#MyAppDisplayName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent

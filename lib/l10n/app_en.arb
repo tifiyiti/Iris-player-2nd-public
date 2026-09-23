@@ -26,7 +26,7 @@
   "close": "Close",
   "confirmUpdate": "Confirm update",
   "crop": "Crop",
-  "dark": "Datk",
+  "dark": "Dark",
   "dependencies": "Dependencies",
   "device": "Device",
   "download": "Download",
@@ -89,7 +89,7 @@
   "repeat_one": "Repeat: One",
   "retry": "Retry",
   "save": "Save",
-  "screen_orientation": "ScreenOrientation",
+  "screen_orientation": "Screen orientation",
   "select_language": "Select language",
   "settings": "Settings",
   "shuffle": "Shuffle",
@@ -113,5 +113,3039 @@
   "version": "Version",
   "video": "Video",
   "video_zoom": "Video zoom",
-  "volume": "Volume"
+  "volume": "Volume",
+
+  "phone_landscape_slider_type": "Phone landscape slider type",
+  "ph_use_normal_slider": "Normal",
+  "ph_use_circle_slider_right": "Circle Right",
+  "ph_use_circle_slider_left": "Circle Left",
+
+  "circle_slider_landscape_percent": "One-hand Panel Width",
+  "circle_slider_scale": "Circle Slider Scale",
+  "@circle_slider_scale": {
+    "description": "Label for circle slider size / scale control"
+  },
+  "screen_rotation": "Screen orientation",
+
+  "reuse_last_orientation": "Reuse last orientation",
+  "reuse_last_orientation_description":
+  "When disabled, the app starts using your default orientation.",
+
+  "circle_slider_center_action":"Circle Slider Center Action",
+
+  "circle_slider_center_none":"Do nothing",
+  "circle_slider_center_toggle_controls":"Show / hide control overlay",
+  "circle_slider_center_toggle_play_pause":"Play / Pause",
+  "circle_slider_center_switch_group":"Switch bottom control group",
+
+  "gesture_backward_10s": "Rewind 10 seconds",
+  "@gesture_backward_10s": {
+    "description": "Gesture hint for double tap on left side to rewind playback"
+  },
+
+  "gesture_play_pause": "Play / Pause",
+  "@gesture_play_pause": {
+    "description": "Gesture hint for tap in center area to toggle play or pause"
+  },
+
+  "gesture_forward_10s": "Forward 10 seconds",
+  "@gesture_forward_10s": {
+    "description": "Gesture hint for double tap on right side to forward playback"
+  },
+
+  "gesture_brightness": "Brightness",
+  "@gesture_brightness": {
+    "description": "Vertical gesture hint for adjusting screen brightness"
+  },
+
+  "gesture_volume": "Volume",
+  "@gesture_volume": {
+    "description": "Vertical gesture hint for adjusting volume"
+  },
+
+  "gesture_speed_control": "Playback speed",
+  "@gesture_speed_control": {
+    "description": "Gesture hint for controlling playback speed"
+  },
+
+  "show_gesture_overlay": "Gesture guide",
+  "@show_gesture_overlay": {
+    "description": "Menu item title for showing the gesture guide overlay"
+  },
+
+
+
+  "gesture_settings": "Gesture Settings",
+
+  "landscape_gesture_profile": "Landscape Gesture",
+  "portrait_gesture_profile": "Portrait Gesture",
+
+  "gesture_profile_classic": "Legacy (no regions — oldest default)",
+  "gesture_profile_region": "Region-based",
+  "gesture_profile_right_hand": "Right-hand",
+  "gesture_profile_left_hand": "Left-hand",
+  "gesture_profile_tag_play": "Tag play",
+
+  "landscape_gesture_profile_desc":
+  "Controls how landscape gestures behave during playback.",
+
+  "portrait_gesture_profile_desc":
+  "Controls how portrait gestures behave during playback.",
+
+
+  "show_controls_on_play_to_pause": "Show controls when paused",
+  "show_controls_on_play_to_pause_description":
+  "Automatically show playback controls when playback changes from playing to paused (except classic gesture)",
+
+  "webdav_host_hint": "Host can be a hostname, domain, or IPv4 address.\n\nAn IPv4 host may use '*' as a wildcard in up to two octets.\n\nExamples:\n• 192.168.1.10\n• 192.168.1.*\n• 192.168.*.*\n• example.com\n\nHow lookup works:\n• Previously used hosts are retried first, then nearby devices are discovered, then the current subnet is scanned with bounded concurrency (usually seconds).\n• Only hosts reachable on your current network are tried, and the scan stops at the first match.",
+  "host_hint_toggle": "Host format & scan notes",
+
+
+  "invalid_ip_pattern": "Invalid IP format. IPv4 only, with at most two '*'.",
+  "testing": "Testing",
+  "connected_to": "Connected to",
+  "connection_failed": "Connection failed",
+  "cancel_test": "Cancel test",
+  "test_cancelled": "Test cancelled",
+  "webdav_testing_host": "Testing {host} ({index}/{total})",
+  "@webdav_testing_host": {
+    "placeholders": {
+      "host": {"type": "String"},
+      "index": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "webdav_auth_rejected": "Found a host, but the username or password was rejected.",
+  "webdav_no_distinct_host": "No separate host found — another entry already uses {host}.",
+  "@webdav_no_distinct_host": {
+    "placeholders": {
+      "host": {"type": "String"}
+    }
+  },
+
+  "export_import": "Export / Import",
+  "export_options": "Export options",
+  "import_options": "Import options",
+
+  "export_import_app_settings": "App Settings",
+  "storage_favorites": "Storage / Favorites",
+
+  "storage_import_mode": "Storage import mode",
+  "import_append": "Append",
+  "import_override": "Override",
+  "import_override_hint": "If off → append",
+
+  "export_label": "Export",
+  "import_label": "Import",
+
+  "export_success": "Exported successfully",
+  "import_success": "Imported successfully",
+
+  "export_failed": "Export failed",
+  "import_failed": "Import failed",
+
+  "export_cancelled": "Export cancelled",
+  "import_cancelled": "Import cancelled",
+
+  "import_nothing_selected": "Nothing selected to import",
+  "export_nothing_selected": "Nothing selected to export",
+
+  "transfer_sec_app_settings": "App settings",
+  "transfer_sec_app_settings_desc": "Legacy snapshot + setting_values rows; other-platform keys auto-skip on cross-platform import",
+  "transfer_sec_history": "Play history",
+  "transfer_sec_history_desc": "Per-file progress and history",
+  "transfer_sec_favorites": "Favorites",
+  "transfer_sec_favorites_desc": "Favorite path list",
+  "transfer_sec_scenarios": "Playback scenarios",
+  "transfer_sec_scenarios_desc": "Scenario definitions, sources, excludes, explicit items, states",
+  "transfer_sec_tag_play": "Tag play",
+  "transfer_sec_tag_play_desc": "Tags, members, view states, pin presets",
+  "transfer_sec_virtual_media": "Virtual media",
+  "transfer_sec_virtual_media_desc": "Virtual media rules and states",
+  "transfer_sec_network": "Network storages",
+  "transfer_sec_network_desc": "WebDAV / FTP (passphrase-encrypted, phone/desktop portable)",
+  "transfer_sec_unsupported_suffix": "(unsupported)",
+  "transfer_sec_missing_suffix": "(not in file)",
+  "transfer_res_skip": "Skip",
+  "transfer_res_append": "Append",
+  "transfer_res_overwrite": "Overwrite",
+  "transfer_excl_local": "Local storages",
+  "transfer_excl_local_reason": "Device-specific paths (SAF content://, drive letters, mount points) do not exist after switching devices/platforms; credentials are machine-bound too. Re-add on the new device.",
+  "transfer_excl_nodes": "Media library nodes",
+  "transfer_excl_nodes_reason": "Device-specific full file tree, potentially huge, and rebuildable by rescanning - not transferable.",
+  "transfer_excl_scan": "Scan states",
+  "transfer_excl_scan_reason": "Device-specific and transient; rescan after reinstall.",
+  "transfer_excl_queue": "Play queue",
+  "transfer_excl_queue_reason": "Transient queue; does not migrate with settings.",
+  "transfer_excl_current": "Current playback position (runtime)",
+  "transfer_excl_current_reason": "Transient state; does not migrate with settings.",
+  "transfer_platform_android": "Phone (Android)",
+  "transfer_platform_ios": "Phone (iOS)",
+  "transfer_platform_windows": "Desktop (Windows)",
+  "transfer_platform_linux": "Desktop (Linux)",
+  "transfer_platform_macos": "Desktop (macOS)",
+  "transfer_platform_unknown": "Unknown device",
+  "transfer_platform_skipped_note": "Source-platform-only, skipped",
+  "transfer_export_intro": "This device: {here} - phone/desktop portable: cross-platform import auto-skips the other side's exclusive settings; network storages (WebDAV/FTP) migrate normally.",
+  "@transfer_export_intro": {
+    "placeholders": {
+      "here": {"type": "String"}
+    }
+  },
+  "transfer_export_pass_required": "Exporting network storages needs a passphrase",
+  "transfer_export_pass_note": "Network storages need passphrase encryption (never plaintext)",
+  "transfer_export_pass_numeric": "Numeric passphrase",
+  "transfer_export_pass_custom": "Custom passphrase",
+  "transfer_export_pass_label": "Passphrase",
+  "transfer_export_pass_numeric_hint": "At least 4 digits",
+  "transfer_export_pass_custom_hint": "Any passphrase",
+  "transfer_export_pass_numeric_rule": "Must be all digits, at least 4.",
+  "transfer_export_pass_short_rule": "Shorter passphrases are easier to crack.",
+  "transfer_export_pass_empty": "A passphrase is required to export network storages",
+  "transfer_export_pass_numeric_bad": "Numeric passphrase needs at least 4 digits",
+  "transfer_export_pass_too_short": "Passphrase needs at least 4 characters",
+  "transfer_import_decrypt_title": "Enter passphrase to decrypt",
+  "transfer_import_pass_label": "Passphrase",
+  "transfer_import_pass_empty": "Passphrase cannot be empty",
+  "transfer_import_pass_bad": "Wrong passphrase or corrupted file: {error}",
+  "@transfer_import_pass_bad": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "transfer_import_parse_failed": "File parse failed {error}",
+  "@transfer_import_parse_failed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "transfer_import_route": "Source: {from} -> this device: {to}",
+  "@transfer_import_route": {
+    "placeholders": {
+      "from": {"type": "String"},
+      "to": {"type": "String"}
+    }
+  },
+  "transfer_import_cross_note": "Cross-platform import: the other side's exclusive settings auto-skip; network storages (WebDAV/FTP) and favorites/scenarios migrate normally.",
+  "transfer_import_legacy_note": "Legacy export file detected (format 1); will import compatibly.",
+  "transfer_import_skip_errors": "Skip errored items, import the rest",
+  "transfer_import_skip_errors_note": "Handled per section: one bad item only affects that item, one bad section only that section.",
+  "transfer_report_partial_title": "Import finished (partial failures)",
+  "transfer_report_counts": "OK: {ok}  Failed: {fail}",
+  "@transfer_report_counts": {
+    "placeholders": {
+      "ok": {"type": "int"},
+      "fail": {"type": "int"}
+    }
+  },
+  "transfer_report_platform_skipped": "{count} items are source-platform-only and were skipped (safe to ignore).",
+  "@transfer_report_platform_skipped": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "transfer_report_section_line": "{section}: {ok} OK, {fail} failed",
+  "@transfer_report_section_line": {
+    "placeholders": {
+      "section": {"type": "String"},
+      "ok": {"type": "int"},
+      "fail": {"type": "int"}
+    }
+  },
+  "transfer_report_skipped_note": "Errored items were skipped; the rest imported as far as possible.",
+  "transfer_audit_title": "Password import/export log",
+  "transfer_audit_empty": "No records yet",
+  "transfer_audit_export": "Export",
+  "transfer_audit_import": "Import",
+  "transfer_audit_encrypted": "Encrypted ({kind})",
+  "@transfer_audit_encrypted": {
+    "placeholders": {
+      "kind": {"type": "String"}
+    }
+  },
+  "transfer_audit_plain": "Not encrypted",
+  "transfer_audit_row": "{op} - {enc} - {result}",
+  "@transfer_audit_row": {
+    "placeholders": {
+      "op": {"type": "String"},
+      "enc": {"type": "String"},
+      "result": {"type": "String"}
+    }
+  },
+  "transfer_audit_detail": "{at}\nSections: {sections}{note}",
+  "@transfer_audit_detail": {
+    "placeholders": {
+      "at": {"type": "String"},
+      "sections": {"type": "String"},
+      "note": {"type": "String"}
+    }
+  },
+  "transfer_audit_clear_title": "Clear all records?",
+  "transfer_audit_clear_body": "This cannot be undone; single-record delete is unsupported.",
+  "transfer_audit_clear": "Clear",
+  "transfer_audit_clear_all": "Clear all",
+  "transfer_audit_cleared": "Cleared",
+  "playq_search_title": "Search play queue",
+  "playq_search_hint": "Enter filename keywords",
+  "playq_search": "Search",
+  "playq_search_label": "Search",
+  "playq_search_active": "Search: {query} (clear)",
+  "@playq_search_active": {
+    "placeholders": {
+      "query": {"type": "String"}
+    }
+  },
+  "playq_add": "Add",
+  "playq_delete": "Delete",
+  "playq_delete_title": "Delete",
+  "playq_delete_body": "This removes the current playing item from the queue. Continue?",
+  "playq_sort_title": "Sort",
+  "playq_sort_tip": "Sort",
+  "playq_sort_asc": "Ascending",
+  "playq_sort_desc": "Descending",
+  "playq_sort_title_field": "By title",
+  "playq_sort_filename": "By filename",
+  "playq_sort_ext": "By extension",
+  "playq_sort_size": "By size",
+  "playq_sort_duration": "By duration",
+  "playq_sort_date": "By date",
+  "playq_sort_shuffle": "Shuffle",
+  "playq_sort_group_folder": "Group contiguous by folder",
+  "playq_move_top": "Move to top",
+  "playq_move_up": "Move up",
+  "playq_move_down": "Move down",
+  "playq_move_bottom": "Move to bottom",
+  "search_play_options_body": "This media cannot be played from the current playing scenario queue.",
+  "search_play_file_only": "Play this media only",
+  "search_play_folder": "Play its folder",
+  "search_play_results": "Play search result",
+  "search_play_scenario": "Play scenario",
+  "search_info_path": "Path: {path}",
+  "@search_info_path": {
+    "placeholders": {
+      "path": {"type": "String"}
+    }
+  },
+  "search_info_origin": "Origin: {origin}",
+  "@search_info_origin": {
+    "placeholders": {
+      "origin": {"type": "String"}
+    }
+  },
+  "search_origin_explicit": "Explicit",
+  "search_origin_source": "Source",
+  "search_meta_video": "Video",
+  "search_meta_audio": "Audio",
+  "search_excludes_label": "Exclude rules (respect excludes)",
+  "search_last_scope": "Last: {scope}",
+  "@search_last_scope": {
+    "placeholders": {
+      "scope": {"type": "String"}
+    }
+  },
+  "scan_incomplete_title": "Previous scan was not completed",
+  "scan_incomplete_body": "A previous scan was interrupted. Do you want to resume from where it left off, or start a new scan?",
+  "scan_incomplete_new": "Start new scan",
+  "scan_incomplete_resume": "Resume",
+  "search_scope_tip": "Scope",
+  "search_scope_all": "All sources",
+  "search_scope_recursive": "Current dir · recursive",
+  "search_scope_direct": "Current dir · direct",
+  "search_stay_open": "Keep open",
+  "search_close_on_play": "Close on play",
+  "search_sort_tip": "Sort",
+  "search_sort_name": "Name",
+  "search_sort_path": "Path",
+  "search_sort_modified": "Modified",
+  "search_sort_size": "Size",
+  "search_sort_duration": "Duration",
+  "search_sort_resolution": "Resolution",
+  "search_act_open_lib": "Open in lib",
+  "search_act_open_folder": "Open in folder",
+  "search_act_play_single": "Play single",
+  "search_act_append": "Append",
+  "search_act_override": "Override",
+  "search_err_no_results": "Nothing playable: the current search results are empty.",
+  "search_err_scenario_missing": "The searched scenario no longer exists.",
+  "search_err_selection_not_in_db": "Nothing playable: the selection is not in the media database.",
+  "search_err_empty_folder": "Nothing playable: folder \"{folder}\" has no playable media files.",
+  "@search_err_empty_folder": {
+    "placeholders": {
+      "folder": {"type": "String"}
+    }
+  },
+  "search_err_not_in_db": "the file is not in the media database.",
+  "search_err_no_scenario": "there is no playing scenario right now.",
+  "search_err_not_in_queue": "the file is not in the current play queue.",
+  "search_err_cannot_play": "Cannot play \"{name}\": {reason}",
+  "@search_err_cannot_play": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "reason": {"type": "String"}
+    }
+  },
+  "keybind_title": "Custom shortcuts",
+  "keybind_hint": "Only the PotPlayer scheme is editable. Changes apply immediately. Clearing unbinds (the key does nothing); bold blue means customized, tap the counter-clockwise icon to go back to default.",
+  "keybind_reset_all": "Reset all to default",
+  "keybind_reset_all_title": "Reset all to default?",
+  "keybind_reset_all_body": "Restore all shortcuts to the PotPlayer defaults.",
+  "keybind_reset": "Reset to default",
+  "keybind_conflict_title": "Shortcut conflict",
+  "keybind_conflict_body": "{combo} is already bound to \"{action}\". Overwrite? The old binding will be removed.",
+  "@keybind_conflict_body": {
+    "placeholders": {
+      "combo": {"type": "String"},
+      "action": {"type": "String"}
+    }
+  },
+  "keybind_overwrite": "Overwrite",
+  "keybind_unbound": "Unbound — the key does nothing",
+  "keybind_default_prefix": "Default: {combos}",
+  "@keybind_default_prefix": {
+    "placeholders": {
+      "combos": {"type": "String"}
+    }
+  },
+  "keybind_tip_reset": "Reset to default",
+  "keybind_tip_clear": "Clear (unbind)",
+  "keybind_tip_add": "Add / edit (up to 4)",
+  "keybind_tip_maxed": "At capacity (up to 4)",
+  "keybind_capture_title": "Press new shortcut",
+  "keybind_capture_hint": "Press any key combination…",
+  "keybind_capture_cancel_hint": "Esc to cancel · Press again to change",
+  "keybind_capture_invalid": "Invalid combination",
+  "keybind_cat_playback": "Playback",
+  "keybind_cat_seeking": "Seeking",
+  "keybind_cat_av": "Volume / Speed / Video",
+  "keybind_cat_tracks": "Tracks & Sync",
+  "keybind_cat_capture": "Capture & File",
+  "keybind_cat_ab": "A-B Loop",
+  "keybind_cat_tag": "Tag Play",
+  "keybind_cat_panels": "Panels",
+  "keybind_cat_session": "Session / Window",
+  "keybind_act_auto_resize": "Fit window to video",
+  "keybind_act_play_pause": "Play / Pause",
+  "keybind_act_previous": "Previous item",
+  "keybind_act_next": "Next item",
+  "keybind_act_frame_backward": "Frame backward",
+  "keybind_act_frame_forward": "Frame forward",
+  "keybind_act_seek_backward": "Seek backward",
+  "keybind_act_seek_forward": "Seek forward",
+  "keybind_act_big_seek_backward": "Big seek backward",
+  "keybind_act_big_seek_forward": "Big seek forward",
+  "keybind_act_large_seek_backward": "Large seek backward",
+  "keybind_act_large_seek_forward": "Large seek forward",
+  "keybind_act_huge_seek_backward": "Huge seek backward",
+  "keybind_act_huge_seek_forward": "Huge seek forward",
+  "keybind_act_seek_step_popover": "Adjust seek step",
+  "keybind_act_seek_step_increase": "Increase seek step",
+  "keybind_act_seek_step_decrease": "Decrease seek step",
+  "context_menu_seek_step": "Seek step",
+  "context_menu_seek_step_hint": "Ctrl+↑/↓ ±1s, Ctrl+Shift ±10s",
+  "keybind_act_restart": "Restart",
+  "keybind_act_jump_to_time": "Jump to time",
+  "keybind_act_volume_up": "Volume up",
+  "keybind_act_volume_down": "Volume down",
+  "keybind_act_mute": "Mute",
+  "keybind_act_speed_down": "Speed down",
+  "keybind_act_speed_up": "Speed up",
+  "keybind_act_speed_reset": "Speed reset",
+  "keybind_act_fit_cycle": "Fit cycle",
+  "keybind_act_cycle_subtitle": "Cycle subtitle track",
+  "keybind_act_cycle_audio": "Cycle audio track",
+  "keybind_act_toggle_subtitle": "Toggle subtitle visibility",
+  "keybind_act_sub_sync_forward": "Subtitle sync forward",
+  "keybind_act_sub_sync_backward": "Subtitle sync backward",
+  "keybind_act_sub_sync_reset": "Subtitle sync reset",
+  "keybind_act_audio_sync_forward": "Audio sync forward",
+  "keybind_act_audio_sync_backward": "Audio sync backward",
+  "keybind_act_audio_sync_reset": "Audio sync reset",
+  "keybind_act_jump_middle": "Jump to middle",
+  "keybind_act_jump_near_end": "Jump near end",
+  "keybind_act_delete_file": "Delete file to recycle bin",
+  "keybind_act_screenshot": "Screenshot frame",
+  "keybind_act_ab_a": "A-B set point A",
+  "keybind_act_ab_b": "A-B set point B",
+  "keybind_act_ab_quick": "A-B quick toggle",
+  "keybind_act_ab_section": "A-B toggle section repeat",
+  "keybind_act_tag_add": "Open tag play (prefill +)",
+  "keybind_act_tag_remove": "Open tag play (prefill -)",
+  "keybind_act_tag_switch": "Open tag play (prefill *)",
+  "keybind_act_subtitles_panel": "Subtitles panel",
+  "keybind_act_audio_panel": "Audio tracks panel",
+  "keybind_act_settings": "Settings",
+  "keybind_act_play_queue": "Play queue / dock toggle",
+  "keybind_act_dock_mode": "Toggle playlist dock mode",
+  "keybind_act_storages": "Storages browser",
+  "keybind_act_history": "History panel",
+  "keybind_act_more_menu": "More menu",
+  "keybind_act_open_file": "Open file",
+  "keybind_act_open_link": "Open link",
+  "keybind_act_close_playback": "Close playback",
+  "keybind_act_toggle_repeat": "Toggle repeat",
+  "keybind_act_toggle_shuffle": "Toggle shuffle",
+  "keybind_act_always_on_top": "Always on top",
+  "keybind_act_fullscreen": "Fullscreen",
+  "keybind_act_exit_fullscreen": "Exit fullscreen",
+  "keybind_act_exit_app": "Exit app",
+  "shot_invalid_dir_title": "Invalid directory",
+  "shot_pick_error_android": "That directory cannot be used; pick an accessible folder.",
+  "shot_pick_error_desktop": "Desktop does not accept content:// directories; pick a local folder path.",
+  "shot_path_error": "Invalid path: must not contain .. to escape the parent{desktopNote}.",
+  "@shot_path_error": {
+    "placeholders": {
+      "desktopNote": {"type": "String"}
+    }
+  },
+  "shot_path_error_desktop_note": "; desktop also rejects content:// links",
+  "shot_copy_tip": "Copy",
+  "shot_pick_label": "Pick a directory",
+  "shot_paste_label": "Paste a directory path (empty restores default)",
+  "shot_paste_hint": "e.g. D:/Photos/IRIS",
+  "shot_apply": "Apply",
+  "shot_current_dir": "Effective directory",
+  "shot_reset": "Reset to default",
+  "shot_saved_title": "Screenshot saved",
+  "shot_unsupported_title": "Current backend cannot screenshot",
+  "shot_unsupported_body": "Backend {backend} cannot grab video frames. Switch to the MediaKit backend and retry.",
+  "@shot_unsupported_body": {
+    "placeholders": {
+      "backend": {"type": "String"}
+    }
+  },
+  "shot_failed_title": "Screenshot failed",
+  "shot_timeout": "Screenshot timed out (15s), please retry",
+  "shot_saving": "Saving screenshot…",
+  "shot_frame_prev": "Previous frame",
+  "shot_frame_capture": "Capture current frame",
+  "shot_frame_next": "Next frame",
+  "ed_side_pos_bl": "Bottom left",
+  "ed_side_pos_br": "Bottom right",
+  "ed_side_pos": "{h}{v}",
+  "@ed_side_pos": {
+    "placeholders": {
+      "h": {"type": "String"},
+      "v": {"type": "String"}
+    }
+  },
+  "ed_pos_left": "Left",
+  "ed_pos_center": "Center",
+  "ed_pos_right": "Right",
+  "ed_pos_top": "Top",
+  "ed_pos_middle": "Middle",
+  "ed_pos_bottom": "Bottom",
+  "ed_speed_dual": "Dual: horizontal 0.1 / vertical 1.0",
+  "ed_speed_single": "Single: horizontal 0.1 only",
+  "ed_gesture_legacy": "Legacy classic gestures",
+  "ed_gesture_region": "Landscape {land} · Portrait Region normal",
+  "@ed_gesture_region": {
+    "placeholders": {
+      "land": {"type": "String"}
+    }
+  },
+  "ed_mode_meta": "Metadata mode (legacy behavior can be restored here)",
+  "ed_mode_legacy": "Legacy mode (legacy persistence & runtime)",
+  "ed_scope_all": "All (video + audio)",
+  "ed_scope_video": "Video only",
+  "ed_scope_audio": "Audio only",
+  "ed_osd_always": "Always show",
+  "ed_osd_hide": "Silent while the control bar is visible",
+  "ed_osd_single": "Single line",
+  "ed_osd_two": "Two lines",
+  "ed_shot_default_mobile": "Default: Pictures/IRIS",
+  "ed_shot_default_desktop": "Default: Pictures/IRIS (portable: bundled)",
+
+  "gesture_settings_title": "Gesture Region Settings",
+  "gesture_settings_profile": "Profile",
+  "gesture_settings_intent": "Gesture Type",
+  "gesture_region_edit_title": "Edit Gesture Regions",
+  "gesture_region_edit_subtitle":
+  "Drag lines to resize regions (≥10%).\nTap a region to change its action.",
+
+  "reset_gesture_layout_title": "Reset Gesture Layout",
+  "reset_gesture_layout_subtitle": "Restore gesture regions to default layouts",
+  "reset_gesture_layout_default": "Default layout",
+  "reset_gesture_layout_right": "Right hand layout",
+  "reset_gesture_layout_left": "Left hand layout",
+  "reset": "Reset",
+
+  "gesture_profile_default": "Default",
+  "reset_gesture_group_profiles": "Profiles",
+  "reset_gesture_group_intents": "Gesture Types",
+
+  "gesture_intent_tap": "Tap",
+  "gesture_intent_double_tap": "Double tap",
+  "gesture_intent_long_press": "Long press",
+  "gesture_intent_long_press_pan_horizontal": "Long press + horizontal pan",
+  "gesture_intent_long_press_pan_vertical": "Long press + vertical pan",
+  "gesture_intent_pan_horizontal": "Horizontal pan",
+  "gesture_intent_pan_vertical": "Vertical pan",
+  "gesture_intent_hover": "Hover",
+
+  "gesture_action_none": "None",
+  "gesture_action_play_pause": "Play / Pause",
+  "gesture_action_play": "Play",
+  "gesture_action_pause": "Pause",
+  "gesture_action_toggle_controls": "Toggle controls",
+  "gesture_action_adjust_seek_step": "Adjust seek step",
+  "gesture_action_seek_forward": "Seek forward",
+  "gesture_action_seek_backward": "Seek backward",
+  "gesture_action_seek_to": "Seek to",
+  "gesture_action_activate_transient_speed": "Activate transient speed",
+  "gesture_action_update_transient_speed": "Update transient speed",
+  "gesture_action_deactivate_transient_speed": "Deactivate transient speed",
+  "gesture_action_show_playback_rate_selector": "Show playback rate selector",
+  "gesture_action_update_playback_rate_from_selector": "Update playback rate",
+  "gesture_action_show_progress": "Show progress",
+  "gesture_action_toggle_fullscreen": "Toggle fullscreen",
+  "gesture_action_open_tag_play_sheet": "Open tag play",
+  "gesture_action_adjust_volume": "Adjust volume",
+  "gesture_action_adjust_brightness": "Adjust brightness",
+
+  "controls_title_settings": "Controls Overlay Title",
+  "configure_controls_title": "Customize title bar content",
+  "minimal_title_settings": "Minimal Overlay Title",
+  "configure_minimal_title": "Customize minimal title",
+
+  "title_field_app_icon": "App icon",
+  "title_field_battery": "Battery",
+  "title_field_time": "Time",
+  "title_field_queue_index": "Queue index",
+  "title_field_media_name": "Media name",
+  "title_font_size": "Title font size",
+
+  "use_classic_title_bar": "Use classic title bar",
+  "use_classic_title_bar_desc": "Show the original window title bar instead of the new overlay style.",
+
+  "use_legacy_control_bar": "Use legacy control bar",
+  "use_legacy_control_bar_desc": "Switch between the old and the new control bar layout",
+
+  "use_legacy_storage_mode": "Use legacy storage mode",
+  "use_legacy_storage_mode_desc": "Use device-persisted storages instead of the database-backed system",
+
+  "popup_direction": "Popup direction",
+  "popup_direction_left": "From left",
+  "popup_direction_right": "From right",
+
+  "breadcrumb_start_side": "Breadcrumb start position",
+  "breadcrumb_start_side_desc": "Configure where the root path appears",
+  "breadcrumb_start_left": "Root on left",
+  "breadcrumb_start_right": "Root on right",
+
+  "database_inspector": "Database Inspector",
+  "@database_inspector": {
+    "description": "Title for the database debug tool"
+  },
+  "database_inspector_description": "View and filter all local tables",
+
+  "set_slider_type": "Slider type",
+  "set_phone_landscape_controls": "Phone landscape controls",
+  "set_snake_fine_window": "Fine tune range",
+  "set_seek_step_seconds": "Seek step",
+  "set_keyboard_shortcut_scheme": "Keyboard shortcut scheme",
+  "set_desktop_control_bar_layout": "Desktop control bar layout",
+  "set_group_desktop_hover": "On mouse move",
+  "desktop_hover_show_title": "Title",
+  "desktop_hover_show_title_desc": "When the control bar has hidden itself, moving the mouse reveals the title bar.",
+  "desktop_hover_show_control_bar": "Control bar",
+  "desktop_hover_show_control_bar_desc": "Moving the mouse also reveals the full control bar (which includes the title). With both unchecked, a mouse move only keeps the cursor visible.",
+  "set_scan_auto_close": "Scan auto-close",
+  "set_webdav_scan_mode": "WebDAV host lookup",
+  "set_webdav_scan_mode_discovery": "Automatic discovery",
+  "set_webdav_scan_mode_legacy": "Legacy serial scan",
+  "set_browse_media_scope": "Browse media scope",
+  "set_resume_on_startup": "Resume on startup",
+  "set_sync_legacy_blob": "Legacy store sync",
+  "set_metadata_settings_gate": "Metadata settings system",
+  "set_warning_dialog_prefs": "Warning dialogs",
+  "set_identity_entries": "Custom desktop entries",
+  "set_osd_enabled": "Keyboard OSD",
+  "set_osd_visibility_mode": "OSD visibility",
+  "set_osd_h_align": "OSD horizontal position",
+  "set_osd_v_align": "OSD vertical position",
+  "set_osd_layout": "OSD layout",
+  "set_osd_duration": "OSD duration",
+  "set_window_keep_in_bounds": "Keep window in bounds",
+  "set_keybind_editor": "Customize keyboard shortcuts",
+  "set_legacy_compat": "Legacy compatibility",
+  "set_speed_gesture_mode": "Speed gesture mode",
+  "set_virtual_media_cross_drag": "Cross-segment drag strategy",
+  "set_vm_dual_time_sync": "Dual-time second sync",
+  "set_vm_hide_chunk_when_single_segment": "Hide chunk ring for single segments",
+  "set_vm_mark_tick_color": "Segment tick color & length",
+  "set_vm_naming_strategy": "Rule auto-naming strategy",
+  "set_vm_name_prefix": "Rule name prefix",
+  "set_vm_name_number_format": "Rule number format",
+  "set_vm_multi_select_hint": "Multi-select hint for virtual media",
+  "set_vm_multi_select_hint_desc": "Show a one-time hint when multi-selecting virtual merged media (non-playback operations are unsupported)",
+  "vm_multiselect_hint_title": "Virtual merged media",
+  "vm_multiselect_hint_body": "Virtual merged media can be played, but non-playback operations (delete, exclude, tag, ...) do not apply to merged entries yet.",
+  "vm_multiselect_hint_never": "Don't show again",
+  "set_virtual_media": "Virtual media",
+  "set_screenshot_save_path": "Screenshot save directory",
+  "set_window_fit_mode": "Window fit mode",
+  "set_playlist_panel_mode": "Queue panel mode",
+  "set_side_fullscreen_behavior": "Side panel in fullscreen",
+  "set_playlist_popup_theme": "Floating queue theme",
+  "set_playlist_dock_theme": "Side queue theme",
+  "set_video_display_mode": "Video display mode",
+  "set_gesture_profile": "Unified gesture scheme",
+  "set_scan_rescan_reminder": "Rescan reminder",
+  "set_browse_scope_all": "All (video + audio)",
+  "set_browse_scope_video": "Video only",
+  "set_browse_scope_audio": "Audio only",
+  "ed_osd_line_single": "Single line",
+  "ed_osd_line_two": "Two lines",
+  "ed_slider_sideway_summary": "Sideway - {pos} - {design}",
+  "@ed_slider_sideway_summary": {
+    "placeholders": {
+      "pos": { "type": "String" },
+      "design": { "type": "String" }
+    }
+  },
+  "set_panel_popup": "Floating",
+  "set_panel_docked": "Docked right",
+  "set_side_fs_keep": "Keep panel",
+  "set_side_fs_hide": "Hide panel",
+  "set_dock_theme_potlike": "PotPlayer dark",
+  "transfer_audit_log_desc": "Review the time, encryption and result of every settings import/export",
+  "set_window_fit_mode_desc": "Fit the window to each video's resolution on open, or keep the current window size (desktop only)",
+
+  "set_snake_fine_window_desc": "+-seconds around the anchor (shared)",
+  "set_seek_step_seconds_desc": "One shared step: double-tap, vertical swipe and dial corners",
+  "set_keyboard_shortcut_scheme_desc": "PotPlayer-aligned Windows keys. Falls back to IRIS classic while the metadata system is off",
+  "set_desktop_control_bar_layout_desc": "Three rows: position/duration above a full-width seek bar, then the buttons. Falls back to the one-line bar while the metadata system is off",
+  "set_warning_dialog_prefs_desc": "Choose which recoverable warnings may be silenced. Destructive and error dialogs always show",
+  "set_scan_auto_close_desc": "Time to wait before closing scan progress",
+  "set_scan_rescan_reminder_desc": "Remind to rescan after N minutes; 0 disables reminder",
+  "set_webdav_scan_mode_desc": "How a wildcard IPv4 host is resolved to a device. Automatic discovery is subnet-aware with bounded concurrency; legacy serial scan probes one address at a time",
+  "set_browse_media_scope_desc": "Only media in scope is listed; out-of-scope files stay in the library but are hidden while browsing (metadata mode only)",
+  "set_resume_on_startup_desc": "Auto-resume last media from last position on app start (metadata mode only; off restores paused state)",
+  "set_sync_legacy_blob_desc": "Also mirror every change into the legacy secure-storage blob while metadata mode is ON (rollback safety)",
+  "set_metadata_settings_gate_desc": "Store settings as DB rows (experimental, rollback-safe)",
+  "set_identity_entries_desc": "Create home-screen shortcuts with a custom icon and name, optionally bound to a scenario + tag",
+  "set_auto_resize_desc": "Auto-resize window to video aspect (desktop only; not in fullscreen/maximized; portable build defaults on)",
+  "set_playlist_panel_mode_desc": "Side: docked right next to video (draggable 240-600px); Floating: centered popup. Long-press list or button to switch anytime",
+  "set_side_fullscreen_behavior_desc": "In picture fullscreen (Enter), keep the side queue docked (Keep panel) or leave it hidden and summon it by hovering the right edge (Hide panel). Window fullscreen and floating mode are unaffected",
+  "set_fs_edge_reveal_width": "Fullscreen hover zone width",
+  "set_fs_edge_reveal_width_desc": "Width of the right-edge hover strip that reveals the side queue in picture fullscreen, as a percentage of the screen (0-50%; 0 disables hover summoning). Moving the pointer off the panel +5px hides it again",
+  "set_playlist_popup_theme_desc": "Floating queue theme: follow system / dark / light (desktop only)",
+  "set_playlist_dock_theme_desc": "Side queue theme: PotPlayer dark / follow system / light (desktop only)",
+  "set_video_display_mode_desc": "Video fit: fill/stretch/crop/original (desktop adds auto/force-original; Fit button in control bar switches too)",
+  "set_osd_enabled_desc": "Show floating info for keyboard shortcuts",
+  "set_osd_visibility_mode_desc": "Always show, or hide while the control bar is visible",
+  "set_osd_h_align_desc": "OSD horizontal position: left/center/right (desktop keyboard OSD only)",
+  "set_osd_v_align_desc": "OSD vertical position: top/center/bottom (desktop keyboard OSD only)",
+  "set_osd_layout_desc": "Single line or two lines (title + value)",
+  "set_osd_duration_desc": "How long the OSD stays on screen",
+  "set_keybind_editor_desc": "Only the PotPlayer scheme is editable: up to 4 bindings per action, can clear to unbind; bold blue means customized",
+  "set_window_keep_in_bounds_desc": "When playing next video/audio, pull the window back into view if it moved off-screen (desktop only; skipped in fullscreen/maximized)",
+  "set_speed_gesture_mode_desc": "Takes effect only after long-press horizontal swipe; horizontal 0.1 fine + vertical 1.0 coarse (dual) / horizontal 0.1 only (single)",
+  "set_legacy_compat_desc": "Non-developers do not touch — legacy compatibility switches left over from development; toggling them may crash the app or lose data",
+  "set_slider_type_desc": "Normal / Circle / Sideway; Sideway shares the total panel size, legacy falls back to Normal",
+  "set_circle_slider_center_action_desc": "Tap center: no action / hide control bar / play-pause (circle mode only)",
+  "set_screen_orientation_desc": "Follow system / force landscape-portrait; auto falls back when 'remember last orientation' is on",
+  "set_gesture_profile_desc": "Unified gesture scheme: Classic / Region left-right; portrait fixed to Region normal",
+  "set_virtual_media_desc": "Virtually concatenate continuous media by rule (duration probe / failed segments in red; scrubber ticks visible)",
+  "set_virtual_media_cross_drag_desc": "Cross-segment drag: previewOnRelease (floating preview, jump on release) / directSwitch (jump directly)",
+  "set_vm_dual_time_sync_desc": "The total and sub times are each floored to whole seconds, but a segment's start offset is rarely a whole second, so their seconds tick at different instants (up to ~1s apart). 1) Each exact - both stay accurate, seconds may tick alternately. 2) Align sub to total - the total stays exact, the sub counts on the total's second grid (default). 3) Align total to sub - the sub stays exact, the total counts on the sub's second grid.",
+  "set_vm_hide_chunk_when_single_segment_desc": "Dial-ring chunk indicator hides when a virtual item has a single segment",
+  "set_vm_mark_tick_color_desc": "Virtual segment tick color & length (default white 3px; 0px flush with axis)",
+  "set_vm_naming_strategy_desc": "Numbering for new/copied rule names (rule+N): maxPlusOne takes max+1 (default, no reuse) / reuseGap reuses smallest gap / globalCounter global increment",
+  "set_vm_name_prefix_desc": "Auto-naming prefix (non-empty, default rule)",
+  "set_vm_name_number_format_desc": "Number format: raw no padding / pad2-pad4 zero-padded",
+  "set_screenshot_save_path_desc": "Empty means platform default (mobile Pictures/IRIS; desktop portable userdata/screenshots, installed version system pictures/IRIS)",
+
+  "set_group_playback": "Playback",
+  "set_group_gestures": "Gestures & touch controls",
+  "set_group_virtual_media": "Virtual media",
+  "set_group_desktop_tools": "Desktop keyboard & tools",
+  "set_group_appearance": "Appearance & language",
+  "set_group_data": "Data",
+  "set_group_titles": "Titles & browsing",
+  "set_group_warnings": "Warnings",
+  "set_group_osd": "Keyboard OSD",
+  "set_group_scan": "Library scan",
+  "set_group_advanced": "Advanced",
+  "set_legacy_compat_warn": "Do not touch unless you are a developer — legacy toggles may crash the app or lose data",
+
+  "set_backend_media_kit": "Media Kit",
+  "set_backend_fvp": "FVP",
+  "set_palette_rainbow": "Rainbow",
+  "set_palette_cold": "Cold",
+  "set_palette_warm": "Warm",
+  "set_palette_mono": "White & gray",
+  "set_scheme_legacy": "IRIS classic",
+  "set_scheme_potplayer": "PotPlayer (Windows)",
+  "set_bar_single_line": "All in one line",
+  "set_bar_stacked": "Three-row (time + seek bar on top)",
+  "set_speed_single_axis": "Single (0.1 only)",
+  "set_speed_dual_axis": "Dual (0.1 + 1.0)",
+  "set_cross_drag_preview": "Preview on release",
+  "set_cross_drag_direct": "Direct switch",
+  "set_naming_max_plus_one": "Max+1 (default)",
+  "set_naming_reuse_gap": "Reuse smallest gap",
+  "set_naming_global_counter": "Global increment",
+  "set_num_raw": "No padding",
+  "set_num_pad2": "2-digit padding",
+  "set_num_pad3": "3-digit padding",
+  "set_num_pad4": "4-digit padding",
+  "set_dual_time_exact": "Each exact (may tick alternately)",
+  "set_dual_time_sub_to_total": "Align sub to total",
+  "set_dual_time_total_to_sub": "Align total to sub",
+
+  "dlg_copy_error_title": "Playback error",
+  "dlg_copy": "Copy",
+  "dlg_dont_ask_again": "Don't show again",
+  "dlg_queue_title": "Append to Queue",
+  "dlg_queue_where": "Where to add the items?",
+  "dlg_queue_play_next": "Insert at beginning (play next)",
+  "dlg_queue_append_end": "Append to end",
+  "dlg_appended_title": "Added to play queue",
+  "dlg_appended_before": "Before: {before} items",
+  "@dlg_appended_before": {
+    "placeholders": {
+      "before": {"type": "int"}
+    }
+  },
+  "dlg_appended_after": "After: {after} items ({added} new)",
+  "@dlg_appended_after": {
+    "placeholders": {
+      "after": {"type": "int"},
+      "added": {"type": "int"}
+    }
+  },
+  "dlg_appended_new_items": "New items:",
+  "dlg_appended_more": "... ({total} items total)",
+  "@dlg_appended_more": {
+    "placeholders": {
+      "total": {"type": "int"}
+    }
+  },
+  "dlg_portable_title": "Installed-version data found",
+  "dlg_portable_found_db": "Media library database (library, scenarios, tag play, etc.)",
+  "dlg_portable_found_kv": "{count} UI settings & states",
+  "@dlg_portable_found_kv": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "dlg_portable_intro": "Found data from the installed IRIS on this machine. Import it into the current portable directory (userdata)?",
+  "dlg_portable_caveat": "Note:\n- WebDAV / FTP passwords are kept by OS-level encryption bound to this machine and do not migrate with the folder; re-enter them after switching machines;\n- With the metadata settings system on, such passwords are stored in plaintext inside the database file - never share a portable directory containing passwords;\n- Existing data is left untouched after import.",
+  "dlg_portable_skip": "Skip",
+  "dlg_portable_import": "Import",
+  "dlg_storage_info_title": "Data & password storage",
+  "dlg_storage_info_got_it": "Got it",
+  "dlg_storage_portable_header": "Portable edition (IRIS-windows.zip)",
+  "dlg_storage_portable_body": "Unzip and run. All data lives in the userdata folder next to the exe: the db subfolder is the database (media library, scenarios, tag play, history, etc.), the settings subfolder holds UI settings. Copy the whole directory when moving or switching machines.",
+  "dlg_storage_migrate_header": "Migrating from the installed edition",
+  "dlg_storage_migrate_body": "On first launch of the portable edition on the same PC, you are asked whether to import the installed edition's data; the original data is left untouched after import.",
+  "dlg_storage_password_header": "Passwords",
+  "dlg_storage_password_body_win": "WebDAV / FTP credentials are kept by OS encryption bound to this PC and do not migrate with the userdata folder; re-enter them once after switching machines.",
+  "dlg_storage_password_body_generic": "WebDAV / FTP credentials are kept in the app's encrypted storage (based on OS security); re-enter them once after switching devices.",
+  "dlg_storage_security_header": "Security notice",
+  "dlg_storage_security_body_win": "With the metadata settings system on, network passwords are stored in plaintext inside the local database file (userdata\\db). Never share such a directory; delete the storage entries or clear their passwords before sharing.",
+  "dlg_storage_security_body_generic": "With the metadata settings system on, network passwords are stored in plaintext inside the local database file. Never share a backup containing that database; delete the storage entries or clear their passwords before sharing.",
+  "dlg_storage_advanced_header": "Advanced",
+  "dlg_storage_advanced_body": "Set the IRIS_NO_PORTABLE=1 environment variable to force installed-edition mode (data stays in system locations).",
+  "dlg_storage_location_header": "Data location",
+  "dlg_storage_location_body": "All data (media library database, scenarios, tag play, history, UI settings, etc.) lives in this app's app-private directory, inaccessible to other apps; uninstalling wipes all data.",
+  "dlg_storage_device_header": "Moving devices",
+  "dlg_storage_device_body": "Data does not sync across devices; reconfigure storages and UI settings on a new device.",
+  "dlg_retry_saved_password": "Retry with saved password",
+  "dlg_warning_title": "Warning dialogs",
+  "dlg_restore_all_warnings": "Restore all warnings",
+  "dlg_done": "Done",
+  "dlg_no_media_title": "No playable content found",
+  "dlg_no_media_message": "None of the selected items are in the media database. Add them as sources anyway?",
+  "dlg_no_media_confirm": "Add anyway",
+  "dlg_warn_physical_delete_title": "Warn before moving files to recycle bin",
+  "dlg_warn_physical_delete_desc": "When Shift+Delete deletes the current file on the Windows player",
+  "dlg_warn_force_append_title": "Warn before force-adding unplayable items",
+  "dlg_warn_force_append_desc": "When the selection is outside the media library but will still join the play source",
+  "dlg_warn_gesture_cancel_title": "Warn before discarding gesture edits",
+  "dlg_warn_gesture_cancel_desc": "When leaving the gesture region editor without saving",
+  "dlg_warn_gesture_reset_title": "Warn before resetting gesture edits",
+  "dlg_warn_gesture_reset_desc": "When restoring unsaved drags/actions to saved state",
+  "dlg_warn_gesture_confirm_title": "Warn before confirming gesture save",
+  "dlg_warn_gesture_confirm_desc": "When confirming overwrite of saved gesture regions",
+  "dlg_warn_footer": "Data-loss and error notices always show and cannot be turned off.",
+
+  "vm_editor_new": "New virtual media rule",
+  "vm_editor_edit": "Edit rule",
+  "vm_editor_basic": "Basics",
+  "vm_editor_name": "Name",
+  "vm_editor_description": "Description (shown in subtitle, optional)",
+  "vm_editor_match_banner_pattern": "All active conditions on a matched directory must hold at once (AND) before merging; inactive conditions are ignored.",
+  "vm_editor_match_banner_dirs": "Multiple directories may be given; media in any of them joins the merge. Recursive mode includes subdirectories.",
+  "vm_editor_match_mode": "Match mode",
+  "vm_editor_match_mode_label": "Choose match mode",
+  "vm_editor_match_specified": "Specified dirs (flat)",
+  "vm_editor_match_specified_recursive": "Specified dirs (recursive)",
+  "vm_editor_match_pattern": "Matched dirs (flat)",
+  "vm_editor_match_pattern_recursive": "Matched dirs (recursive)",
+  "vm_editor_sort": "Sort",
+  "vm_editor_sort_field": "Sort field",
+  "vm_editor_sort_filename": "File name (natural)",
+  "vm_editor_sort_duration": "Duration",
+  "vm_editor_sort_resolution": "Resolution (W x H)",
+  "vm_editor_sort_aspect": "Aspect ratio",
+  "vm_editor_sort_width": "Width",
+  "vm_editor_sort_height": "Height",
+  "vm_editor_sort_direction": "Direction",
+  "vm_editor_sort_asc": "Ascending",
+  "vm_editor_sort_desc": "Descending",
+  "vm_editor_sort_banner": "Files without duration/size info always sort last, ascending or descending.",
+  "vm_editor_boundary": "Grouping",
+  "vm_editor_boundary_label": "Merge scope",
+  "vm_editor_boundary_same_dir": "Sort in dir, merge within same dir only",
+  "vm_editor_boundary_cross_dir": "Sort in dir, allow cross-dir merge",
+  "vm_editor_boundary_ignore": "Ignore dirs, merge right after sort",
+  "vm_editor_title_tags": "Title tags",
+  "vm_editor_title_banner": "The title is built from lit tags in light-up order: no typing needed, tags never affect sorting.",
+  "vm_editor_title_preview": "Preview: {title}",
+  "@vm_editor_title_preview": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "vm_editor_title_preview_rule": "rule name",
+  "vm_editor_title_preview_dir": "sample dir",
+  "vm_editor_title_preview_first": "EP01.mp4",
+  "vm_editor_title_preview_last": "EP02.mp4",
+  "vm_editor_tag_rule": "Rule name",
+  "vm_editor_tag_dir": "Dir name",
+  "vm_editor_tag_first": "First file",
+  "vm_editor_tag_last": "Last file",
+  "vm_editor_tag_seq": "Sequence",
+  "vm_editor_tag_duration": "Duration",
+  "vm_editor_tag_resolution": "Resolution",
+  "vm_editor_separator_label": "Player title separator",
+  "vm_editor_separator_hint": ":",
+  "vm_editor_separator_helper": "Virtual titles look like dir:1/3:original, joined with this separator",
+  "vm_editor_enabled": "Enabled",
+  "vm_editor_cancel": "Cancel",
+  "vm_editor_save": "Save",
+  "vm_editor_pick_dir": "Pick",
+  "vm_editor_input_mode": "Input mode",
+  "vm_editor_paste_path": "Paste dir path (library-relative)",
+  "vm_editor_tooltip_add": "Add",
+  "vm_editor_tooltip_remove": "Remove",
+  "vm_editor_library_root": "(library root)",
+  "vm_editor_pattern_active": "Active",
+  "vm_editor_pattern_inactive": "Inactive",
+  "vm_editor_pattern_pinned": "Pinned",
+  "vm_editor_pattern_pin": "Pin",
+  "vm_editor_pattern_prefix": "Prefix",
+  "vm_editor_pattern_suffix": "Suffix",
+  "vm_editor_pattern_contains": "Contains",
+  "vm_editor_pattern_regex": "Regex",
+  "vm_editor_pattern_hint": "Match text",
+  "vm_editor_add_condition": "Add condition",
+  "vm_editor_caps_title": "Merge caps (check at least one; both checked means both apply; unchecked still bound by hard caps: 5h max / 32 items)",
+  "vm_editor_caps_longest": "At most",
+  "vm_editor_caps_hhmm": "hh:mm",
+  "vm_editor_caps_most": "At most",
+  "vm_editor_caps_items": "items",
+  "vm_editor_caps_unit": "count",
+  "vm_editor_exclusion_title": "Single-file exclusion",
+  "vm_editor_exclude_long_prefix": "Exclude over",
+  "vm_editor_exclude_long_suffix": "from merging",
+  "vm_editor_skip_single": "Do not merge when only one file",
+  "vm_editor_confirm_caps_title": "Notice",
+  "vm_editor_confirm_caps_body": "With no caps checked, hard ceilings still apply: a single merge caps at 5 hours and 32 videos. Continue?",
+  "vm_editor_confirm_save_title": "Confirm save",
+  "vm_editor_confirm_save_body": "This change clears this rule's virtual progress (newly matched media progress resets). Continue?",
+  "vm_editor_confirm": "Confirm",
+
+  "vm_sheet_manage_tip": "Open full management (settings entry)",
+  "vm_sheet_new_rule_tip": "New rule",
+  "vm_sheet_prev_segment": "Previous segment",
+  "vm_sheet_next_segment": "Next segment",
+  "vm_sheet_chapters": "Chapters",
+  "vm_sheet_stop": "Stop",
+  "vm_sheet_empty": "No media matched.",
+  "vm_sheet_close": "Close",
+  "vm_sheet_pinned": "Pinned",
+  "vm_sheet_pin": "Pin",
+  "vm_sheet_copy_failed": "Copy failed",
+  "vm_sheet_copy_failed_body": "Could not generate a unique rule name. Please try again.",
+  "vm_mgr_delete_title": "Delete rule?",
+  "vm_mgr_delete_body": "Delete \"{name}\"? Its virtual progress and resume anchors will be cleared as well.",
+  "@vm_mgr_delete_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "vm_mgr_delete_confirm": "Delete",
+  "vm_mgr_delete_cancel": "Cancel",
+  "vm_mgr_action_failed_body": "Operation failed. Please try again.",
+  "vm_drag_preview": "Jump to {i}/{n} {name} · {local}/{seg} · {virt}/{total}",
+  "@vm_drag_preview": {
+    "placeholders": {
+      "i": {"type": "int"},
+      "n": {"type": "int"},
+      "name": {"type": "String"},
+      "local": {"type": "String"},
+      "seg": {"type": "String"},
+      "virt": {"type": "String"},
+      "total": {"type": "String"}
+    }
+  },
+  "vm_editor_name_required": "Please enter a rule name.",
+  "vm_editor_no_matcher": "Add at least one directory or one active match condition, otherwise the rule never matches anything.",
+  "vm_editor_bad_regex": "Invalid regular expression: {pattern}",
+  "@vm_editor_bad_regex": {
+    "placeholders": {
+      "pattern": {"type": "String"}
+    }
+  },
+  "vm_sheet_edit": "Edit",
+  "vm_sheet_duplicate": "Duplicate",
+  "vm_sheet_delete": "Delete",
+
+  "vm_mgr_new_rule": "New rule",
+  "vm_mgr_close_escape": "Close (Escape)",
+  "vm_mgr_title": "Virtual media management",
+  "vm_mgr_empty_title": "No virtual media rules yet",
+  "vm_mgr_empty_body": "After creating a rule, multiple videos in matched directories merge into one virtual video in scenario playback.",
+  "vm_mgr_limit_min": "{count} min",
+  "@vm_mgr_limit_min": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_mgr_limit_count": "{count} items",
+  "@vm_mgr_limit_count": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_mgr_limit_exclude_min": "Exclude >{count} min",
+  "@vm_mgr_limit_exclude_min": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_mgr_skip_single": "Skip single-file",
+  "vm_mgr_limits_prefix": "Caps {limits}",
+  "@vm_mgr_limits_prefix": {
+    "placeholders": {
+      "limits": {"type": "String"}
+    }
+  },
+
+  "vm_color_title": "Segment tick color & length",
+  "vm_color_reset": "Reset defaults",
+  "vm_color_close": "Close",
+  "vm_color_pure_white": "Pure white",
+  "vm_color_format_error": "Bad color format",
+  "vm_color_got_it": "Got it",
+  "vm_color_apply": "Apply",
+  "vm_color_section_recommended": "Recommended",
+  "vm_color_section_presets": "Presets",
+  "vm_color_section_hue": "Hue ring fine-tune",
+  "vm_color_section_rgb": "Manual RGB",
+  "vm_color_section_extent": "Tick length (0px flush with axis)",
+  "vm_color_recommended_badge": "Recommended",
+  "vm_color_recommended_desc": "Highest contrast on the progress axis, clear in any theme",
+  "vm_color_rgb_bad_number": "R/G/B must be numbers 0-255.",
+  "vm_color_rgb_out_of_range": "R/G/B out of 0-255 range, ignored.",
+  "vm_color_hex_hint": "Enter #RRGGBB (e.g. #FF9800).",
+
+  "vm_sheet_title": "Virtual media",
+  "vm_sheet_rules_banner": "Rules are independent with no priority: a match triggers a merge; each rule produces its own virtual videos, dedupe by adjusting rules. Tiles lead with the enable switch and pin.",
+  "vm_sheet_segment_label": "Seg {seg}/{total}",
+  "@vm_sheet_segment_label": {
+    "placeholders": {
+      "seg": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "vm_sheet_scan_missing_title": "Scan missing durations",
+  "vm_sheet_scan_skipped_remote": "{count} are network storages (probing unsupported)",
+  "@vm_sheet_scan_skipped_remote": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_sheet_scan_failed": "{count} probes failed",
+  "@vm_sheet_scan_failed": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_sheet_scan_kept_normal": "Could not fetch missing durations ({parts}); kept normal playback.",
+  "@vm_sheet_scan_kept_normal": {
+    "placeholders": {
+      "parts": {"type": "String"}
+    }
+  },
+  "vm_sheet_match_prefix": "Match: {summary}",
+  "@vm_sheet_match_prefix": {
+    "placeholders": {
+      "summary": {"type": "String"}
+    }
+  },
+  "vm_sheet_preview_all": "Whole-library preview: {lib} videos - will produce {count} virtual videos (scenario source wins):",
+  "@vm_sheet_preview_all": {
+    "placeholders": {
+      "lib": {"type": "int"},
+      "count": {"type": "int"}
+    }
+  },
+  "vm_sheet_scan_missing_btn": "Scan missing durations ({count})",
+  "@vm_sheet_scan_missing_btn": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_sheet_item_meta": "{duration} - {count} segments",
+  "@vm_sheet_item_meta": {
+    "placeholders": {
+      "duration": {"type": "String"},
+      "count": {"type": "int"}
+    }
+  },
+  "vm_list_meta_segments": "{count} seg",
+  "@vm_list_meta_segments": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_children_expand": "Show files in this merged item",
+  "vm_children_collapse": "Hide files in this merged item",
+  "vm_child_play": "Play from this file",
+  "vm_progress_group_tooltip": "Whole merged item progress",
+  "vm_progress_segment_tooltip": "Current segment progress",
+  "vm_sheet_more_items": "... {count} items total",
+  "@vm_sheet_more_items": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_sheet_no_match": "No match",
+  "vm_sheet_no_match_desc": "No match - {desc}",
+  "@vm_sheet_no_match_desc": {
+    "placeholders": {
+      "desc": {"type": "String"}
+    }
+  },
+  "vm_sheet_count_videos": "{count} virtual videos",
+  "@vm_sheet_count_videos": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_sheet_count_videos_desc": "{desc} - {count} virtual videos",
+  "@vm_sheet_count_videos_desc": {
+    "placeholders": {
+      "desc": {"type": "String"},
+      "count": {"type": "int"}
+    }
+  },
+  "vm_sheet_no_conditions": "No conditions set",
+  "vm_sheet_kind_prefix": "prefix",
+  "vm_sheet_kind_suffix": "suffix",
+  "vm_sheet_kind_contains": "contains",
+  "vm_sheet_kind_regex": "regex",
+
+  "tag_new": "New tag",
+  "tag_name_label": "Name",
+  "tag_name_hint": "e.g. Watch later / Favorites",
+  "tag_desc_label": "Description (optional)",
+  "tag_desc_short": "Description",
+  "tag_cancel": "Cancel",
+  "tag_create": "Create",
+  "tag_save": "Save",
+  "tag_edit_prefix": "Edit",
+  "tag_manage_title": "Manage tags",
+  "tag_empty": "No tags yet",
+  "tag_close": "Close",
+  "tag_delete_title": "Delete tag",
+  "tag_delete_body": "Delete \"{name}\"? All its marks and view state go with it.",
+  "@tag_delete_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "tag_delete_confirm": "Delete",
+  "tag_pin_title": "Pin presets",
+  "tag_pin_name_label": "Preset name",
+  "tag_pin_save_current": "Save current",
+  "tag_pin_empty": "No saved presets",
+  "tag_pin_count": "{count} pinned",
+  "@tag_pin_count": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "tag_pin_apply": "Apply",
+  "tag_sheet_prev_view": "Previous view",
+  "tag_sheet_prev_hint": "Back to the previous tag (pick no-tag above to exit fully)",
+  "tag_sheet_manage": "Manage",
+  "tag_sheet_pin_presets": "Pin presets",
+  "tag_sheet_no_tag": "No tag - original list",
+  "tag_sheet_seq_zero": "Index 0",
+  "tag_sheet_unpin": "Unpin",
+  "tag_sheet_pin": "Pin",
+  "tag_edit_title": "Edit - {name}",
+  "@tag_edit_title": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "tag_retention_label": "Record retention policy",
+  "tag_resume_label": "Jump-back window (when returning to this tag)",
+  "tag_retention_forever": "Keep forever",
+  "tag_retention_auto": "Auto-clear: entries added over {minutes} min ago",
+  "@tag_retention_auto": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "tag_edit_tip": "Edit",
+  "tag_delete_tip": "Delete",
+  "tag_row_remove": "Untag",
+  "tag_row_tag": "Tag",
+  "tag_row_activate": "Activate this tag view",
+  "tag_row_activate_disabled": "No media in this scenario — cannot jump",
+  "tag_sheet_ignore_scenario": "Ignore scenario — play all tag media",
+  "tag_sheet_ignore_scenario_hint": "Resolve the active tag to its whole membership instead of the current scenario's media",
+  "tag_sheet_auto_close": "Close after a shortcut command",
+  "tag_sheet_auto_close_hint": "Only for the keyboard-shortcut entry: after one command runs, the sheet closes itself",
+  "tag_media_count": "{scenario}/{total}",
+  "@tag_media_count": {
+    "placeholders": {
+      "scenario": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+
+  "scn_play_override": "Play Override",
+  "scn_play_append": "Play Append",
+  "scn_preview_queue": "Preview queue",
+  "scn_rename": "Rename",
+  "scn_delete": "Delete",
+  "scn_cancel": "Cancel",
+  "scn_save": "Save",
+  "scn_rename_title": "Rename scenario",
+  "scn_delete_title": "Delete scenario",
+  "scn_delete_body": "Delete this scenario? This cannot be undone.",
+  "scn_delete_many_title": "Delete scenarios?",
+  "scn_delete_many_body": "Delete {count} selected scenarios?",
+  "@scn_delete_many_body": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "scn_path_prefix": "Path: {path}",
+  "@scn_path_prefix": {
+    "placeholders": {
+      "path": {"type": "String"}
+    }
+  },
+  "scn_close": "Close",
+  "scn_scan_sources": "Scan and update sources",
+  "scn_rescan_sources": "Rescan source",
+  "scn_scan_busy_title": "Scan already running",
+  "scn_scan_busy_body": "Another scan is already in progress. Wait for it to finish or stop it, then try again.",
+  "scn_scan_none_title": "No sources to scan",
+  "scn_scan_none_body": "This scenario has no sources. Add a folder or file source first.",
+  "scn_scan_all_offline_title": "All remote sources unreachable",
+  "scn_scan_all_offline_body": "Every remote storage for this scenario is currently unreachable. Reconnect and try again. No data was changed.",
+  "scn_scan_summary_title": "Sources updated",
+  "scn_scan_summary_title_stopped": "Scan stopped",
+  "scn_scan_summary_scanned": "Scanned storages: {count}",
+  "@scn_scan_summary_scanned": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "scn_scan_summary_skipped": "Skipped (unreachable): {count}",
+  "@scn_scan_summary_skipped": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "scn_scan_summary_skipped_note": "Skipped remote storages were left untouched — their cached data was not modified.",
+  "scn_scan_summary_deduped": "Duplicate sources merged: {count}",
+  "@scn_scan_summary_deduped": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "scn_scan_summary_missing": "Missing explicit files removed: {count}",
+  "@scn_scan_summary_missing": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "scn_scan_sources_offline": "Unreachable — cannot scan",
+  "scn_scan_paused": "Paused",
+  "scn_scan_sources_running": "Updating sources {index}/{total} · {storage}",
+  "@scn_scan_sources_running": {
+    "placeholders": {
+      "index": {"type": "int"},
+      "total": {"type": "int"},
+      "storage": {"type": "String"}
+    }
+  },
+  "scan_sources_error": "Scan error",
+  "scn_group_same_dir": "Same-dir contiguous",
+  "scn_dedupe": "Dedupe",
+  "scn_group_sort": "Sort in group",
+  "scn_selected_content": "Selected content",
+  "scn_filter_layer": "Filter Layer 1",
+  "scn_apply": "Apply",
+  "scn_changed_title": "Scenario changed since last import",
+  "scn_continue": "Continue",
+  "scn_origin_missing": "Origin not found",
+  "scn_save_as_new": "Save as new",
+  "scn_save_playing": "Save current playing",
+  "scn_sync_origin": "Sync back to origin",
+  "scn_override_it": "Override it",
+  "scn_append_it": "Append to it",
+  "scn_override_playing_title": "Override current playing?",
+  "scn_override_play": "Override and play",
+  "scn_create_title": "Create Scenario",
+  "scn_create_one": "Create one",
+  "scn_create": "Create",
+  "scn_name_hint": "Name",
+  "scn_save_failed": "Save failed",
+  "scn_origin_missing_body": "The origin scenario no longer exists.\nSave as a new scenario instead?",
+  "scn_name_label": "Name",
+  "scn_name_hint_full": "Scenario name",
+  "scn_desc_label": "Description",
+  "scn_desc_hint_prefix": "Added at ",
+  "scn_copy_to": "Copy to another scenario",
+  "scn_origin_fallback": "origin",
+  "scn_desc_override_suffix": "override to existing scenario",
+  "scn_desc_append_suffix": "append to existing scenario",
+  "scn_batch_auto": "Auto-generate (batch)",
+  "scn_batch_pattern": "Name Pattern",
+  "scn_batch_pattern_hint": "Example: Anime_001",
+  "scn_batch_count": "Count",
+  "scn_batch_count_hint": "1 to 1000",
+  "scn_batch_start": "Start Index",
+  "scn_batch_start_hint": ">= 0",
+  "scn_sort_shuffled": "Shuffled",
+  "scn_sort_original": "Original",
+  "scn_sort_name": "Name",
+  "scn_sort_modified": "Modified",
+  "scn_sort_duration": "Duration",
+  "scn_sort_size": "Size",
+  "scn_group_dir_sources": "Dir sources",
+  "scn_group_item_sources": "Item sources",
+  "scn_group_dir_exclude": "Dir exclude",
+  "scn_group_item_exclude": "Item exclude",
+  "scn_manage_name": "Name",
+  "scn_manage_storage": "Storage",
+  "scn_manage_path": "Path",
+  "scn_manage_type": "Type",
+  "scn_manage_created": "Created",
+  "scn_manage_container_first": "Same container (dir/storage) first",
+
+  "lib_search": "Search",
+  "lib_folder_first": "Folder First",
+  "lib_hide_empty_dirs": "Hide Empty Dirs",
+  "lib_only_dirs_with_media": "Only Show Dirs With Media",
+  "lib_empty_filtered_no_media": "No directories with media here.",
+  "lib_show_all_dirs": "Show All Dirs",
+  "lib_view_mode": "View Mode",
+  "lib_selection_info": "Selection Info",
+  "lib_no_media": "No Media",
+  "lib_no_media_selection": "No media files found in selection.",
+  "lib_no_media_found": "No media files found.",
+  "lib_confirm_delete": "Confirm Delete",
+  "lib_rename": "Rename",
+  "lib_open_with": "Open with another app",
+  "lib_play_append": "Play Append",
+  "lib_add_as_source": "Add as Source",
+  "lib_create_library": "Create Library",
+  "lib_batch_create": "Batch Create Libraries",
+  "lib_load_error": "Load error",
+  "lib_no_libraries": "No libraries available.",
+  "lib_no_libraries_title": "No Libraries",
+  "lib_create_first_hint": "Create a library first.",
+  "lib_no_sources_to_copy": "No sources to copy",
+  "lib_rename_library": "Rename Library",
+  "lib_delete_library_title": "Delete library?",
+  "lib_delete_library_body": "Are you sure you want to delete this library?",
+  "lib_delete_libraries_title": "Delete libraries?",
+  "lib_new_name_hint": "Enter new library name",
+  "lib_name_hint": "Library Name",
+  "lib_batch_pattern_hint": "Example: Anime_001",
+  "lib_batch_count_hint": ">= 1",
+  "lib_detached": "Detached",
+  "lib_created_prefix": "Created: {date}",
+  "@lib_created_prefix": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "lib_updated_prefix": "Updated: {date}",
+  "@lib_updated_prefix": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "lib_sort_name": "Name",
+  "lib_sort_size": "Size",
+  "lib_sort_duration": "Duration",
+  "lib_sort_resolution": "Resolution",
+  "lib_sort_modified": "Last Modified",
+  "lib_sort_tip": "Sort",
+  "lib_recursive": "Recursive",
+  "lib_direct_only": "Direct only",
+  "lib_play_folder": "Play current folder",
+  "lib_mode_path_tree": "Path Tree",
+  "lib_mode_all_media": "All Media",
+  "lib_mode_all_dirs": "All Directories",
+  "lib_info_action": "Info",
+  "lib_info_selected_count": "{count} items selected",
+  "@lib_info_selected_count": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "lib_info_section_selected": "Selected",
+  "lib_info_directories": "Directories",
+  "lib_info_media_files": "Media Files",
+  "lib_info_video": "  Video",
+  "lib_info_audio": "  Audio",
+  "lib_info_section_recursive": "Inside Selection (recursive)",
+  "lib_info_subdirs": "Subdirectories",
+  "lib_info_total_size": "Total Size",
+  "lib_info_played": "Played Items",
+  "lib_info_unplayed": "Unplayed Items",
+  "lib_append_queue": "Append Queue",
+  "lib_not_in_database": "None of the selected items are in the media database.",
+  "lib_delete_action": "Delete",
+  "lib_delete_body": "Remove selected items from the database? This will not delete actual files on disk. You can rescan to re-import them.",
+  "lib_dont_show_again": "Don't show this again",
+  "lib_override_queue": "Override Queue",
+  "lib_delete_source_body": "Delete \"{name}\" source?",
+  "@lib_delete_source_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "lib_new_name_label": "New name",
+  "lib_file_name_hint": "File name",
+  "gest_reset_title": "Reset edits",
+  "gest_reset_body": "Restore unsaved changes to saved settings. Continue?",
+  "gest_reset_confirm": "Reset",
+  "gest_cancel_title": "Discard edits",
+  "gest_cancel_body": "Discard unsaved changes and go back to the gesture guide?",
+  "gest_cancel_confirm": "Discard",
+  "gest_save_title": "Confirm save",
+  "gest_save_body": "This overwrites the saved regions. Continue?",
+  "gest_save_confirm": "Save",
+  "gest_keep_toggle_title": "Keep at least one controls toggle",
+  "gest_keep_toggle_body": "Tap regions must keep one \"show / hide controls\" block, or the control bar may never come back. Your edits are kept — switch one block back, then save.",
+  "recycle_title": "Delete file",
+  "recycle_body": "Move the current file to the recycle bin:\n{file}\n\nContinue?",
+  "@recycle_body": {
+    "placeholders": {
+      "file": {"type": "String"}
+    }
+  },
+  "recycle_delete": "Delete",
+  "recycle_unavailable_title": "Cannot move to recycle bin",
+  "recycle_unavailable_body": "Permanently delete this file? This cannot be undone.\n{path}",
+  "@recycle_unavailable_body": {
+    "placeholders": {
+      "path": {"type": "String"}
+    }
+  },
+  "recycle_permanent": "Delete permanently",
+  "recycle_cancel": "Cancel",
+  "dlg_force_append": "Force append",
+  "dlg_play_failed_prefix": "Playback failed: {error}",
+  "@dlg_play_failed_prefix": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "legacy_title": "Legacy compatibility",
+  "legacy_gate_title": "Use metadata settings (off falls back to legacy)",
+  "legacy_gate_desc": "Off restores legacy behavior site-wide; on is meta-driven",
+  "legacy_sync_title": "Dual-write legacy archive",
+  "legacy_sync_desc": "Only effective with metadata mode on (dual-write, rollback anytime)",
+  "legacy_title_bar": "Use classic title bar",
+  "legacy_control_bar": "Use legacy control bar",
+  "legacy_storage": "Use legacy storage / play-queue backend",
+  "legacy_close": "Close",
+  "gest_layout_title": "Gesture layout",
+  "gest_portrait_label": "Portrait",
+  "gest_portrait_desc": "Region normal (top two 15% tags / middle-lower 30% tags, six cells)",
+  "gest_portrait_region": "Region normal",
+  "gest_portrait_only": "Portrait uses the normal layout only",
+  "gest_landscape_label": "Landscape",
+  "gest_region_normal": "Region normal",
+  "gest_region_normal_desc": "Top two 15% tags, six cells (a 30% line splits the middle tag)",
+  "gest_region_right": "Region right",
+  "gest_region_right_desc": "Top two 15% tags, eight cells",
+  "gest_region_left": "Region left",
+  "gest_region_left_desc": "Top two 15% tags, eight cells",
+  "gest_no_region": "No regions (legacy default only)",
+  "gest_no_region_desc": "No regions at all, oldest default gestures only (no tags)",
+  "gest_edit_regions": "Edit regions",
+  "gest_reset": "Reset",
+  "gest_confirm": "Confirm",
+  "sld_title": "Side Slider Panel Settings",
+  "sld_mode_label": "Slider type",
+  "sld_mode_normal": "Normal",
+  "sld_mode_sideway": "Sideway",
+  "sld_side_left": "Left",
+  "sld_side_right": "Right",
+  "sld_side_center": "Center",
+  "sld_pos_h": "Position (left/center/right)",
+  "sld_pos_v": "Position (top/middle/bottom)",
+  "sld_pos_top": "Top",
+  "sld_pos_middle": "Middle",
+  "sld_pos_bottom": "Bottom",
+  "sld_kind_dial": "Dial ring",
+  "sld_kind_circle": "Simple circle arc",
+  "sld_corner_desc": "Corner hide — vertical / horizontal / diagonal (default vertical)",
+  "sld_corner_vertical": "Vertical",
+  "sld_corner_horizontal": "Horizontal",
+  "sld_corner_diagonal": "Diagonal",
+  "sld_panel_width": "Total panel width",
+  "sld_panel_height": "Total panel height",
+  "sld_size_pct": "{label}  {pct}%  ·  ~{px} px",
+  "@sld_size_pct": {
+    "placeholders": {
+      "label": {"type": "String"},
+      "pct": {"type": "int"},
+      "px": {"type": "int"}
+    }
+  },
+  "sld_size_px": "{label}  {px} px · max {max}",
+  "@sld_size_px": {
+    "placeholders": {
+      "label": {"type": "String"},
+      "px": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "sld_value_pct": "{pct}%",
+  "@sld_value_pct": {
+    "placeholders": {
+      "pct": {"type": "int"}
+    }
+  },
+  "sld_value_px": "{px} px",
+  "@sld_value_px": {
+    "placeholders": {
+      "px": {"type": "int"}
+    }
+  },
+  "sld_dial_tuning": "Dial ring tuning",
+  "sld_circle_tuning": "Simple circle arc tuning",
+  "sld_center_action": "Center tap action",
+  "sld_action_none": "None",
+  "sld_action_toggle": "Toggle controls",
+  "sld_action_play_pause": "Play/Pause",
+  "sld_action_switch_group": "Switch group",
+  "set_group_center_zone": "Center tap zones",
+  "center_zone_inward": "Inward (toward screen center)",
+  "center_zone_outward": "Outward (screen edge)",
+  "center_zone_top": "Top",
+  "center_zone_bottom": "Bottom",
+  "desktop_center_zone_phone_mode": "Use phone center-zone layout",
+  "desktop_center_zone_phone_mode_desc": "When on, desktop uses the same four center-tap sectors as phones (including switching the bottom control group). Off keeps the legacy behavior: all four sectors toggle the control bar.",
+  "control_group_floating_button": "Floating group switch button",
+  "control_group_button_tip": "Switch bottom control group",
+  "control_group_playback": "Playback controls",
+  "control_group_background": "Sub-audio controls",
+  "phone_mode_normal": "Normal controls",
+  "phone_mode_right": "Right-side controls",
+  "phone_mode_left": "Left-side controls",
+  "phone_slider_title": "Slider type",
+  "phone_slider_normal": "Normal",
+  "phone_slider_right": "Right side",
+  "phone_slider_left": "Left side",
+  "phone_slider_close": "Close",
+  "scrub_kind_title": "One-handed scrubber design",
+  "scrub_kind_close": "Close",
+  "scrub_dial_label": "Ring dial",
+  "scrub_dial_desc": "Dual ring dial: inner blocks, outer current-block revolution, seek-step axis and corner buttons.",
+  "scrub_classic_label": "Simple circle arc",
+  "scrub_classic_desc": "The original circle slider (circle right / circle left) on the chosen side.",
+  "tag_cells_permanent": "Forever",
+  "tag_cells_year": "y",
+  "tag_cells_month": "mo",
+  "tag_cells_day": "d",
+  "tag_cells_hour": "h",
+  "tag_cells_minute": "m",
+  "tag_cells_second": "s",
+  "snake_title": "Fine tune range",
+  "snake_preview": "±{sec}s (shared floating + fixed)",
+  "@snake_preview": {
+    "placeholders": {
+      "sec": {"type": "int"}
+    }
+  },
+  "snake_minutes": "Minutes",
+  "snake_seconds": "Seconds",
+  "snake_hint": "5s .. 600s, panel-adaptive; 15–45s recommended for small panel.",
+  "snake_cancel": "Cancel",
+  "snake_save": "Save",
+  "menu_tag_play": "Tag Play",
+  "menu_virtual_media": "Virtual media",
+  "menu_jump_to_time": "Jump to time",
+  "menu_side_panel": "Side panel {w}% x {h}%",
+  "@menu_side_panel": {
+    "placeholders": {
+      "w": {"type": "String"},
+      "h": {"type": "String"}
+    }
+  },
+  "menu_side_panel_px": "Side panel {w} x {h} px",
+  "@menu_side_panel_px": {
+    "placeholders": {
+      "w": {"type": "String"},
+      "h": {"type": "String"}
+    }
+  },
+  "menu_side_panel_desc": "Unified settings for total panel / dial ring / circle arc",
+  "menu_frame_tools": "Frame tools",
+  "menu_screenshot": "Capture current frame",
+  "menu_fine_tune": "Fine tune range: ±{sec}s",
+  "@menu_fine_tune": {
+    "placeholders": {
+      "sec": {"type": "int"}
+    }
+  },
+  "jump_overflow_body": "Input {input} exceeds total {total}.\nJump to {target} (1s before end)?",
+  "@jump_overflow_body": {
+    "placeholders": {
+      "input": {"type": "String"},
+      "total": {"type": "String"},
+      "target": {"type": "String"}
+    }
+  },
+  "jump_cancel": "Cancel",
+  "jump_continue": "Continue",
+  "jump_current_prefix": "Current {pos} / {total}",
+  "@jump_current_prefix": {
+    "placeholders": {
+      "pos": {"type": "String"},
+      "total": {"type": "String"}
+    }
+  },
+  "jump_current_only": "Current {pos}",
+  "@jump_current_only": {
+    "placeholders": {
+      "pos": {"type": "String"}
+    }
+  },
+  "jump_go": "Go",
+  "ring_box_height": "Box height",
+  "ring_side_inner": "Inner",
+  "ring_side_outer": "Outer",
+  "ring_assign_inner": "Chunks inside",
+  "ring_assign_outer": "Chunks outside",
+  "ring_hide_unchunked": "Hide chunk ring when unchunked",
+  "ring_lock_vm_progress": "Lock progress ring inside the current file",
+  "ring_position": "Ring position",
+  "ring_outer_radius": "Outer ring (physical)",
+  "ring_inner_radius": "Inner ring (physical)",
+  "circle_scale": "Circle scale",
+  "circle_pos_x": "Position X",
+  "circle_pos_y": "Position Y",
+  "circle_note": "Keeps the control-bar slider uncovered: the popup anchors to the panel's far side; circle position/size adjust relatively inside the panel.",
+  "scan_title": "Scan options",
+  "scan_probe_label": "Try reading media info (duration / resolution)",
+  "scan_purpose": "Purpose: feeds duration grouping, resolution sorting and total-duration stats; missing info is also backfilled automatically during playback.",
+  "scan_strategy_win": "Desktop: reads file attributes directly (same source as the Explorer details tab, no decoding, very fast).",
+  "scan_strategy_android": "Phone: queries the system media prober; supports storage paths and SAF content URIs.",
+  "scan_strategy_none": "No probing available on this platform yet; info is backfilled automatically during playback.",
+  "scan_estimate_remote": "Network storages skip duration probing: the scan only builds a directory index, files missing deep info sort last, durations backfill during playback; pause or stop anytime.",
+  "scan_estimate_win": "Estimate: desktop reads file attributes directly without decoding, usually tens of ms per file — seconds for hundreds of files, ~half a minute for thousands; pause or stop anytime.",
+  "scan_estimate_android": "Estimate: phones query the system prober one by one, usually ~50–200ms per file, ~1–3 min for a thousand files, noticeably slower with many files; pause or stop anytime.",
+  "scan_estimate_none": "No probing on this platform: durations backfill during playback; pause or stop anytime.",
+  "scan_caveat": "Unsupported containers, corrupt files or restricted storages may yield no info — such files sort after informed ones (ascending or descending) and backfill during playback.",
+  "scan_cancel": "Cancel",
+  "scan_start": "Start scan",
+  "scan_status_scanning": "Scanning...",
+  "scan_status_done": "Task complete.",
+  "scan_status_stopped": "Stopped.",
+  "scan_status_error": "Error: {error}",
+  "@scan_status_error": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "scan_discovering": "Discovering {total} dirs · {scanned} scanned — {path}",
+  "@scan_discovering": {
+    "placeholders": {
+      "total": {"type": "int"},
+      "scanned": {"type": "int"},
+      "path": {"type": "String"}
+    }
+  },
+  "scan_progress_dirs": "{percent}% · {scanned}/{total} dirs",
+  "@scan_progress_dirs": {
+    "placeholders": {
+      "percent": {"type": "String"},
+      "scanned": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "scan_progress_percent": "{percent}%",
+  "@scan_progress_percent": {
+    "placeholders": {
+      "percent": {"type": "String"}
+    }
+  },
+  "scan_closing_in": "Closing in: {seconds} seconds",
+  "@scan_closing_in": {
+    "placeholders": {
+      "seconds": {"type": "String"}
+    }
+  },
+  "scan_elapsed": "Elapsed: {time}",
+  "@scan_elapsed": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "scan_eta": "Remaining: ~{time}",
+  "@scan_eta": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "scan_eta_estimating": "Remaining: estimating…",
+  "scan_probe_progress": "Probing {done}/{total}",
+  "@scan_probe_progress": {
+    "placeholders": {
+      "done": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "lib_delete_libraries_body": "Delete {count} selected libraries?",
+  "@lib_delete_libraries_body": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "lib_info_type": "Type",
+  "lib_info_directory": "Directory",
+  "lib_info_path": "Path",
+  "lib_info_size": "Size",
+  "lib_info_modified": "Modified",
+  "lib_add_to_library": "Add to Library",
+  "lib_info_files": "Files",
+  "lib_info_selected_items": "Selected: {count} items",
+  "@lib_info_selected_items": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "lib_added_sources": "Added {count} source(s) to library",
+  "@lib_added_sources": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "scn_changed_body": "\"{name}\" has been modified since it was last played.\n\nContinue with the latest version?",
+  "@scn_changed_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "scn_override_body": "Current playing queue will be replaced by\n\"{name}\".\n\nThis clears the current playing sources and exclusions. You can save the current playing before overriding if needed.",
+  "@scn_override_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "gate_unscanned_title": "Directory not fully scanned",
+  "gate_unscanned_body": "\"{dir}\" has never had a complete recursive scan.\n\nThe playlist may be incomplete or miss the latest files. Scan it fully now?",
+  "@gate_unscanned_body": {
+    "placeholders": {
+      "dir": {"type": "String"}
+    }
+  },
+  "gate_scanning_title": "Directory is being scanned",
+  "gate_scanning_body": "\"{dir}\" is being scanned.\n\nYou can keep playing what has been scanned so far.",
+  "@gate_scanning_body": {
+    "placeholders": {
+      "dir": {"type": "String"}
+    }
+  },
+  "gate_error_title": "Last scan failed",
+  "gate_error_body": "\"{dir}\" failed its last recursive scan.\n\nScan it fully again?",
+  "@gate_error_body": {
+    "placeholders": {
+      "dir": {"type": "String"}
+    }
+  },
+  "gate_stale_title": "Full scan overdue",
+  "gate_stale_body": "\"{dir}\" was last fully scanned {age} ago; a rescan is recommended.",
+  "@gate_stale_body": {
+    "placeholders": {
+      "dir": {"type": "String"},
+      "age": {"type": "String"}
+    }
+  },
+  "gate_play_anyway": "Play anyway",
+  "gate_scan_now": "Scan fully now",
+  "gate_resume_title": "Scan finished",
+  "gate_resume_body": "Continue playing what you started?",
+  "gate_resume_continue": "Continue playing",
+  "gate_storage_root": "Storage root",
+  "gate_stale_hm": "{h}h {m}m",
+  "@gate_stale_hm": {
+    "placeholders": {
+      "h": {"type": "String"},
+      "m": {"type": "String"}
+    }
+  },
+  "gate_stale_h": "{h}h",
+  "@gate_stale_h": {
+    "placeholders": {
+      "h": {"type": "String"}
+    }
+  },
+  "gate_stale_m": "{m}m",
+  "@gate_stale_m": {
+    "placeholders": {
+      "m": {"type": "String"}
+    }
+  },
+  "vm_dscan_title": "Virtual merge is missing durations",
+  "vm_dscan_body": "\"{group}\" ({total} segments) has {count} segments with no duration in the database, so they cannot merge into one video:\n{names}\n\nScan for durations now? Merged playback follows after the scan.",
+  "@vm_dscan_body": {
+    "placeholders": {
+      "group": {"type": "String"},
+      "total": {"type": "int"},
+      "count": {"type": "int"},
+      "names": {"type": "String"}
+    }
+  },
+  "vm_dscan_play_normal": "Skip merge, play normally",
+  "vm_dscan_scan_now": "Scan now",
+  "vm_dscan_cancel_scan": "Cancel scan",
+  "vm_dscan_stop_scan": "Stop scan and play",
+  "vm_harvest_stop": "Stop fetch and play",
+  "vm_preflight_title": "Virtual merge preflight",
+  "vm_preflight_cancel": "Cancel playback",
+  "vm_preflight_report_title": "Virtual merge preflight report",
+  "vm_slow_title": "Durations still missing",
+  "vm_slow_body": "\"{group}\" still has {count} segments with no duration after the fast scan:\n{names}\n\nContinue with a slow background fetch? Up to ~20s per file, can be very slow.",
+  "@vm_slow_body": {
+    "placeholders": {
+      "group": {"type": "String"},
+      "count": {"type": "int"},
+      "names": {"type": "String"}
+    }
+  },
+  "vm_slow_normal": "Play normally only",
+  "vm_slow_continue": "Continue slow scan",
+  "vm_resolve_harvest_title": "Fetch durations in background",
+  "vm_harvest_report": "Background fetch finished: {summary}.\nMissed: {missing}\nKept normal playback; retry later if needed.",
+  "@vm_harvest_report": {
+    "placeholders": {
+      "summary": {"type": "String"},
+      "missing": {"type": "String"}
+    }
+  },
+  "vm_title_root_dir": "Root directory",
+  "vm_title_cross_dir": "Cross-directory",
+  "vm_error_title": "Virtual media playback",
+  "vm_error_session_stopped": "Several segments in a row could not be played; virtual media playback has stopped.",
+  "vm_error_segment_unplayable": "A segment could not be played and virtual media playback has stopped.",
+  "vm_scan_summary": "Duration scan: {parts}, took {secs}s",
+  "@vm_scan_summary": {
+    "placeholders": {
+      "parts": {"type": "String"},
+      "secs": {"type": "String"}
+    }
+  },
+  "vm_scan_part_ok": "OK {count}",
+  "@vm_scan_part_ok": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_scan_part_skipped": "skipped {count}",
+  "@vm_scan_part_skipped": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_scan_part_failed": "failed {count}",
+  "@vm_scan_part_failed": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "vm_scan_part_cancelled": "cancelled",
+  "vm_scan_part_timeout": "timed out",
+  "vm_scan_part_sep": ", ",
+  "vm_scan_timeout": "Scan timed out (>{secs}s): scanned {done}/{total}, {left} left; scanned results are saved.",
+  "@vm_scan_timeout": {
+    "placeholders": {
+      "secs": {"type": "int"},
+      "done": {"type": "int"},
+      "total": {"type": "int"},
+      "left": {"type": "int"}
+    }
+  },
+  "vm_preflight_timeout": "Virtual merge preflight timed out (>{secs}s): rule={rule} scope={scope} verified {done}/{total}, stuck at {key}. Degraded to normal playback - please report this.",
+  "@vm_preflight_timeout": {
+    "placeholders": {
+      "secs": {"type": "int"},
+      "rule": {"type": "String"},
+      "scope": {"type": "String"},
+      "done": {"type": "int"},
+      "total": {"type": "int"},
+      "key": {"type": "String"}
+    }
+  },
+  "vm_fail_missing_node": "File not found in the database (maybe deleted/unscanned); cannot join the virtual merge, degraded to normal playback.",
+  "vm_fail_zero_duration": "Unknown duration (no duration in database); cannot join the virtual merge, degraded to normal playback.",
+  "vm_fail_verify_error": "Preflight read failed ({error}); degraded to normal playback.",
+  "@vm_fail_verify_error": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "editor_prefix_empty_title": "Prefix cannot be empty",
+  "editor_prefix_empty_body": "The rule-name prefix cannot be empty; the old value is kept.",
+  "vm_fail_group_zero": "Merge failed in this group: unknown-duration segments ({names}); degraded to normal playback.",
+  "@vm_fail_group_zero": {
+    "placeholders": {
+      "names": {"type": "String"}
+    }
+  },
+  "vm_fail_degraded": "Virtual merge failed; degraded to normal playback.",
+  "vm_unavailable_title": "Virtual media",
+  "vm_unavailable_body": "This feature needs the metadata-driven settings system with legacy storage persistence off.",
+  "guide_intent_tap": "Tap",
+  "guide_intent_double_tap": "Double tap",
+  "guide_intent_long_press": "Long press",
+  "guide_intent_long_press_pan_h": "Long-press + swipe horizontal",
+  "guide_intent_long_press_pan_v": "Long-press + swipe vertical",
+  "guide_intent_pan_h": "Swipe horizontal",
+  "guide_intent_pan_v": "Swipe vertical",
+  "guide_intent_hover": "Hover",
+  "guide_action_none": "Not set",
+  "guide_action_play_pause": "Play / Pause",
+  "guide_action_toggle_controls": "Show / hide controls",
+  "guide_action_seek_forward": "Seek forward",
+  "guide_action_seek_forward_secs": "Seek forward {secs}s",
+  "@guide_action_seek_forward_secs": {
+    "placeholders": {
+      "secs": {"type": "int"}
+    }
+  },
+  "guide_action_seek_backward": "Seek backward",
+  "guide_action_seek_backward_secs": "Seek backward {secs}s",
+  "@guide_action_seek_backward_secs": {
+    "placeholders": {
+      "secs": {"type": "int"}
+    }
+  },
+  "guide_action_seek_to": "Drag progress",
+  "guide_action_adjust_step": "Drag to adjust step",
+  "guide_action_speed_on": "Hold for speed playback",
+  "guide_action_speed_update": "Slide to adjust speed",
+  "guide_action_speed_off": "End speed playback",
+  "guide_action_speed_menu": "Hold for speed dial",
+  "guide_action_speed_pick": "Slide to pick speed",
+  "guide_action_show_progress": "Show progress bar",
+  "guide_action_fullscreen": "Toggle fullscreen",
+  "guide_action_open_tag": "Open Tag view",
+  "guide_action_volume": "Adjust volume",
+  "guide_action_brightness": "Adjust brightness",
+  "guide_auto_follow_badge": "Active · tag view auto-follow",
+  "guide_legacy_caption": "Classic gestures · no partitions",
+  "guide_tip_finish_edit": "Finish editing",
+  "guide_tip_direct_edit": "Edit current action partition directly",
+  "guide_tip_settings": "Gesture region settings",
+  "guide_tip_reset": "Reset gesture layout",
+  "guide_tip_close": "Back to player",
+  "guide_profile_default": "Default",
+  "guide_profile_right": "Right side",
+  "guide_profile_left": "Left side",
+  "guide_badge_active": "Active",
+  "guide_badge_current": "Current",
+  "guide_intent_type_tap": "Tap",
+  "guide_intent_type_double_tap": "Double tap",
+  "guide_intent_type_pan_v": "Swipe vertical",
+  "guide_intent_type_long_press": "Long press",
+  "guide_editor_reset_saved": "Reset to saved",
+  "guide_editor_cancel_back": "Cancel and go back",
+  "guide_editor_confirm_save": "Confirm and save",
+  "speed_title": "Speed",
+  "speed_hint_v": "Vertical 1.0",
+  "speed_hint_h": "Horizontal 0.1",
+  "speed_chip_h": "H 0.1",
+  "speed_chip_v": "V 1.0",
+  "speed_footer_hint": "Change direction anytime mid-swipe; the dominant axis wins",
+  "osd_volume": "Volume",
+  "osd_muted": "Muted",
+  "osd_unmuted": "Unmuted",
+  "osd_speed": "Speed",
+  "osd_speed_reset": "Speed (reset)",
+  "osd_seek": "Seek",
+  "osd_seek_delta": "Seek {delta}",
+  "osd_seek_step": "Seek step",
+  "@osd_seek_delta": {
+    "placeholders": {
+      "delta": {"type": "String"}
+    }
+  },
+  "osd_next_frame": "Next frame",
+  "osd_prev_frame": "Prev frame",
+  "osd_sub_sync": "Subtitle sync",
+  "osd_audio_sync": "Audio sync",
+  "osd_loop_on": "Loop ON",
+  "osd_loop_off": "Loop OFF",
+  "osd_fit": "Fit",
+  "osd_display_mode": "Video display mode",
+  "osd_window_fit": "Fit window to video",
+  "osd_window_fixed": "Fixed window size",
+  "osd_window_fit_desc": "Resize the window to each video's resolution on open",
+  "osd_window_fixed_desc": "Keep the current window size",
+  "osd_subtitle": "Subtitle",
+  "osd_audio": "Audio",
+  "osd_subtitles_on": "Subtitles ON",
+  "osd_subtitles_off": "Subtitles OFF",
+  "osd_repeat": "Repeat",
+  "osd_shuffle_on": "Shuffle ON",
+  "osd_shuffle_off": "Shuffle OFF",
+  "osd_on_top_on": "Always on top ON",
+  "osd_on_top_off": "Always on top OFF",
+  "osd_fullscreen": "Fullscreen",
+  "osd_windowed": "Windowed",
+  "osd_shot_saved": "Screenshot saved",
+  "osd_shot_failed": "Screenshot failed",
+  "osd_moved_recycle": "Moved to Recycle Bin",
+  "osd_previous": "Previous",
+  "osd_next": "Next",
+  "osd_paused": "Paused",
+  "osd_playing": "Playing",
+  "disp_contain": "Fit window",
+  "disp_fill": "Stretch fill",
+  "disp_cover": "Crop fill",
+  "disp_adaptive": "Original size · adaptive",
+  "disp_forced": "Original size · 100%",
+  "window_label": "Window",
+  "dock_playlist": "Playlist",
+  "dock_tip_docked": "Currently: docked at side · tap to switch to floating",
+  "dock_tip_floating": "Currently: floating · tap to switch to side dock",
+  "dock_stay_open": "Keep playlist open",
+  "dock_close_on_play": "Close on play",
+  "dock_tip_docked_full": "Currently: docked at side (alongside video, draggable width) · tap to switch to floating ({hint})",
+  "@dock_tip_docked_full": {
+    "placeholders": {
+      "hint": {"type": "String"}
+    }
+  },
+  "dock_tip_floating_full": "Currently: floating · tap to switch to side dock ({hint})",
+  "@dock_tip_floating_full": {
+    "placeholders": {
+      "hint": {"type": "String"}
+    }
+  },
+  "dock_mode_docked": "Docked at side · tap to hide/show",
+  "dock_mode_floating": "Floating popup",
+  "tag_no_tag": "No tag",
+  "track_subtitle": "Subtitle",
+  "track_audio": "Audio",
+  "track_sync_reset": "Reset",
+  "osd_dock_shown": "Playlist dock shown",
+  "osd_dock_hidden": "Playlist dock hidden",
+  "osd_dock_docked": "Playlist: docked",
+  "osd_dock_floating": "Playlist: floating",
+  "osd_playback_closed": "Playback closed",
+  "osd_auto_fit_on": "Fit window to video ON",
+  "osd_auto_fit_on_desc": "Window auto-resizes to the video aspect",
+  "osd_auto_fit_off": "Fit window to video OFF",
+  "osd_auto_fit_off_desc": "Auto-resize turned off",
+  "browser_back": "Back",
+  "browser_home": "Home",
+  "browser_search": "Search",
+  "browser_close": "Close",
+  "browser_go_current": "Go to current",
+  "browser_select_all": "Select All",
+  "browser_deselect_all": "Deselect All",
+  "browser_invert": "Invert",
+  "browser_jump_title": "Jump to Page",
+  "browser_jump_hint": "Page number (1 to {total})",
+  "@browser_jump_hint": {
+    "placeholders": {
+      "total": {"type": "int"}
+    }
+  },
+  "browser_jump_label": "Page",
+  "browser_jump_invalid": "Invalid page number",
+  "browser_jump_go": "Go",
+  "browser_size_title": "Items per Page",
+  "browser_size_total": "Total items: {total}",
+  "@browser_size_total": {
+    "placeholders": {
+      "total": {"type": "int"}
+    }
+  },
+  "browser_size_hint": "Please enter a value between 1 and 100,000.",
+  "browser_size_helper": "{total}\n{hint}",
+  "@browser_size_helper": {
+    "placeholders": {
+      "total": {"type": "String"},
+      "hint": {"type": "String"}
+    }
+  },
+  "browser_size_input_hint": "Number of items per page",
+  "browser_size_label": "Page size",
+  "browser_size_invalid": "Enter a number between 1 and 100,000",
+  "browser_size_apply": "Apply",
+  "browser_load_failed": "Failed to load browser contents.",
+  "browser_retry": "Retry",
+  "browser_empty": "No items found.",
+  "browser_error_unreachable": "Cannot reach the server.",
+  "browser_error_unauthorized": "The server rejected the username or password (401/403).",
+  "browser_error_timeout": "The server did not respond in time.",
+  "browser_error_http_blocked": "The platform blocked plaintext HTTP — use https, or allow cleartext for this host.",
+  "browser_error_unknown": "Failed to read the directory.",
+  "browser_error_detail": "Details: {detail}",
+  "@browser_error_detail": {
+    "placeholders": {
+      "detail": {"type": "String"}
+    }
+  },
+  "storage_connect_failed": "Cannot connect to {endpoint}",
+  "@storage_connect_failed": {
+    "placeholders": {
+      "endpoint": {"type": "String"}
+    }
+  },
+  "storage_connect_offline_note": "Library entries stay greyed and browse-only until it reconnects.",
+  "storage_offline": "Offline",
+  "storage_lost_play_blocked": "Storage is offline. Library entries are greyed and cannot be played until it reconnects.",
+  "play_error_reason_detail": "{reason}\n\nDetails: {detail}",
+  "@play_error_reason_detail": {
+    "placeholders": {
+      "reason": {"type": "String"},
+      "detail": {"type": "String"}
+    }
+  },
+  "browser_search_query": "Search: \"{query}\"",
+  "@browser_search_query": {
+    "placeholders": {
+      "query": {"type": "String"}
+    }
+  },
+  "browser_sources": "Sources",
+  "search_bar_hint": "Type to search",
+  "search_bar_clear": "Clear",
+  "search_bar_history": "Search history",
+  "search_bar_no_history": "No search history",
+  "search_bar_clear_all": "Clear all history",
+  "browser_no_tabs": "No tabs available",
+  "browse_path": "Path: {path}",
+  "@browse_path": {
+    "placeholders": {
+      "path": {"type": "String"}
+    }
+  },
+  "browse_search": "Search",
+  "browse_set_source": "Set as source",
+  "browse_exclude_dir": "Exclude directory",
+  "browse_add_scenario": "Add to scenario",
+  "browse_exclude_media": "Exclude media",
+  "scrubber_time_lens": "Time lens",
+  "scrubber_ring": "Ring scrub",
+  "dial_tip_random": "Random jump",
+  "dial_tip_speed": "Speed {rate}",
+  "@dial_tip_speed": {
+    "placeholders": {
+      "rate": {"type": "String"}
+    }
+  },
+  "storages_stay_open": "Keep storagedb open",
+  "storages_close_on_play": "Close on play",
+  "storages_folder": "Folder",
+  "storages_play_override": "Play Override",
+  "storages_play_append": "Play Append",
+  "storages_create_scenario": "Create scenario",
+  "storages_scenarios": "Scenarios",
+  "files_refresh": "Refresh current",
+  "files_scan_recursive": "Scan recursively",
+  "entry_new": "New desktop entry",
+  "entry_edit": "Edit entry",
+  "entry_choose_image": "Choose image",
+  "entry_change_image": "Change image",
+  "entry_image_missing": "The original image is missing (deleted or moved). Choose a new image — the old icon cannot be restored.",
+  "entry_image_required": "Please choose an image before saving.",
+  "entry_name_label": "Name",
+  "entry_bind_none": "— none —",
+  "entry_mode_independent": "Independent system play state",
+  "entry_mode_shared": "Share default state",
+  "entry_mode_shared_desc": "This entry is just a custom icon and name for the default entry; it shares the same playback state.",
+  "entry_seed_scenario": "Initial scenario (optional)",
+  "entry_seed_tag": "Initial tag (optional)",
+  "entry_seed_note": "Used only to initialize this entry on first launch. Later changes to the scenario/tag are not saved back here.",
+  "entry_create_pin": "Create & pin",
+  "entry_save_update": "Save & update",
+  "entry_invalid_name": "Invalid name: {error}",
+  "@entry_invalid_name": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "entry_apply_failed": "Failed to apply: {error}",
+  "@entry_apply_failed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "entry_title": "Custom entries",
+  "entry_delete_title": "Delete entry",
+  "entry_delete_body": "Remove \"{name}\"?\n\nNote: on Android an already-pinned shortcut cannot be removed by the app — long-press it on the home screen to delete.",
+  "@entry_delete_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "entry_check_pinned": "Check pinned shortcuts",
+  "entry_close_esc": "Close (Escape)",
+  "entry_new_short": "New entry",
+  "entry_empty_title": "No custom entries yet.",
+  "entry_empty_body": "Create one to pin a personalized IRIS icon and name to your home screen, with its own independent playback state or sharing the default one.",
+  "entry_active": "Active entry",
+  "entry_regenerate": "Regenerate",
+  "entry_edit_short": "Edit",
+  "entry_delete_short": "Delete",
+  "entry_independent": "Independent",
+  "entry_shared_default": "Shares default",
+  "entry_chip_scenario": "Scenario",
+  "entry_chip_tag": "Tag",
+  "entry_pinned": "Pinned",
+  "entry_launch_stale": "This shortcut is no longer configured in IRIS.\nRe-create it from Settings → Custom desktop entries.",
+  "entry_activation_failed": "Entry activation failed:\n{error}",
+  "@entry_activation_failed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "entry_seed_scenario_gone": "\"{name}\"'s initial scenario no longer exists. The entry will start with an empty queue.",
+  "@entry_seed_scenario_gone": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "entry_apply_android_only": "Custom desktop entries are only available on Android.",
+  "entry_pin_requires_android8": "Pinned shortcuts require Android 8.0 or newer.",
+  "entry_pin_launcher_unsupported": "Your launcher (home screen app) does not support adding shortcuts. Try a different launcher.",
+  "entry_pin_rejected": "The home screen rejected the shortcut: {message}",
+  "@entry_pin_rejected": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+  "entry_shortcut_failed": "Shortcut operation failed: {message}",
+  "@entry_shortcut_failed": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+  "entry_icon_missing": "The entry's image file is missing. Choose a new image to regenerate the shortcut.",
+  "entry_image_file_empty": "The picked image is empty.",
+  "entry_image_pick_failed": "Image picking failed: {error}",
+  "@entry_image_pick_failed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "entry_no_source_image": "No source image available.",
+  "crop_title": "Crop icon",
+  "crop_pick_other": "Choose a different image",
+  "crop_hint": "Pinch to zoom, drag to position.\nThe square frame is the final icon area.",
+  "crop_use": "Use crop",
+  "crop_decode_failed": "Could not decode that image",
+  "crop_choose": "Choose an image",
+  "tag_input_placeholder": "*3 play · *0 no tag · +1.2 add · -2.4 remove · / close",
+  "tag_input_send": "Run",
+  "tag_input_banner_title": "Tag number input",
+  "tag_input_banner_body": "*3 → play tag 3 (a tag with no media can't be played) · *0 → no tag (original list)\n+1.2.5 → add the current file to tags 1, 2, 5\n-2.4 → remove the current file from tags 2, 4\nEnter → run; the window stays open for the next command\n/ → cancel and close (playback keeps playing)",
+  "tag_input_hint_close_title": "Close this hint?",
+  "tag_input_hint_close_body": "Close it just for this session, or hide it permanently? A permanently hidden hint can be turned back on in Settings → Tag play.",
+  "tag_input_hint_close_session": "This time only",
+  "tag_input_hint_close_permanent": "Don't show again",
+  "tag_input_err_empty": "Type a command, e.g. +1.2",
+  "tag_input_err_missing_operator": "Start with +, - or *",
+  "tag_input_err_no_ordinals": "Add at least one tag number",
+  "tag_input_err_play_single": "* plays one tag only",
+  "tag_input_err_unknown": "No tag at {ordinals}",
+  "@tag_input_err_unknown": {
+    "placeholders": {
+      "ordinals": {"type": "String"}
+    }
+  },
+  "tag_input_err_no_file": "Nothing playing that can be tagged",
+  "tag_input_err_view_unavailable": "Tag view switching needs scenario-driven playback",
+  "tag_input_err_empty_view": "That tag has no media to play here",
+  "tag_bookmark_lost_title": "Last played file is gone",
+  "tag_bookmark_lost_body": "The video this tag remembered is no longer in the list (it may have been deleted or moved). Playback stopped. Press Play to start from the top of the list.",
+  "set_tag_play_input_bar": "Tag number input bar",
+  "set_tag_play_input_bar_desc": "Command bar inside the tag play window. Phones default to off — tap the rows directly; desktop is always on for the numpad shortcuts.",
+  "set_tag_play_input_bar_forced": "Always on for desktop input (numpad shortcuts)",
+  "set_tag_play_input_hint": "Command hint banner",
+  "set_tag_play_input_hint_desc": "Show the example banner in the tag play window. Turn it off to keep the hint permanently closed.",
+  "set_tag_play_view_stack": "Previous-view return row",
+  "set_tag_play_view_stack_desc": "When switching tags, show a 'previous view' row that jumps back to the previously played tag. Off by default — the selected tag is already shown by the radio.",
+  "group_tag_play": "Tag play",
+  "seed_temp_name": "Temp marks",
+  "seed_temp_desc": "30-min jump-back · delete 6h after expiry",
+  "seed_perm_name": "Starred",
+  "seed_perm_desc": "Starred · permanent jump-back",
+  "tag_gate_meta_body": "Tag requires the metadata settings mode (meta-driven).\nEnable \"Use metadata settings\" in Settings.",
+  "tag_gate_scenario_body": "Tag view switching requires scenario-driven playback.\nEnable \"Use scenario-driven playback\" in Settings.",
+  "portable_fallback_title": "Portable mode unavailable",
+  "portable_fallback_body": "The portable directory (userdata) is not writable — usually the app was extracted to a read-only location (e.g. Program Files). Continuing with the regular data location.",
+  "vm_banner_dismiss": "Don't show again",
+  "app_overview_title": "What makes IRIS different",
+  "app_overview_intro": "IRIS organizes playback around scenarios and adds abilities ordinary players never had. Purpose and usage of each are noted below; reopen from Settings → About.",
+  "app_overview_about_tile_title": "IRIS feature guide",
+  "app_overview_about_tile_sub": "What is different from a normal player",
+  "app_overview_scenario_title": "Scenarios & the Playing workspace",
+  "app_overview_scenario_body": "Switch playback sources without re-selecting files.\nAll playback uses the same \"Playing\" workspace, resolving the actual files from the given sources; saved scenarios act as plans, loaded via Override or merged via Append.",
+  "app_overview_tag_title": "Tags & numeric commands",
+  "app_overview_tag_body": "For switching back and forth among videos in a large library. After marking video #x and later playing video #x+1000, the two still switch quickly between each other.\nTags are collections, not folders.\nDesktop shortcuts: +n.m.x / -n add or remove the current file to/from the given tag ordinals; *n / *0 switch the queue view during playback.",
+  "app_overview_vm_title": "Virtual media (merged playback)",
+  "app_overview_vm_body": "Multiple videos joined into one continuous timeline for scrubbing and back-to-back playback.\nCustom rules merge them automatically, matching against the persistent media library (database) — effectively a two-dimensional playlist; disk files are untouched.",
+  "app_overview_bg_title": "Sub Audio (second player)",
+  "app_overview_bg_body": "When the picture is acceptable but the audio is not, play another video's audio instead.\nSub Audio runs as a second player alongside the picture; the frame turns blue when the controls drive Sub Audio.",
+  "app_overview_identity_title": "Custom app entries (name / icon / scenario)",
+  "app_overview_identity_body": "Customize the app name, or pin different playback habits to different entries that start directly without browsing folders.\nCreate extra desktop/home-screen entries with their own name, icon and bound scenario (optionally a tag).",
+  "app_overview_library_title": "Scanned media library (all media / all dirs / path tree)",
+  "app_overview_library_body": "Browse the library in All Media / All Directories / Path Tree views.\nThe library is a persistent database; scans start from the file browser's refresh menu, and offline files stay visible (greyed out).",
+  "app_overview_desktop_title": "Desktop (PotPlayer-style controls)",
+  "app_overview_desktop_body": "Aligned as closely as possible with PotPlayer keys and habits.\nA PotPlayer-style keyboard scheme, offering only functions that are actually supported.",
+  "app_overview_phone_title": "Phone one-handed control (landscape ring dial + screen gestures)",
+  "app_overview_phone_body": "One-handed optimization for landscape video; the Gesture guide lets the layout be viewed and edited.\nA one-handed ring-dial scrubber keeps everything controllable with one hand.",
+  "about_update_title": "Update notes",
+  "about_update_body": "Redistribution terms restrict update checks; fetch new versions yourself (open-source project).",
+  "set_legacy_compat_row": "Legacy compatibility",
+  "set_storage_info_title": "Data & password storage",
+  "set_storage_info_sub": "Data location, password handling & security notes",
+  "known_issues_title": "Known issues",
+  "known_issues_sub": "Current limitations & upstream issues",
+  "dlg_known_issues_title": "Known issues",
+  "dlg_known_issues_got_it": "Got it",
+  "dlg_known_issues_none": "No known issues on this platform.",
+  "dlg_known_issues_fullscreen_header": "Switching to picture fullscreen (Windows)",
+  "dlg_known_issues_fullscreen_body": "Switching between window fullscreen (maximized) and picture fullscreen works around a window_manager native defect: the window is briefly restored from maximized and the switch waits for that restore to finish, so the platform thread never deadlocks. The window may flash back to its floating size during the switch; playback and the fullscreen state itself are unaffected.",
+  "dlg_known_issues_thread_header": "Windows thread mode",
+  "dlg_known_issues_thread_body": "The UI isolate runs on a separate thread from the platform thread (the engine prints a warning at startup). This avoids a Flutter 3.35+ deadlock when switching window modes.",
+  "dlg_known_issues_mediakit_header": "Abnormal exit message (media_kit)",
+  "dlg_known_issues_mediakit_body": "On force-close or exit you may see \"Callback invoked after it has been deleted\" and the process abort. This is a known media_kit FFI disposal race (media-kit #1324 / #1340) and does not affect playback itself.",
+  "dlg_known_issues_vm_scale_header": "Virtual Media merge at large scale",
+  "dlg_known_issues_vm_scale_body": "Without any Virtual Media merge rule, even 500,000+ items resolve and play normally (lazy per-page resolution). Once any merge rule is enabled, the queue currently materializes the whole stream on every resolve: up to about 5,000 items is stable (cached); 5,000-10,000 works but with noticeable lag and a full re-walk on every page; above 10,000 deep-position locate and wrap-to-last can fail and every interaction re-walks the full stream; above 100,000 the app can run out of memory on low-end devices; 500,000 will crash. No code change is made for this in the current round; a streaming fix is planned.",
+  "dlg_known_issues_vm_scale_fix_header": "Virtual Media merge performance & storage (this update)",
+  "dlg_known_issues_vm_scale_fix_body": "Following the entry above, this update rebuilds that path: with merge rules the queue now uses a persisted shared derived index. Structurally, one global order is kept per storage (keyed by sort field, direction and media types) as int32 node ids (~4B per item) and shared by every scenario; each scenario adds only two bitmaps and a sparse overlay - a per-source membership bitmap and an accepted bitmap at 1 bit per item (~61KB each at 500,000 items, ranked in 512-bit blocks with O(1) rank and O(log n) select), plus an overlay that stores only the exceptions (merged group rows with their member lists, placeholder rows, occurrence counts), at no extra cost for ordinary items. Paging and random seek are therefore rank/select lookups over the bitmaps (O(page size) per page, O(log n) per seek) instead of a full stream walk, and shuffle is applied at read time from the seed, so changing it writes nothing. Space is ~5.3B per item per scenario (0.03MB at 5,000, 0.25MB at 50,000, 2.6MB at 500,000), where the old row-based index cost ~74B per member (~37.7MB at 500,000); the old tables are dropped and their space reclaimed. Reference magnitudes (single storage, 10 items merged per item, 50 per page, measured on a dev machine; real numbers vary with device and folder layout): 5,000 items - ~7ms per page, ~3ms per seek; 50,000 - ~7ms, ~2ms; 500,000 - ~8ms, ~3ms, with a full sweep growing memory by ~4-12MB. One-off cost: the first entry, or any rule change, rebuilds the index once (one pass over the whole stream) - about 1s at 5,000 items and 20s at 50,000; the 500,000 case was NOT measured this round because a single build took too long to finish, so no figure is given for it (this is the only remaining cost that still grows with the item count, so expect a wait when first building an index for a very large library). Still worth knowing: virtual-group search still scales with the group count (~0.4s at 5,000 groups, seconds at 50,000), and a combination the shared order cannot express falls back to the previous resolution path - playback still works, at the previous performance. If the behaviour differs clearly from these magnitudes, please contact the appropriate person for a fix.",
+  "dlg_known_issues_vm_delete_header": "Deleting files inside a Virtual Media item (desktop)",
+  "dlg_known_issues_vm_delete_body": "On desktop, deleting a real file that is part of a merged Virtual Media item can leave the entire merged item unplayable. Until this is fixed, do not use the delete function on physical files that belong to a virtual item.",
+  "dlg_known_issues_vm_multiselect_header": "Virtual merged items cannot be multi-selected",
+  "dlg_known_issues_vm_multiselect_body": "In the scenario play queue, a merged virtual item (the [vm]-prefixed row) does not take part in multi-select: it shows no checkbox, and bulk operations (exclude, remove from tag, and the keyboard bulk-remove keys) skip it. Tapping to play is unaffected. To exclude or un-tag its media, act on the individual real files that make up the merge instead.",
+  "play_backend_mediakit": "Media Kit",
+  "play_backend_fvp": "FVP",
+  "play_landscape_controls": "Phone landscape controls",
+  "play_mode_normal": "Normal controls",
+  "play_mode_right": "Right-side controls",
+  "play_mode_left": "Left-side controls",
+  "play_scrubber_design": "One-handed scrubber design",
+  "play_scrubber_arc": "Ring scrubber",
+  "play_scrubber_time_lens": "Time lens scrubber",
+  "play_scrubber_snake": "Snake 5-axis",
+  "play_scrubber_dial": "Ring dial",
+  "play_scrubber_classic": "Simple circle arc",
+  "play_fine_range": "Fine tune range",
+  "play_fine_shared": "±{sec}s (shared)",
+  "@play_fine_shared": {
+    "placeholders": {
+      "sec": {"type": "int"}
+    }
+  },
+  "play_gesture_layout": "Gesture layout",
+  "scan_reminder_title": "Rescan reminder window",
+  "scan_reminder_body": "When a directory exceeds this time since its last full scan, playback warns to rescan first.\nSet to 0 to disable the reminder.",
+  "scan_reminder_over": "Over",
+  "scan_reminder_hm": "h : m",
+  "search_empty_type": "Type to search",
+  "search_empty_no_match": "No matches",
+  "menu_background_playback": "Background Playback",
+  "bg_gate_meta_body": "Background Playback requires the metadata settings mode (meta-driven).\nEnable \"Use metadata settings\" in Settings.",
+  "bg_no_candidates_body": "No background candidates yet.\nTag some videos with the \"Background Voice Candidate\" tag, then start Background Playback again.",
+  "bg_target_foreground": "Video",
+  "bg_target_background": "Sub Audio",
+  "bg_close_tooltip": "Close Background Playback",
+  "bg_previous": "Previous",
+  "bg_play_pause": "Play / Pause",
+  "bg_next": "Next",
+  "bg_shuffle_tooltip": "Shuffle",
+  "bg_rate_label": "Playback speed",
+  "bg_show_video": "Show its picture",
+  "bg_foreground_volume": "Video volume",
+  "bg_background_volume": "Sub audio volume",
+  "bg_refresh_candidates": "Reload candidates",
+  "bg_queue_title": "Sub Audio Queue",
+  "bg_queue_empty": "No sub-audio candidates yet. Tag some videos with the \"Background Voice Candidate\" tag, then start Background Playback.",
+  "bg_panel_toggle": "Sub Audio control panel",
+  "bg_panel_minimize": "Collapse",
+  "bg_panel_expand": "Expand",
+  "bg_title_bar_sub": "Sub Audio ▸ {name}",
+  "@bg_title_bar_sub": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "bg_rate_locked": "Speed locked to the foreground video — turn off the lock in Settings to adjust it",
+  "set_group_background_playback": "Sub Audio Playback",
+  "bg_menu_tooltip": "Sub Audio",
+  "bg_scope_on_current": "Turn on Sub Audio (this media only)",
+  "bg_scope_off_current": "Turn off Sub Audio (this media only)",
+  "bg_scope_on_all": "Turn on Sub Audio (all media)",
+  "bg_scope_off_all": "Turn off Sub Audio (all media)",
+  "bg_display_to_bg": "Show the Sub Audio picture",
+  "bg_display_to_fg": "Show the video picture",
+  "bg_control_to_bg": "Control Sub Audio",
+  "bg_control_to_fg": "Control the video",
+  "bg_volume_ratio": "Volume ratio",
+  "bg_volume_ratio_desc": "Shares of the shared volume while Sub Audio is playing. The global pair applies to every media; a per-media override wins for the file it was saved on.",
+  "bg_ratio_scope_global": "Global",
+  "bg_ratio_scope_current": "This media",
+  "bg_ratio_use_saved": "Use the saved ratio",
+  "bg_ratio_use_saved_off_hint": "Off — both sides play at the shared volume.",
+  "bg_ratio_live_hint": "Live mode: dragging applies immediately and is saved when you let go.",
+  "bg_ratio_no_current_media": "No media is playing, so only the global pair can be edited.",
+  "bg_align_title": "Align Sub Audio",
+  "bg_align_mode_from_fg_head": "Same timeline (00:00 ↔ 00:00): Sub Audio follows the video clock",
+  "bg_align_mode_at_position": "Sub Audio starts at its 00:00 at the video's current position",
+  "bg_align_section_align": "Alignment",
+  "bg_align_section_other": "Other",
+  "bg_align_scope_update": "Update alignment",
+  "bg_align_scope_default": "Default alignment",
+  "bg_align_default_current": "Current default: {value}",
+  "@bg_align_default_current": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "bg_align_default_effect_hint": "Takes effect on the next alignment; current playback is untouched.",
+  "bg_align_percent_adjust_hint": "Tune the share here first, then tap the percent option above.",
+  "bg_align_hint_hide_forever": "Don't show again (re-enable in Settings → Warning dialogs)",
+  "bg_align_mode_bg_percent_value": "Start at {percent}% of the Sub Audio file",
+  "@bg_align_mode_bg_percent_value": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "bg_align_percent_title": "Sub Audio start share",
+  "bg_align_percent_suffix_short": "%",
+  "bg_exhausted_section": "When this Sub Audio file ends",
+  "bg_exhausted_section_note": "Handles a Sub Audio file ending within a single video; unrelated to the activation scope.",
+  "bg_exhausted_next_bg": "Play the next Sub Audio, starting at the video position where the previous one ended",
+  "bg_exhausted_stop_restore": "Pause Sub Audio and restore the video's own audio",
+  "bg_align_default_fg_head": "Same timeline",
+  "bg_align_default_fg_position": "Sub Audio from 00:00",
+  "bg_align_default_bg_percent": "From share",
+  "bg_exhausted_next_bg_short": "Next Sub Audio",
+  "bg_exhausted_stop_restore_short": "Pause, restore video",
+  "bg_align_update_to_current": "Update to current",
+  "bg_align_auto_pause_label": "Ask before the aligned Sub Audio runs out",
+  "bg_align_auto_pause_desc": "When the aligned Sub Audio has less than this much left, raise the alignment popup. Skipped when the end action keeps playing the next Sub Audio, since that continues automatically.",
+  "bg_align_auto_pause_off": "Off",
+  "bg_align_button": "Alignment",
+  "bg_align_auto_pause_seconds": "{seconds}s",
+  "@bg_align_auto_pause_seconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "bg_align_head_option": "Sub Audio 00:00 — aligned to the video's current position",
+  "bg_align_percent_prefix": "Start at",
+  "bg_align_percent_suffix": "% of the Sub Audio file, aligned to the video's current position",
+
+  "bg_align_from_head": "From the beginning (aligned to the video's current position)",
+  "bg_align_from_mid": "From the remembered share",
+  "bg_align_ask": "Always ask",
+  "bg_align_remember": "Remember this choice (don't ask again)",
+  "bg_align_remember_hint": "Remembering stops this prompt for shorter Sub Audio files. Restore it any time with \"Restore always ask\", or in Settings → Sub Audio alignment default.",
+  "bg_align_restore_ask": "Restore \"always ask\"",
+  "bg_align_fg_head_option": "Restart the video from 00:00 — Sub Audio also starts at 00:00",
+  "bg_continuation_title": "Sub Audio continues across files",
+  "bg_continuation_intro": "The Sub Audio file ended before the video. Continuing on the looping Sub Audio list:",
+  "bg_continuation_from_align": "This alignment left the current video position without Sub Audio. Had it played out naturally, it would pass through:",
+  "bg_continuation_now_at": "Now aligned to: {name}  {duration}  {position}",
+  "@bg_continuation_now_at": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      },
+      "position": {
+        "type": "String"
+      }
+    }
+  },
+  "bg_continuation_omitted": "… (earlier items omitted)",
+  "dlg_warn_bg_continuation_title": "Sub Audio cross-file continuation",
+  "dlg_warn_bg_continuation_desc": "Explains, when a Sub Audio file ends before the video, how the Sub Audio list was walked and where playback continues",
+  "bg_sources_storage_id_hint": "Storage ID",
+  "bg_step_swap_only": "Next/Prev: swap Sub Audio only (the video stays put)",
+  "bg_step_follow_link": "Next/Prev: also move the video (follows the link)",
+  "bg_step_mode_swap_only": "Swap Sub Audio only",
+  "bg_step_mode_follow_link": "Follow the link",
+  "set_bg_step_mode": "Sub Audio next/previous behavior",
+  "set_bg_step_mode_desc": "Whether stepping Sub Audio also moves the video. \"Swap only\" changes just the Sub Audio track and keeps the video where it is; \"follow the link\" rolls the video to the mapped position (across files).",
+  "bg_switch_on": "Turn on Sub Audio",
+  "bg_switch_off": "Turn off Sub Audio",
+  "bg_gate_play": "Play Sub Audio for this video",
+  "bg_gate_stop": "Stop Sub Audio for this video (the feature stays on)",
+  "bg_feature_on": "Turn on Sub Audio",
+  "bg_feature_off": "Turn off Sub Audio",
+  "bg_apply_on_current": "Apply Sub Audio to this video",
+  "bg_apply_off_current": "Stop applying Sub Audio to this video",
+  "bg_no_current_media_body": "No video is playing, so there is no current media to apply Sub Audio to.",
+  "bg_quick_panel_drag": "Drag to move",
+  "bg_scope_button": "Scope",
+  "bg_scope_dialog_title": "Sub Audio scope",
+  "bg_scope_current_only": "This video",
+  "bg_scope_current_only_desc": "Only the video playing now uses Sub Audio; leaving it pauses Sub Audio while the feature stays on.",
+  "bg_scope_smart": "Smart",
+  "bg_scope_smart_desc": "A newly opened video stays off, but a video with a saved Sub Audio pairing starts it automatically (auto-play saved Sub Audio).",
+  "bg_scope_all": "All videos",
+  "bg_scope_all_desc": "Sub Audio keeps playing its own queue across video switches.",
+  "bg_scope_persist": "Keep across restarts",
+  "bg_scope_persist_desc": "On: this scope choice is remembered after the app restarts. Off: it applies only to this session.",
+  "set_bg_start_armed": "Arm Sub Audio at startup",
+  "set_bg_start_armed_desc": "On (default): the app opens with Sub Audio on but stopped — no audio until you press play or a saved pairing starts. Off: Sub Audio stays fully off until you turn it on. Independent of the preload row below.",
+  "set_bg_gate_stop_behavior": "Sub Audio button stop behavior",
+  "set_bg_gate_stop_behavior_desc": "What the quick-bar stop does. Pause: keeps the media loaded and re-aligns next time. Unload: releases the media and reloads next time. The run state and the ready player always stay.",
+  "bg_gate_stop_pause": "Pause media (re-align next time)",
+  "bg_gate_stop_unload": "Unload media (reload next time)",
+  "set_bg_keep_warm": "Keep a Sub Audio player ready at startup",
+  "set_bg_keep_warm_desc": "Preloads for background playback so turning Sub Audio on is instant. Costs one idle player for the whole session.",
+  "set_bg_keep_warm_off_notice": "This preload exists to make background playback start instantly. If you rarely use Sub Audio you can turn it off; starting it later will take a moment and may flash.",
+  "set_bg_align_default": "Sub Audio alignment default",
+  "set_bg_align_default_desc": "The alignment applied whenever a Sub Audio file is aligned. Open the alignment popup for the live update and this default.",
+  "set_bg_align_warn": "Ask before the Sub Audio runs out (seconds)",
+  "set_bg_align_warn_desc": "Raise the alignment popup when the aligned Sub Audio has less than this many seconds left (default 5, range 1–120). Skipped when the end action keeps playing the next Sub Audio, since that continues automatically.",
+  "set_bg_exhausted_action": "When the Sub Audio file ends",
+  "set_bg_exhausted_action_desc": "Within a SINGLE video (unrelated to the activation scope): play the next queued Sub Audio, walking the Sub Audio list as a loop so a track is always audible, or pause Sub Audio and restore the video's own audio.",
+  "set_bg_fg_window_zoom": "APB foreground zoom",
+  "set_bg_fg_window_zoom_desc": "When the foreground is much longer than the Sub Audio file, show only this many times the Sub Audio length on the foreground axis, so the A–B mapping does not collapse to a point. 1 disables the zoom (range 1.0–10.0).",
+  "set_bg_fg_window_push_bg": "q pushes the Sub Audio mapping",
+  "set_bg_fg_window_push_bg_desc": "When the q handle pans the foreground window past the A/B endpoints (12/11 o'clock): Off clamps the pan; On slides the mapping over the fixed Sub Audio window, modifying the alignment.",
+  "set_bg_min_segment_span": "Minimum segment length",
+  "set_bg_min_segment_span_desc": "How short an A–B mapping segment may be, in milliseconds (default 500, range 100–5000). A drag can never collapse a segment below this.",
+  "set_bg_p_align_keep_length": "P keeps the sealed pile",
+  "set_bg_p_align_keep_length_desc": "When the P handle leaves a video head/tail it first spends only the pile created by pressing into the boundary: On keeps the pile you bundled in the air and never consumes it; Off lets it be consumed down to nothing.",
+  "set_bg_sticky_consume": "Sticky consumption at video ends",
+  "set_bg_sticky_consume_desc": "Which handles spend a bundled pile at a video head/tail before the window starts to move. P: pulling P off an end spends the pile there; A/B: dragging A or B outward spends the opposite end's pile once its own is gone. Off moves the window immediately; P only / A-B only restrict it to one handle; All (default) covers both.",
+  "bg_sticky_consume_off": "Off",
+  "bg_sticky_consume_p_only": "P only",
+  "bg_sticky_consume_ab_only": "A/B only",
+  "bg_sticky_consume_all": "All",
+  "set_bg_segment_guide": "Sub Audio guide",
+  "set_bg_segment_guide_desc": "Explains the A / P / B points, the discarded-time readouts, and the minimum segment length.",
+  "bg_segment_guide_title": "Sub Audio mapping guide",
+  "bg_segment_guide_body": "A — the video position where Sub Audio starts.\nB — the video position where Sub Audio stops (A–B must stay at least the minimum length).\nP — the alignment handle: dragging it moves the whole A–B window, changing which Sub Audio content plays at each video position.\n\n−mm:ss next to A is Sub Audio discarded before A; next to B it is the unused tail after B. These appear when the segment uses less Sub Audio than it could.\n\nWhile A or B has discarded time left, dragging it outward (A left / B right) spends that discard; once it reaches zero, an opposite end already sitting on a video end spends its own unused pile next (see the sticky-consumption setting); only then does the whole window travel. Dragging inward (A right / B left) always discards more.",
+  "bg_segment_color_title": "Segment color",
+  "bg_segment_color_random": "Random",
+  "bg_segment_color": "Label color",
+  "set_bg_ratio_explicit_save": "Save the volume ratio explicitly",
+  "set_bg_ratio_explicit_save_desc": "On: the ratio dialog only applies on Save. Off: dragging applies immediately and is saved when you let go.",
+  "menu_seek_step": "Seek step",
+  "bg_seek_link": "Seek linking",
+  "bg_seek_linked": "Linked",
+  "bg_seek_independent": "Fully independent",
+  "bg_lock_level_high": "High (seek step + play/pause)",
+  "bg_lock_level_low": "Low (play/pause only)",
+  "bg_release_resources": "Fully close Sub Audio (release resources)",
+  "bg_reenable_support": "Re-enable Sub Audio support",
+  "bg_cross_section": "Cross-video switches",
+  "bg_cross_item_title": "Video moves to a new list item",
+  "bg_cross_item_desc": "Covers a real media file and a whole virtual-merged item (the merged video counts as ONE item).",
+  "bg_cross_segment_title": "Virtual video switches segments (a real file change)",
+  "bg_cross_segment_desc": "Inside one virtual-merged item, a segment switch loads a different physical file.",
+  "bg_cross_keep_playing": "Keep playing",
+  "bg_cross_keep_playing_tiled": "Keep playing (tiled)",
+  "bg_cross_new_bg": "Switch to a new bg",
+  "set_bg_item_switch": "On a new list item",
+  "set_bg_item_switch_desc": "What Sub Audio does when the video moves to a new list item (real media or a whole virtual-merged item): keep playing the current track, or switch to a new bg track",
+  "set_bg_segment_switch": "On a virtual video segment switch",
+  "set_bg_segment_switch_desc": "What Sub Audio does when a virtual-merged video switches to a different physical segment: keep playing (tiled across the merged file, the Sub Audio list looping continuously) or switch to a new bg track. Whole-video tiling computes the loop layout once per virtual video and plays each segment's matching bg in order; a block with a saved timeline, or a segment you adjusted yourself this launch, replaces only that segment",
+  "bg_vm_scope_rule": "Virtual video matching",
+  "bg_vm_scope_per_block": "Current segment only",
+  "bg_vm_scope_whole": "Whole virtual video",
+  "bg_vm_scope_per_block_desc": "Only the block on screen counts as the current video, so every internal block switch is treated as a media switch.",
+  "bg_vm_scope_whole_desc": "The whole virtual video counts as ONE video: Sub Audio keeps applying across internal block switches and only stops when you leave for another video. Volume ratios still follow each block. Only the virtual video that was current at the time is treated this way; a later virtual video falls back to per-block, where only blocks with a saved timeline take over.",
+  "bg_reactivate_title": "When Sub Audio reopens (this video scope)",
+  "bg_reactivate_same": "Same track",
+  "bg_reactivate_next": "Next track",
+  "bg_reactivate_desc": "After you stop Sub Audio, which track the next open lands on under the \"This video\" scope. \"Next track\" cycles the queue (a single-item list stays on itself).",
+  "bg_tiled_manual_title": "Remember this segment's Sub Audio alignment?",
+  "bg_tiled_manual_desc": "You switched the Sub Audio track on this segment. Pick how it should start — the choice is kept for this segment until the app restarts; other segments keep the computed tiling.",
+  "set_bg_vm_scope_mode": "Virtual video matching (this video scope)",
+  "set_bg_vm_scope_mode_desc": "For the \"This video\" scope: match only the block on screen (independent block matching, default), or treat the whole virtual video as one video so Sub Audio keeps playing across its internal blocks. A block with a saved timeline always takes precedence",
+  "bg_quick_bar": "Quick controls",
+  "bg_auto_control_title": "Sub Audio now owns the controls",
+  "bg_auto_control_body": "Sub Audio is on, so the control bar (and keyboard, gestures) now drives the Sub Audio player — its frame is blue. Switch back from the Sub Audio menu.",
+  "bg_align_left": "Left",
+  "bg_align_right": "Right",
+  "dlg_warn_bg_auto_control_title": "Sub Audio control notice",
+  "dlg_warn_bg_auto_control_desc": "The first time Sub Audio takes over: explains that the blue-outlined bar drives Sub Audio",
+  "dlg_warn_scenario_workspace_title": "Workspace replaced on play",
+  "dlg_warn_scenario_workspace_desc": "Before the first folder/selection play: explains that playing replaces the \"Playing\" workspace, and saved scenarios load via Override/Append",
+  "dlg_scenario_workspace_body": "What a folder, multi-selection or whole-library play does:\nPlayback runs in the same \"Playing\" workspace; such a play replaces it (sources and explicit items cleared) — it never appends. Saved scenarios are plans: load with Play (Override), or Append from the menu.",
+  "dlg_warn_scenario_browse_play_title": "Override current playing?",
+  "dlg_warn_scenario_browse_play_desc": "Before the browse page's Play action: warns that it replaces the current playing queue",
+  "dlg_warn_tag_grammar_title": "Tag commands",
+  "dlg_warn_tag_grammar_desc": "Before the Tag sheet first opens: explains the +n / -n / *n numeric commands",
+  "dlg_tag_grammar_body": "Mark files during playback; each tag keeps its own position in the list, while a video's playback progress is the same across all scenarios and tags, not stored separately.\nTags are collections, not folders; numeric commands:\n\n• +n — add the current file to tag n\n• -n — remove it from tag n\n• *n — switch playback to tag n\n• *0 — return to the untagged list\n\nJoin ordinals with a dot (e.g. +1.2). Numbers are the tag positions in this list, pinned first.",
+  "dlg_warn_vm_concept_title": "Merged playback",
+  "dlg_warn_vm_concept_desc": "Before the first Virtual Media rule: explains that clips are merged into one continuous timeline",
+  "dlg_vm_concept_body": "Join multiple videos into one continuous timeline for scrubbing and back-to-back playback.\nA Virtual Media rule matches against the scanned records in the persistent media library (database), joins consecutive matching videos into one timeline at playback time, and plays the real files in order:\n\n• Real files are never modified, moved or joined.\n• Resume follows the actual file watched, so a break lands on the most recent watched part.\n• A group falls back to plain single files when a segment's duration is unknown (shown in yellow, indicating a code bug).",
+  "dlg_warn_app_overview_title": "IRIS feature guide",
+  "dlg_warn_app_overview_desc": "First-launch feature tour; reopen any time from Settings → About",
+  "set_bg_auto_focus": "Hand the controls to Sub Audio on start",
+  "set_bg_auto_focus_desc": "When Sub Audio starts, the control bar, shortcuts and gestures drive it instead of the video (marked by a blue frame). Turn off to keep controlling the video",
+  "set_bg_seek_link": "Seek linking",
+  "set_bg_seek_link_desc": "Linked: a seek on either side moves the pair together. Fully independent: the two players never influence each other",
+  "set_bg_use_saved_mapping": "Auto-use saved mappings",
+  "set_bg_use_saved_mapping_desc": "On (default): a video with a saved Sub Audio timeline plays it automatically. Off: saved timelines are ignored and Sub Audio plays its own queue",
+  "set_bg_lock_level": "Progress lock level",
+  "set_bg_lock_level_desc": "High: fast-forward/rewind step and play/pause both mirror the video. Low: only play/pause mirrors. Has no effect while Seek linking is Fully independent",
+  "set_bg_align_ring": "Align editor ring assignment",
+  "set_bg_align_ring_desc": "Which ring drives the foreground video in the side-type align editor; the Sub Audio ring takes the other one",
+  "set_bg_quick_bar": "Quick controls",
+  "set_bg_quick_bar_desc": "Shows a Sub Audio control strip beside the side panel, or a row inside the bottom bar. It carries only Sub Audio-specific actions (control/picture switching, volume ratio, timeline mapping, closing)",
+  "set_bg_quick_bar_align": "Quick controls alignment",
+  "set_bg_quick_bar_align_desc": "Where the quick-control row sits inside the bottom bar (the side panel always snaps the strip to the screen-centre edge)",
+  "set_bg_follow_fg": "Follow foreground switching",
+  "set_bg_follow_fg_desc": "When the foreground switches to another video, re-resolve that video's Sub Audio mapping at the new position (off by default — Sub Audio never stops or restarts just because the foreground changed)",
+  "set_bg_rate_lock": "Lock speed to foreground",
+  "set_bg_rate_lock_desc": "Natural Sub Audio playback runs at the same speed as the foreground video (on by default). Mapped segments use their own alignment speed regardless",
+  "set_bg_allow_same_file": "Allow same file in both players",
+  "set_bg_allow_same_file_desc": "Lets the same physical video play in the foreground and as Sub Audio at once (off by default — the same file is skipped in the Sub Audio queue)",
+  "set_bg_video_layout": "Sub picture layout",
+  "set_bg_video_layout_desc": "Fullscreen switches the picture to the Sub Audio video while Sub Audio is the control target. Picture-in-picture and Split view are placeholders not implemented yet",
+  "bg_layout_fullscreen": "Fullscreen",
+  "bg_layout_pip": "Picture-in-picture (coming soon)",
+  "bg_layout_split": "Split view (coming soon)",
+  "set_bg_sources": "Sub Audio sources",
+  "set_bg_sources_desc": "Ordered candidate sources — Tag members, Folders, single Files, or Folder + Tag intersections. Matching media must be scanned into the library",
+  "bg_sources_count_zero": "Default",
+  "bg_sources_empty_default": "No rules yet — candidates come from the built-in default (the \"Background Voice Candidate\" tag). Add a rule to override it.",
+  "bg_sources_empty_hint": "Tap the source list to add Tag / Folder / File / Folder+Tag rules",
+  "bg_sources_add": "Add source",
+  "bg_sources_remove": "Remove source",
+  "bg_sources_move_up": "Move up",
+  "bg_sources_move_down": "Move down",
+  "bg_sources_tags_error": "Failed to load tags",
+  "bg_src_kind_tag": "Tag",
+  "bg_src_kind_path": "Folder",
+  "bg_src_kind_file": "File",
+  "bg_src_kind_path_and_tag": "Folder + Tag",
+  "bg_src_field_tag": "Tag",
+  "bg_src_field_storage": "Storage ID",
+  "bg_src_field_path": "Path",
+  "bg_src_field_path_hint": "Canonical path inside the storage (scanned media)",
+  "bg_src_field_name": "Display name (optional)",
+  "bg_src_kind_directory": "Folders",
+  "bg_src_builtin_name": "Library tag-only source",
+  "bg_src_builtin_desc": "Built-in default — every member of the \"Background Voice Candidate\" tag",
+  "bg_src_auto_dedupe": "Auto-dedupe",
+  "bg_src_auto_dedupe_desc": "Emit a file once even when several sources match it (off by default — duplicates are yours to resolve)",
+  "bg_src_refresh_now": "Update now",
+  "bg_src_banner_fallback_title": "No active source",
+  "bg_src_banner_fallback_body": "Every source rule is off, so the built-in \"Library tag-only source\" is used instead.",
+  "bg_src_banner_refresh_body": "Source changes apply only after \"Update now\" or closing and reopening Sub Audio.",
+  "bg_src_edit": "Edit",
+  "bg_src_duplicate": "Duplicate",
+  "bg_src_delete": "Delete",
+  "bg_src_pin": "Pin to top",
+  "bg_src_unpin": "Unpin",
+  "bg_src_enabled": "Enabled",
+  "bg_src_field_description": "Description",
+  "bg_src_field_kind": "Source type",
+  "bg_src_field_sort": "Sort",
+  "bg_src_field_direction": "Direction",
+  "bg_src_field_tag_filter": "Filter by tag",
+  "bg_src_field_filter_tag": "Filter tag",
+  "bg_src_pick_dir": "Pick folder",
+  "bg_src_add_dir": "Add folder path",
+  "bg_src_sort_tag_added": "Tag added time",
+  "bg_src_sort_name": "Name",
+  "bg_src_sort_path": "Path",
+  "bg_src_sort_duration": "Duration",
+  "bg_src_sort_modified": "Modified time",
+  "bg_src_sort_size": "Size",
+  "bg_src_new_rule": "New source rule",
+  "bg_src_edit_rule": "Edit source rule",
+  "bg_src_delete_title": "Delete rule",
+  "bg_src_delete_body": "Delete \"{name}\"?",
+  "@bg_src_delete_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "bg_src_copy_name": "{name} (copy)",
+  "@bg_src_copy_name": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "bg_src_builtin_locked": "Built-in rule — cannot be deleted",
+  "bg_src_dir_count": "{n} folders",
+  "@bg_src_dir_count": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
+  "bg_src_pattern_count": "{n} conditions",
+  "@bg_src_pattern_count": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
+  "bg_src_summary_tag": "Tag · {tag}",
+  "@bg_src_summary_tag": {
+    "placeholders": {
+      "tag": {"type": "String"}
+    }
+  },
+  "bg_src_summary_dir": "{mode} · {scope}",
+  "@bg_src_summary_dir": {
+    "placeholders": {
+      "mode": {"type": "String"},
+      "scope": {"type": "String"}
+    }
+  },
+  "bg_src_summary_dir_tag": "{mode} · {scope} · tag {tag}",
+  "@bg_src_summary_dir_tag": {
+    "placeholders": {
+      "mode": {"type": "String"},
+      "scope": {"type": "String"},
+      "tag": {"type": "String"}
+    }
+  },
+  "bg_src_summary_file": "File · {path}",
+  "@bg_src_summary_file": {
+    "placeholders": {
+      "path": {"type": "String"}
+    }
+  },
+  "set_bg_fallback_banner": "Show the no-active-source hint",
+  "set_bg_fallback_banner_desc": "Shows a closable banner in Sub Audio sources when no rule is active and the built-in source takes over",
+  "bg_mapping_missing_title": "Mapped file unavailable",
+  "bg_mapping_missing_body": "The file saved for this mapped segment is missing or not scanned: {name}. Playing natural Sub Audio instead.",
+  "@bg_mapping_missing_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "bg_open_failed_title": "Sub Audio could not play a file",
+  "bg_open_failed_body": "The file \"{name}\" could not be opened. Sub Audio stopped it; use next to move on.",
+  "@bg_open_failed_body": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "bg_mapping_button": "Timeline mapping",
+  "bg_ignore_saved_mapping": "Ignore saved mapping",
+  "bg_mapping_use": "Use mapping",
+  "bg_mapping_ignore_no_bg": "Ignore silent segments",
+  "bg_mapping_segment_play": "Play file",
+  "bg_mapping_segment_silence": "No Sub Audio",
+  "bg_mapping_range_warning": "This segment's duration ratio is outside the supported 0.5x–2.0x range — alignment may drift near the edges.",
+  "bg_editor_empty": "No mapped segments for this video yet. Add one to replace natural Sub Audio over a specific window.",
+  "bg_editor_add": "Add segment",
+  "bg_editor_current_bg": "Now playing",
+  "bg_editor_fg_range": "Video (A) window",
+  "bg_editor_bg_range": "Sub Audio (B) window",
+  "bg_editor_pick_fg": "Use video position",
+  "bg_editor_pick_bg": "Use Sub Audio position",
+  "bg_editor_bg_file": "Sub Audio file",
+  "bg_editor_no_bg_options": "No Sub Audio file available right now — start Sub Audio or refresh candidates first.",
+  "bg_editor_bad_range": "Invalid window — the end must be after the start.",
+  "bg_editor_conflict_title": "Overlapping mapped segment",
+  "bg_editor_conflict_body": "This window overlaps an existing segment. Choose how to resolve it:",
+  "bg_editor_keep_front": "Keep only the front part of the new window",
+  "bg_editor_keep_back": "Keep only the back part of the new window",
+  "bg_editor_overwrite": "Overwrite the overlapped existing segments",
+  "bg_editor_conflict_still": "That choice still overlaps — pick another one or cancel.",
+  "bg_segment_edit_title": "Adjust segment (A–B)",
+  "bg_segment_edit_frozen_hint": "Transport is locked while adjusting — playback stays paused until you save or cancel.",
+  "bg_segment_add_bg": "Add Sub Audio segment",
+  "bg_segment_add_silence": "Add silent segment",
+  "bg_segment_need_bg": "No Sub Audio file is available right now. Start Sub Audio first, then add a segment.",
+  "bg_segment_conflict_title": "Overlapping segment",
+  "bg_segment_conflict_body": "This A–B span overlaps an existing segment. Choose how to resolve it:",
+  "bg_segment_conflict_overwrite": "Overwrite the overlapped segment",
+  "bg_segment_conflict_trim": "Remove the overlapped part of the new span",
+  "bg_segment_conflict_empty": "The span is fully covered by existing segments, so nothing would be saved.",
+  "bg_segment_edit_no_span": "No adjustable span yet — the editor seeds one when Sub Audio is running.",
+  "bg_segment_need_enabled": "Start Sub Audio first: the A–B editor adjusts the pairing between the video and its Sub Audio.",
+  "bg_segment_no_bg": "No Sub Audio file",
+  "bg_segment_policy_title": "If the span overlaps an existing segment:",
+  "bg_segment_policy_block": "Block — do not create an overlap",
+  "bg_segment_policy_overwrite": "Overwrite the overlapped part (untouched segments stay)",
+  "bg_segment_policy_trim": "Discard this span's overlapped part (untouched segments stay)",
+  "bg_segment_save_ok_title": "Saved",
+  "bg_segment_save_ok_body": "{count, plural, =1{Saved 1 segment.} other{Saved {count} segments.}}",
+  "@bg_segment_save_ok_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bg_segment_save_fail_title": "Not saved",
+  "bg_segment_save_missing_draft": "Nothing is being edited.",
+  "bg_segment_save_no_fg": "The video is not ready yet (no duration).",
+  "bg_segment_save_empty_span": "The A–B span is empty — drag A before B.",
+  "bg_segment_save_overlap_blocked": "The span overlaps an existing segment and the policy is set to block. Adjust the span or pick another policy.",
+  "bg_segment_save_fully_covered": "The span is fully covered by existing segments, so nothing is left to save.",
+  "bg_segment_save_write_failed": "Writing the timeline failed.",
+  "bg_segment_save_verify_failed": "The write could not be verified — the timeline could not be re-read.",
+  "bg_segment_save_count_mismatch": "{expected, plural, =1{Expected 1 segment but saved {actual}.} other{Expected {expected} segments but saved {actual}.}}",
+  "@bg_segment_save_count_mismatch": {
+    "placeholders": {
+      "expected": {
+        "type": "int"
+      },
+      "actual": {
+        "type": "int"
+      }
+    }
+  },
+  "bg_mapping_manager_title": "Sub Audio mapping manager",
+  "bg_mapping_manager_empty": "No saved Sub Audio mappings yet.",
+  "bg_mapping_manager_no_duration": "No foreground duration is available, so this item cannot be opened.",
+  "bg_mapping_manager_close": "Close",
+  "bg_mapping_manager_back": "Back",
+  "bg_mapping_manager_segment_count": "{count, plural, =1{1 segment} other{{count} segments}}",
+  "@bg_mapping_manager_segment_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bg_mapping_manager_bg_names": "Background: {names}",
+  "@bg_mapping_manager_bg_names": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "bg_mapping_manager_overview_label": "Foreground mapping overview",
+  "bg_mapping_manager_silence": "Silent segment",
+  "bg_mapping_manager_gap": "No mapping",
+  "bg_mapping_manager_uncovered": "Background missing",
+  "bg_mapping_manager_unknown_bg": "Unknown background",
+  "bg_mapping_manager_staged": "Staged",
+  "bg_mapping_manager_apply": "Apply",
+  "bg_mapping_manager_discard": "Discard",
+  "bg_mapping_manager_delete_segment": "Remove segment",
+  "bg_mapping_manager_replace_bg": "Replace background",
+  "bg_mapping_manager_activate": "Enable this segment",
+  "bg_mapping_manager_deactivate": "Disable (keep the saved data)",
+  "bg_mapping_manager_active_order": "Active #{order}",
+  "@bg_mapping_manager_active_order": {
+    "placeholders": {
+      "order": {
+        "type": "int"
+      }
+    }
+  },
+  "bg_mapping_manager_save_source_title": "Save the mapping",
+  "bg_mapping_manager_save_source_body": "This video already uses a saved mapping ({name}). Overwrite that segment, or save this as a new segment?",
+  "@bg_mapping_manager_save_source_body": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bg_mapping_manager_save_overwrite": "Overwrite the segment (default)",
+  "bg_mapping_manager_save_as_new": "Save as a new segment",
+  "bg_mapping_manager_save_preview_title": "Saved",
+  "bg_mapping_manager_save_preview_body": "The mapping was saved. The overview below shows the result after this save.",
+  "bg_mapping_manager_pick_bg_title": "Choose a background file",
+  "bg_mapping_manager_pick_bg_empty": "No background candidates are available.",
+  "bg_mapping_manager_edit_segment": "Edit segment",
+  "bg_mapping_manager_staged_ok_body": "Staged. Return to the mapping manager and Apply to save.",
+  "bg_mapping_manager_edit_no_fg": "The video file could not be loaded for editing.",
+  "bg_mapping_manager_edit_no_bg": "No Sub Audio candidates are available, so the editor cannot open.",
+  "bg_mapping_manager_staged_hint": "Staged changes are not active until applied.",
+  "bg_mapping_manager_apply_ok_title": "Applied",
+  "bg_mapping_manager_apply_ok_body": "The staged Sub Audio mapping was saved.",
+  "bg_mapping_manager_conflict_title": "Mapping changed elsewhere",
+  "bg_mapping_manager_conflict_body": "This mapping was modified after you started editing. Discard your staged changes and reopen it to continue.",
+  "bg_mapping_manager_apply_invalid_title": "Cannot apply",
+  "bg_mapping_manager_apply_failed_title": "Not applied",
+  "bg_mapping_manager_segment_range": "{start} – {end}",
+  "@bg_mapping_manager_segment_range": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "bg_mapping_manager_bg_window": "Background {start} – {end}",
+  "@bg_mapping_manager_bg_window": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "tag_system_reserved": "System tag",
+  "tag_system_cannot_delete": "System tags cannot be deleted or renamed.",
+
+  "bg_align_edit_title": "Align Sub Audio",
+  "bg_align_fg_slider": "Video",
+  "bg_align_bg_slider": "Sub Audio",
+  "bg_align_save": "Save alignment",
+  "bg_align_exit_no_save": "Exit without saving",
+  "bg_align_exit_discard_title": "Discard this alignment?",
+  "bg_align_exit_discard_body": "The A–B window you adjusted has not been saved. Exiting now discards it.",
+  "bg_align_swap_rings": "Swap which ring is the video",
+  "bg_align_ring_fg_inner": "Video on the inner ring",
+  "bg_align_ring_fg_outer": "Video on the outer ring",
+  "bg_align_volume_distribute": "Volume split",
+  "bg_align_ratio_fg": "Video share",
+  "bg_align_ratio_bg": "Sub Audio share",
+  "bg_align_ratio_fg_mute": "Mute video",
+  "bg_align_ratio_bg_mute": "Mute Sub Audio",
+  "bg_align_master_volume": "Master volume",
+  "bg_align_master_mute": "Mute all",
+  "bg_align_silence_no_file": "Save as silent (no file)",
+  "bg_align_silence_no_file_title": "Silent Sub Audio segment",
+  "bg_align_silence_no_file_body": "This saves the span WITHOUT any Sub Audio file — 副音 is silent there. To keep the file but silence it, set the Sub Audio share to 0% instead.",
+  "bg_align_snap_tooltip": "Snap A / P / B to saved boundaries",
+  "set_bg_align_snap": "Snap to saved boundaries",
+  "set_bg_align_snap_desc": "When on, the A, P and B handles stop exactly at saved segment boundaries, like at the 0% / 100% ends. Lift and keep dragging to pass a boundary temporarily.",
+  "set_bg_align_snap_release_limit": "Max released snap boundaries",
+  "set_bg_align_snap_release_limit_desc": "How many recently released boundaries stay passable. Hitting a new boundary cancels the oldest release when full (1–10000).",
+  "bg_align_snap_guide_title": "Snap to saved boundaries",
+  "bg_align_snap_guide_body": "When snap is on, every boundary of a saved foreground segment becomes a wall on the APB ring: A, P and B stop exactly at it, just like at the 0% / 100% ends. The media ends themselves never generate snap values. To pass a wall, lift your finger and keep dragging in the same direction: the wall you hit is released and stays passable from then on. Hitting another wall releases that one too; only the most recent N stay released (see the release-count setting) and an older release blocks again. Released walls are no longer drawn. While the foreground is zoomed, walls are only shown inside the visible range. Switching the snap off and on clears every release.",
+  "bg_align_snap_none_title": "No snap boundaries available",
+  "bg_align_snap_none_body": "Snap is on, but there are no saved segment boundaries in view right now (the 0% / 100% ends never count). Save a segment first, then A / P / B can stick to its edges.",
+  "bg_align_force_seek_title": "Jump back to the saved segment?",
+  "bg_align_force_seek_body": "Playback is currently far outside this video's saved Sub Audio segment. Opening the align editor will jump playback back to A ({a}) so the mapping is visible.",
+  "@bg_align_force_seek_body": {
+    "placeholders": {
+      "a": {
+        "type": "String"
+      }
+    }
+  },
+  "bg_align_force_seek_confirm": "Continue",
+  "bg_align_locked_hint": "Editing: the pair is locked to the current files and seeks stay in step. Drag the P handle to move the whole A-B window.",
+  "dlg_warn_bg_align_exit_title": "Discard align edit",
+  "dlg_warn_bg_align_exit_desc": "Confirms exiting the align editor without saving the A–B window",
+  "dlg_warn_bg_align_silence_title": "Silent (no file) save",
+  "dlg_warn_bg_align_silence_desc": "Explains, the first time, that saving a silent segment stores the span without a Sub Audio file",
+  "dlg_warn_bg_align_default_hint_title": "Default-alignment hint",
+  "dlg_warn_bg_align_default_hint_desc": "Inline hint in the align editor showing the persisted default and its next-alignment effect",
+  "dlg_warn_bg_align_percent_hint_title": "Percent-slider hint",
+  "dlg_warn_bg_align_percent_hint_desc": "Inline caption under the align editor's percent slider",
+  "dlg_warn_bg_align_snap_title": "Snap usage guide",
+  "dlg_warn_bg_align_snap_desc": "First-time explanation of the align editor's snap-to-saved-boundary mode",
+  "dlg_warn_bg_align_snap_none_title": "No snap boundaries notice",
+  "dlg_warn_bg_align_snap_none_desc": "Shown when snap is enabled but no usable saved boundaries exist",
+  "dlg_warn_bg_align_force_seek_title": "Align edit position jump",
+  "dlg_warn_bg_align_force_seek_desc": "Asks before opening the Sub Audio align editor when playback is far from the saved segment; confirming jumps playback back to A. When this is off, opening the editor always jumps to A without asking.",
+  "bg_align_move_a_here": "Move A to the current position",
+  "bg_align_move_p_here": "Move P (centre) to the current position",
+  "bg_align_move_b_here": "Move B to the current position",
+  "bg_align_move_hint_title": "Moving A / B",
+  "bg_align_move_hint_body": "A must stay before P and B after it. The playhead's side of the centre decides which endpoint can move: left of the centre moves A, right of it moves B; the other button is greyed.",
+  "dlg_warn_bg_align_move_title": "Move A/B hint",
+  "dlg_warn_bg_align_move_desc": "Explains the A<P<B rule when moving an alignment endpoint to the current position",
+
+  "storage_name_template_title": "Name template",
+  "storage_name_template_global": "Apply globally",
+  "storage_name_separator_label": "Separator",
+  "storage_name_preview_label": "Preview",
+  "storage_name_reset": "Reset",
+  "storage_name_tag_type": "Type",
+  "storage_name_tag_account": "Account",
+  "storage_name_tag_host": "Host",
+  "storage_name_tag_port": "Port",
+  "storage_name_tag_path": "Path",
+  "storage_keep_saved_password_hint": "Leave blank to keep the saved password",
+
+  "storage_shared_library_title": "Use the same media library?",
+  "storage_shared_library_message": "{name} already uses this account and path tree. This entry will share its media library instead of storing duplicate nodes.",
+  "@storage_shared_library_message": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "webdav_shared_host_confirm_title": "Host already in use",
+  "webdav_shared_host_confirm_message": "Another entry already uses {host}. Connect this entry to the same host anyway?",
+  "@webdav_shared_host_confirm_message": {
+    "placeholders": {
+      "host": {"type": "String"}
+    }
+  },
+  "webdav_shared_host_prompt_title": "Shared host prompt",
+  "webdav_shared_host_prompt_desc": "Ask before binding a WebDAV entry to a host already used by another same-account entry. Turn off to always allow.",
+
+  "dragdrop_scope_restricted_title": "Filtered by browse scope",
+  "dragdrop_scope_restricted_body": "Some dropped content is outside the current browse media scope and will be ignored. Only in-scope media will play.",
+  "dragdrop_scope_restricted_continue": "Continue",
+  "dlg_warn_dragdrop_scope_title": "Dropped-content scope notice",
+  "dlg_warn_dragdrop_scope_desc": "Explains, the first time, that dropped files or folders outside the browse media scope were ignored",
+
+  "drop_zone_append_label": "Add to play queue",
+  "drop_zone_play_label": "Play",
+  "set_drop_append_zone_percent": "Drop-zone split",
+  "set_drop_append_zone_percent_desc": "Share of the player height that adds dropped items to the queue; the rest plays immediately",
+  "set_playback_cache_preset": "Video cache size",
+  "set_playback_cache_preset_desc": "Larger caches make rewinding smoother at the cost of memory. Applies to the Media Kit backend only.",
+  "set_cache_preset_low": "Low",
+  "set_cache_preset_balanced": "Balanced",
+  "set_cache_preset_high": "High",
+  "startup_failed_title": "Startup failed",
+  "startup_failed_body": "IRIS could not finish starting up. Your data has not been modified.\n\n$error",
+  "@startup_failed_body": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "startup_failed_retry": "Retry",
+  "startup_failed_quit": "Quit"
 }

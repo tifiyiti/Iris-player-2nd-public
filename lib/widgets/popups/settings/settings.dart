@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:iris/widgets/popups/settings/about.dart';
-import 'package:iris/widgets/popups/settings/general.dart';
-import 'package:iris/widgets/popups/settings/dependencies.dart';
-import 'package:iris/widgets/popups/settings/play.dart';
+import 'package:flutter_zustand/flutter_zustand.dart';
+import 'package:iris/features/meta_settings/view/meta_settings_page.dart';
+import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/widgets/popups/settings/about.dart';
+import 'package:iris/widgets/popups/settings/dependencies.dart';
+import 'package:iris/widgets/popups/settings/general.dart';
+import 'package:iris/widgets/popups/settings/play.dart';
 
 class ITab {
   final String title;
@@ -25,9 +28,18 @@ class Settings extends HookWidget {
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
 
+    // Metadata-settings gate: ON → the DB-backed renderer replaces the whole
+    // legacy panel (it owns its own tab bar + close button). OFF → untouched
+    // legacy path, byte-for-byte.
+    final useMeta =
+        useAppStore().select(context, (s) => s.useMetadataSettings);
+    if (useMeta) return const MetaSettingsPage();
+
+    // Play is the primary user workflow, so it is placed first to be the default tab.
+    // the most frequent interaction rather than general configuration.
     List<ITab> tabs = [
-      ITab(title: t.general, child: const General()),
       ITab(title: t.play, child: const Play()),
+      ITab(title: t.general, child: const General()),
       ITab(title: t.about, child: const About()),
       ITab(title: t.dependencies, child: const Dependencies()),
     ];

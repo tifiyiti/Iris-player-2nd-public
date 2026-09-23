@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:iris/app_shutdown.dart';
 import 'package:iris/utils/get_latest_release.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/url.dart';
@@ -56,7 +57,11 @@ class ReleaseDialog extends HookWidget {
           mode: ProcessStartMode.detached,
           runInShell: true,
         );
-        // 退出应用
+        // 退出应用：先走统一关停链解绑 mpv 回调（否则 isolate 关闭后 mpv
+        // 线程的唤醒回调会触发 VM FATAL），再瞬时终止进程，让 updater 尽快
+        // 拿到可写的 exe。bat 到真正覆盖文件前还要重新下载 + 解压 +
+        // `timeout /t 2`，远长于关停链的 5s 硬上限。
+        await AppShutdown.run();
         exit(0);
       }
     }

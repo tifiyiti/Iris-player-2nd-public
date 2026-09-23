@@ -1,0 +1,20 @@
+== pages
+total=3
+p0 A · 3|v=0|o=0|m=true|segs=3|ms=180000|x=false|d=false|a=true|org=1
+p0 A · 2|v=1|o=0|m=true|segs=3|ms=180000|x=false|d=false|a=true|org=1
+p0 A · 1|v=2|o=0|m=true|segs=3|ms=180000|x=false|d=false|a=true|org=1
+== ordinals
+i=0 A · 3|v=0|o=0|m=true|segs=3|ms=180000|x=false|d=false|a=true|org=
+i=1 A · 2|v=1|o=0|m=true|segs=3|ms=180000|x=false|d=false|a=true|org=
+i=2 A · 1|v=2|o=0|m=true|segs=3|ms=180000|x=false|d=false|a=true|org=
+== occurrences
+o=0 A · 3|v=0
+o=1 A · 2|v=1
+o=2 A · 1|v=2
+== tag
+view=A · 2,A · 1
+counts=
+== search
+hit 00000000-0000-4000-8000-000000000000|A|#3|A · 3|segs=3|ms=180000|A/0006.mp4|o=0
+hit 00000000-0000-4000-8000-000000000000|A|#2|A · 2|segs=3|ms=180000|A/0003.mp4|o=0
+hit 00000000-0000-4000-8000-000000000000|A|#1|A · 1|segs=3|ms=180000|A/0000.mp4|o=0

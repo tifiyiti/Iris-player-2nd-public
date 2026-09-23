@@ -23,6 +23,12 @@ abstract class StorageState with _$StorageState {
     @Default([]) List<Favorite> favorites,
     @Default(null) Storage? currentStorage,
     @Default([]) List<String> currentPath,
+    @JsonKey(
+      includeFromJson: false,
+      includeToJson: false,
+    )
+    @Default({})
+    Map<String, bool> storageConnectionStatus,
   }) = _StorageState;
 
   factory StorageState.fromJson(Map<String, dynamic> json) =>

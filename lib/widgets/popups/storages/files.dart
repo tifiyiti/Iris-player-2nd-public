@@ -1,10 +1,13 @@
 import 'dart:io';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart' hide Chip;
 import 'package:flutter_breadcrumb/flutter_breadcrumb.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/globals.dart' as globals;
+import 'package:iris/features/meta_settings/engine/browse_scope_snapshot.dart'
+    show currentBrowseMediaScope;
 import 'package:iris/models/file.dart';
 import 'package:iris/models/progress.dart';
 import 'package:iris/models/storages/storage.dart';
@@ -17,10 +20,12 @@ import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/utils/files_sort.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/utils/path_conv.dart';
 import 'package:iris/utils/request_storage_permission.dart';
+import 'package:iris/widgets/a11y_tooltip.dart';
 import 'package:iris/widgets/chip.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class Files extends HookWidget {
   const Files({super.key, required this.storage});
@@ -36,17 +41,14 @@ class Files extends HookWidget {
 
     final sortBy = useAppStore().select(context, (state) => state.sortBy);
     final sortOrder = useAppStore().select(context, (state) => state.sortOrder);
-    final folderFirst =
-        useAppStore().select(context, (state) => state.folderFirst);
+    final folderFirst = useAppStore().select(context, (state) => state.folderFirst);
 
-    final favorites =
-        useStorageStore().select(context, (state) => state.favorites);
-    final currentPath =
-        useStorageStore().select(context, (state) => state.currentPath);
+    final favorites = useStorageStore().select(context, (state) => state.favorites);
+    final currentPath = useStorageStore().select(context, (state) => state.currentPath);
 
     final currentFavorite = useMemoized(
-        () => favorites.firstWhereOrNull((favorite) =>
-            favorite.storageId == storage.id && favorite.path == currentPath),
+        () => favorites.firstWhereOrNull(
+            (favorite) => favorite.storageId == storage.id && favorite.path == currentPath),
         [favorites, currentPath]);
 
     useEffect(() {
@@ -57,20 +59,19 @@ class Files extends HookWidget {
     }, []);
 
     final getFiles = useMemoized(
-        () async => await storage.getFiles(currentPath),
-        [currentPath, refreshState.value]);
+        () async => await storage.getFiles(currentPath), [currentPath, refreshState.value]);
 
     final result = useFuture(getFiles);
     final isLoading = useMemoized(
-        () => result.connectionState == ConnectionState.waiting,
-        [result.connectionState]);
+        () => result.connectionState == ConnectionState.waiting, [result.connectionState]);
     final isError = result.error != null;
 
     final filteredFiles = useMemoized(
         () => (result.data ?? [])
+            // Legacy playable-only baseline narrowed by the browse scope
+            // (dirs stay scope-neutral).
             .where((file) =>
-                [ContentType.video, ContentType.audio].contains(file.type) ||
-                file.isDir)
+                file.isVisible && file.matchesBrowseScope(currentBrowseMediaScope()))
             .toList(),
         [result.data]);
 
@@ -84,18 +85,14 @@ class Files extends HookWidget {
         [filteredFiles, sortBy, sortOrder, folderFirst]);
 
     final itemScrollController = useMemoized(() => ItemScrollController(), []);
-    final scrollOffsetController =
-        useMemoized(() => ScrollOffsetController(), []);
-    final itemPositionsListener =
-        useMemoized(() => ItemPositionsListener.create(), []);
-    final scrollOffsetListener =
-        useMemoized(() => ScrollOffsetListener.create(), []);
+    final scrollOffsetController = useMemoized(() => ScrollOffsetController(), []);
+    final itemPositionsListener = useMemoized(() => ItemPositionsListener.create(), []);
+    final scrollOffsetListener = useMemoized(() => ScrollOffsetListener.create(), []);
 
     void play(List<FileItem> files, int index) async {
       final clickedFile = files[index];
       final List<FileItem> filteredFiles = files
-          .where((file) =>
-              [ContentType.video, ContentType.audio].contains(file.type))
+          .where((file) => [ContentType.video, ContentType.audio].contains(file.type))
           .toList();
 
       final List<PlayQueueItem> playQueue = filteredFiles
@@ -112,8 +109,7 @@ class Files extends HookWidget {
 
     void back() {
       if (currentPath.length > storage.basePath.length) {
-        useStorageStore()
-            .updateCurrentPath(currentPath.sublist(0, currentPath.length - 1));
+        useStorageStore().updateCurrentPath(currentPath.sublist(0, currentPath.length - 1));
       } else {
         useStorageStore().updateCurrentStorage(null);
         useStorageStore().updateCurrentPath([]);
@@ -154,10 +150,8 @@ class Files extends HookWidget {
                                 scrollOffsetListener: scrollOffsetListener,
                                 itemCount: files.length,
                                 itemBuilder: (context, index) => ListTile(
-                                  contentPadding:
-                                      const EdgeInsets.fromLTRB(16, 0, 8, 0),
-                                  visualDensity: const VisualDensity(
-                                      horizontal: 0, vertical: -4),
+                                  contentPadding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
+                                  visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
                                   leading: () {
                                     if (files[index].isDir == true &&
                                         files[index].name.isNotEmpty) {
@@ -167,13 +161,11 @@ class Files extends HookWidget {
                                       case ContentType.video:
                                         return const Icon(Icons.movie_rounded);
                                       case ContentType.audio:
-                                        return const Icon(
-                                            Icons.audiotrack_rounded);
+                                        return const Icon(Icons.audiotrack_rounded);
                                       case ContentType.image:
                                         return const Icon(Icons.image_rounded);
                                       case ContentType.other:
-                                        return const Icon(
-                                            Icons.file_copy_rounded);
+                                        return const Icon(Icons.file_copy_rounded);
                                     }
                                   }(),
                                   title: Text(
@@ -192,15 +184,11 @@ class Files extends HookWidget {
                                             fontSize: 13,
                                           ),
                                         ),
-                                      if (files[index].size != 0)
-                                        const SizedBox(width: 8),
+                                      if (files[index].size != 0) const SizedBox(width: 8),
                                       if (files[index].lastModified != null)
                                         Expanded(
                                           child: Text(
-                                            files[index]
-                                                .lastModified
-                                                .toString()
-                                                .split('.')[0],
+                                            files[index].lastModified.toString().split('.')[0],
                                             style: TextStyle(
                                               fontSize: 13,
                                               color: Theme.of(context)
@@ -212,41 +200,34 @@ class Files extends HookWidget {
                                             ),
                                           ),
                                         ),
-                                      if (files[index].size != 0)
-                                        const SizedBox(width: 8),
+                                      if (files[index].size != 0) const SizedBox(width: 8),
                                       () {
-                                        final Progress? progress =
-                                            useHistoryStore()
-                                                .findById(files[index].getID());
+                                        final Progress? progress = useHistoryStore().findById(
+                                            // files[index].getID());  // legacy: surface-dependent uri key
+                                            canonicalProgressKey(files[index].storageId,
+                                                files[index].path,
+                                                uri: files[index].uri)); // unified
                                         if (progress != null &&
-                                            progress.file.type ==
-                                                ContentType.video) {
-                                          if ((progress
-                                                      .duration.inMilliseconds -
-                                                  progress.position
-                                                      .inMilliseconds) <=
+                                            progress.file.type == ContentType.video) {
+                                          if ((progress.duration.inMilliseconds -
+                                                  progress.position.inMilliseconds) <=
                                               5000) {
                                             return Chip(text: '100%');
                                           }
                                           final String progressString =
-                                              (progress.position
-                                                          .inMilliseconds /
-                                                      progress.duration
-                                                          .inMilliseconds *
+                                              (progress.position.inMilliseconds /
+                                                      progress.duration.inMilliseconds *
                                                       100)
                                                   .toStringAsFixed(0);
-                                          return Chip(
-                                              text: '$progressString %');
+                                          return Chip(text: '$progressString %');
                                         } else {
                                           return const SizedBox();
                                         }
                                       }(),
                                       ...files[index]
                                           .subtitles
-                                          .map((subtitle) => subtitle.uri
-                                              .split('.')
-                                              .last
-                                              .toUpperCase())
+                                          .map((subtitle) =>
+                                              subtitle.uri.split('.').last.toUpperCase())
                                           .toSet()
                                           .toList()
                                           .map(
@@ -263,18 +244,19 @@ class Files extends HookWidget {
                                           ),
                                     ],
                                   ),
-                                  trailing: files[index].type ==
-                                              ContentType.video ||
+                                  trailing: files[index].type == ContentType.video ||
                                           files[index].type == ContentType.audio
                                       ? PopupMenuButton<FileOptions>(
+                                          // Windows drops the payload (AXTree
+                                          // graft race, see rowTooltip); other
+                                          // platforms keep "Show menu".
+                                          tooltip: rowTooltip(null),
                                           clipBehavior: Clip.hardEdge,
-                                          constraints: const BoxConstraints(
-                                              minWidth: 200),
+                                          constraints: const BoxConstraints(minWidth: 200),
                                           onSelected: (value) async {
                                             switch (value) {
                                               case FileOptions.addToPlayQueue:
-                                                usePlayQueueStore()
-                                                    .add([files[index]]);
+                                                usePlayQueueStore().add([files[index]]);
                                                 break;
                                               default:
                                                 break;
@@ -291,13 +273,11 @@ class Files extends HookWidget {
                                   onTap: () {
                                     if (files[index].isDir == true &&
                                         files[index].name.isNotEmpty) {
-                                      useStorageStore().updateCurrentPath(
-                                          [...currentPath, files[index].name]);
+                                      useStorageStore()
+                                          .updateCurrentPath([...currentPath, files[index].name]);
                                     } else {
-                                      if (files[index].type ==
-                                              ContentType.video ||
-                                          files[index].type ==
-                                              ContentType.audio) {
+                                      if (files[index].type == ContentType.video ||
+                                          files[index].type == ContentType.audio) {
                                         play(files, index);
                                         Navigator.pop(context);
                                       }
@@ -318,22 +298,18 @@ class Files extends HookWidget {
               return BreadCrumbItem(
                 content: TextButton(
                   child: Text([
-                    storage.basePath.length > 1
-                        ? currentPath.first
-                        : storage.name,
+                    storage.basePath.length > 1 ? currentPath.first : storage.name,
                     ...currentPath.sublist(1),
                   ][index]),
                   onPressed: () {
-                    useStorageStore()
-                        .updateCurrentPath(currentPath.sublist(0, index + 1));
+                    useStorageStore().updateCurrentPath(currentPath.sublist(0, index + 1));
                   },
                 ),
               );
             },
             divider: Icon(
               Icons.chevron_right_rounded,
-              color:
-                  Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(222),
+              color: Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(222),
             ),
           ),
         ),
@@ -418,8 +394,7 @@ class Files extends HookWidget {
                     onTap: () {
                       useAppStore().updateSortBy(SortBy.lastModified);
                       useAppStore().updateSortOrder(
-                          sortOrder == SortOrder.asc ||
-                                  sortBy != SortBy.lastModified
+                          sortOrder == SortOrder.asc || sortBy != SortBy.lastModified
                               ? SortOrder.desc
                               : SortOrder.asc);
                     },
@@ -440,12 +415,9 @@ class Files extends HookWidget {
                 ],
               ),
               IconButton(
-                tooltip: currentFavorite != null
-                    ? t.remove_favorite
-                    : t.add_favorite,
-                icon: Icon(currentFavorite != null
-                    ? Icons.star_rounded
-                    : Icons.star_outline_rounded),
+                tooltip: currentFavorite != null ? t.remove_favorite : t.add_favorite,
+                icon:
+                    Icon(currentFavorite != null ? Icons.star_rounded : Icons.star_outline_rounded),
                 onPressed: () {
                   if (currentFavorite != null) {
                     useStorageStore().removeFavorite(currentFavorite);

@@ -23,46 +23,65 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          # Pinned: pure_ftp 0.7.5 relies on type promotion inside an inner
+          # async closure, which Dart 3.13 (Flutter 3.47+) turned into an error.
+          # Keep in sync with the stable release used for local development.
+          flutter-version: '3.44.6'
+      - name: Read app version
+        id: ver
+        shell: pwsh
+        run: |
+          # Single source of truth is pubspec.yaml; strip the +build suffix so the
+          # artifact name matches the release tag (vMAJOR.MINOR.PATCH).
+          $v = (Select-String -Path pubspec.yaml -Pattern '^version:\s*(\S+)').Matches[0].Groups[1].Value
+          $v = $v.Split('+')[0]
+          "value=$v" >> $env:GITHUB_OUTPUT
       - name: Generate code
         run: flutter pub get && flutter pub run build_runner build --delete-conflicting-outputs
       - name: Build Flutter application for Windows
         run: flutter build windows
-      - name: Create ZIP archive
+      - name: Remove updater
+        run: Remove-Item -Path build\windows\x64\runner\Release\iris-updater.bat -Force -ErrorAction SilentlyContinue
+      - name: Copy update script for portable
+        run: |
+          Copy-Item -Path "windows\portable_update_by_zip.bat" -Destination "build\windows\x64\runner\Release\" -Force
+          Copy-Item -Path "windows\portable_update_by_zip.ps1" -Destination "build\windows\x64\runner\Release\" -Force
+      - name: Create portable ZIP archive
         run: |
           # Create a directory to hold the files
           mkdir IRIS
           # Copy the build output to the IRIS directory
           Copy-Item -Path "build\windows\x64\runner\Release\*" -Destination "IRIS" -Recurse -Force
-          # Create a ZIP file
-          Compress-Archive -Path "IRIS" -DestinationPath "IRIS-windows.zip"
+          # Portable marker: presence of this file switches the app into
+          # portable mode (all user data under .\userdata, next to the exe).
+          New-Item -ItemType File -Path "IRIS\portable.flag" | Out-Null
+          # Create a ZIP file, versioned so the asset name matches the release tag.
+          Compress-Archive -Path "IRIS" -DestinationPath "IRIS-windows-v${{ steps.ver.outputs.value }}.zip"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: IRIS-windows.zip
-          path: IRIS-windows.zip
-      - name: Remove updater
-        run: Remove-Item -Path build\windows\x64\runner\Release\iris-updater.bat -Force
+          name: IRIS-windows-v${{ steps.ver.outputs.value }}.zip
+          path: IRIS-windows-v${{ steps.ver.outputs.value }}.zip
       - name: Create installer
-        run: iscc inno.iss
+        run: iscc /DMyAppVersion=${{ steps.ver.outputs.value }} inno.iss
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: IRIS-windows-installer.exe
-          path: build\windows\x64\runner\Release\IRIS-windows-installer.exe
+          name: IRIS-windows-installer-v${{ steps.ver.outputs.value }}.exe
+          path: build\windows\x64\runner\Release\IRIS-windows-installer-v${{ steps.ver.outputs.value }}.exe
       - name: Clean up
         run: Remove-Item -Path build\windows\x64\runner\Release\ -Recurse -Force
       - name: Build store msix
         run: dart run msix:build --store true
       - name: Remove updater
-        run: Remove-Item -Path build\windows\x64\runner\Release\iris-updater.bat -Force
+        run: Remove-Item -Path build\windows\x64\runner\Release\iris-updater.bat -Force -ErrorAction SilentlyContinue; Remove-Item -Path build\windows\x64\runner\Release\portable_update_by_zip.bat -Force -ErrorAction SilentlyContinue; Remove-Item -Path build\windows\x64\runner\Release\portable_update_by_zip.ps1 -Force -ErrorAction SilentlyContinue
       - name: Pack store msix
-        run: dart run msix:pack --store true --output-name IRIS-windows-store
+        run: dart run msix:pack --store true --output-name IRIS-windows-store-v${{ steps.ver.outputs.value }}
       - name: Upload msix
         uses: actions/upload-artifact@v4
         with:
-          name: IRIS-windows-store.msix
-          path: build\windows\x64\runner\Release\IRIS-windows-store.msix
+          name: IRIS-windows-store-v${{ steps.ver.outputs.value }}.msix
+          path: build\windows\x64\runner\Release\IRIS-windows-store-v${{ steps.ver.outputs.value }}.msix
 
   build-android:
     runs-on: ubuntu-latest
@@ -72,7 +91,17 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          # Pinned: pure_ftp 0.7.5 relies on type promotion inside an inner
+          # async closure, which Dart 3.13 (Flutter 3.47+) turned into an error.
+          # Keep in sync with the stable release used for local development.
+          flutter-version: '3.44.6'
+      - name: Read app version
+        id: ver
+        run: |
+          # Single source of truth is pubspec.yaml; strip the +build suffix so the
+          # artifact name matches the release tag (vMAJOR.MINOR.PATCH).
+          VERSION=$(sed -n 's/^version: *//p' pubspec.yaml | head -n1 | cut -d'+' -f1)
+          echo "value=$VERSION" >> "$GITHUB_OUTPUT"
       - name: Generate code
         run: flutter pub get && flutter pub run build_runner build --delete-conflicting-outputs
       - name: Set up Java
@@ -90,28 +119,41 @@ jobs:
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "storeFile=keystore.jks" >> android/key.properties
       - name: Build Flutter application for Android
-        run: flutter build apk --split-per-abi
+        # The project defines product flavors (nini22p/tifi7); a --flavor is
+        # mandatory, and the published build is always tifi7.
+        run: flutter build apk --flavor tifi7 --split-per-abi
       - name: Rename armeabi-v7a APK
-        run: mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk IRIS-android-armeabi-v7a.apk
+        run: mv build/app/outputs/flutter-apk/app-armeabi-v7a-tifi7-release.apk IRIS-android-armeabi-v7a-v${{ steps.ver.outputs.value }}.apk
       - name: Rename arm64-v8a APK
-        run: mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk IRIS-android-arm64-v8a.apk
+        run: mv build/app/outputs/flutter-apk/app-arm64-v8a-tifi7-release.apk IRIS-android-arm64-v8a-v${{ steps.ver.outputs.value }}.apk
       - name: Rename x86_64 APK
-        run: mv build/app/outputs/flutter-apk/app-x86_64-release.apk IRIS-android-x86_64.apk
+        run: mv build/app/outputs/flutter-apk/app-x86_64-tifi7-release.apk IRIS-android-x86_64-v${{ steps.ver.outputs.value }}.apk
       - name: Upload armeabi-v7a APK
         uses: actions/upload-artifact@v4
         with:
-          name: IRIS-android-armeabi-v7a.apk
-          path: IRIS-android-armeabi-v7a.apk
+          name: IRIS-android-armeabi-v7a-v${{ steps.ver.outputs.value }}.apk
+          path: IRIS-android-armeabi-v7a-v${{ steps.ver.outputs.value }}.apk
       - name: Upload arm64-v8a APK
         uses: actions/upload-artifact@v4
         with:
-          name: IRIS-android-arm64-v8a.apk
-          path: IRIS-android-arm64-v8a.apk
+          name: IRIS-android-arm64-v8a-v${{ steps.ver.outputs.value }}.apk
+          path: IRIS-android-arm64-v8a-v${{ steps.ver.outputs.value }}.apk
       - name: Upload x86_64 APK
         uses: actions/upload-artifact@v4
         with:
-          name: IRIS-android-x86_64.apk
-          path: IRIS-android-x86_64.apk
+          name: IRIS-android-x86_64-v${{ steps.ver.outputs.value }}.apk
+          path: IRIS-android-x86_64-v${{ steps.ver.outputs.value }}.apk
+      - name: Build universal APK
+        # Fat APK carrying every ABI; published so users who do not know their
+        # phone's architecture have one safe download.
+        run: flutter build apk --flavor tifi7
+      - name: Rename universal APK
+        run: mv build/app/outputs/flutter-apk/app-tifi7-release.apk IRIS-android-universal-v${{ steps.ver.outputs.value }}.apk
+      - name: Upload universal APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: IRIS-android-universal-v${{ steps.ver.outputs.value }}.apk
+          path: IRIS-android-universal-v${{ steps.ver.outputs.value }}.apk
 
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -119,6 +161,10 @@ jobs:
     needs:
       - build-windows
       - build-android
+    # The default workflow token is read-only; creating the release and its tag
+    # needs contents: write.
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -160,8 +206,9 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            artifacts/IRIS-windows.zip
-            artifacts/IRIS-windows-installer.exe
-            artifacts/IRIS-android-armeabi-v7a.apk
-            artifacts/IRIS-android-arm64-v8a.apk
-            artifacts/IRIS-android-x86_64.apk
+            artifacts/IRIS-windows-*.zip
+            artifacts/IRIS-windows-installer-*.exe
+            artifacts/IRIS-android-universal-v*.apk
+            artifacts/IRIS-android-armeabi-v7a-v*.apk
+            artifacts/IRIS-android-arm64-v8a-v*.apk
+            artifacts/IRIS-android-x86_64-v*.apk

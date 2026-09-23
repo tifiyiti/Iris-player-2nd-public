@@ -8,18 +8,16 @@ Future<void> requestStoragePermission() async {
     return;
   }
 
-  if (globals.storagePermissionStatus != PermissionStatus.granted) {
-    if (await isAndroid11OrHigher()) {
-      globals.storagePermissionStatus =
-          await Permission.manageExternalStorage.request();
-    } else {
-      globals.storagePermissionStatus = await Permission.storage.request();
-      if (globals.storagePermissionStatus != PermissionStatus.granted) {
-        return await requestStoragePermission();
-      } else {
-        return;
-      }
-    }
+  if (globals.storagePermissionStatus == PermissionStatus.granted) return;
+
+  if (await isAndroid11OrHigher()) {
+    final status = await Permission.manageExternalStorage.request();
+    globals.storagePermissionStatus = status;
+    if (status.isPermanentlyDenied) return;
+  } else {
+    final status = await Permission.storage.request();
+    globals.storagePermissionStatus = status;
+    if (status.isPermanentlyDenied) return;
   }
 }
 

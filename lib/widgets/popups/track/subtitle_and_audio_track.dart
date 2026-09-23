@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:iris/models/player.dart';
 import 'package:iris/widgets/popups/track/audio_track_list.dart';
 import 'package:iris/widgets/popups/track/subtitle_list.dart';
+import 'package:iris/widgets/popups/track/sync_adjust_bar.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:provider/provider.dart';
 
 class ITab {
   final String title;
@@ -28,6 +31,8 @@ class SubtitleAndAudioTrack extends HookWidget {
 
     final tabController = useTabController(initialLength: tabs.length);
 
+    final player = Provider.of<MediaPlayer>(context);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -46,6 +51,9 @@ class SubtitleAndAudioTrack extends HookWidget {
                 .toList(),
           ),
         ),
+        // Sync nudges — mediaKit only (capability hides it elsewhere).
+        if (player.supportsSyncAdjustment)
+          SyncAdjustBar(player: player),
         Divider(
           color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
           height: 0,

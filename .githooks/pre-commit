@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+file="android/version.properties"
+base=2025
+
+if [ ! -f "$file" ]; then
+  cur=$base
+else
+  cur=$(sed -n 's/^versionCode=\([0-9][0-9]*\).*/\1/p' "$file")
+  cur=${cur:-$base}
+fi
+
+next=$((cur + 1))
+echo "versionCode=$next" > "$file"
+echo "[pre-commit] auto-increment versionCode: $cur -> $next"
+git add "$file"

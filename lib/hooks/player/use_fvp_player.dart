@@ -1,39 +1,77 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:fvp/fvp.dart';
+import 'package:iris/features/background_playback/hooks/use_background_volume_context.dart';
+import 'package:iris/features/background_playback/services/background_volume_policy.dart';
+import 'package:iris/features/background_playback/services/segment_edit_guard.dart';
+import 'package:iris/features/windows/desktop_keyboard/controller/ab_loop_engine.dart';
 import 'package:iris/globals.dart' as globals;
+import 'package:iris/features/virtual_media/interaction/controller/virtual_seek_handler.dart';
+import 'package:iris/features/virtual_media/model/domain/vm_item.dart';
+import 'package:iris/features/virtual_media/interaction/state/vm_drag_gate.dart';
+import 'package:iris/features/virtual_media/playback/vm_playback_controller.dart';
+import 'package:iris/hooks/player/advance_play_queue_on_completed.dart';
+import 'package:iris/hooks/player/seek_clamp.dart';
+import 'package:iris/hooks/player/seek_tuning.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/player.dart';
 import 'package:iris/models/progress.dart';
 import 'package:iris/models/storages/storage.dart';
 import 'package:iris/models/store/app_state.dart';
+import 'package:iris/features/scenario_playback/playback/playback_progress.dart';
+import 'package:iris/features/scenario_playback/playback/playback_provider_registry.dart';
+import 'package:iris/features/scenario_playback/store/use_playback_scenario_store.dart';
+import 'package:iris/features/media_library/store/use_playback_progress_store.dart';
+import 'package:iris/app_shutdown.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_history_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/store/use_player_ui_store.dart';
+import 'package:iris/store/use_scrub_drag_store.dart';
 import 'package:iris/store/use_storage_store.dart';
+import 'package:iris/models/db/db_module.dart';
 import 'package:iris/utils/check_data_source_type.dart';
+import 'package:iris/features/webdav_discovery/services/webdav_playback_uri.dart';
+import 'package:iris/features/webdav_discovery/view/webdav_playback_error_dialog.dart';
 import 'package:iris/utils/logger.dart';
+import 'package:iris/utils/path_conv.dart';
 import 'package:iris/utils/platform.dart';
 import 'package:media_stream/media_stream.dart';
 import 'package:saf_util/saf_util.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+final areaKeyLog = AreaKeyLog(LogKeys.legacyPlayer);
+// CLOSE_DEBUG_LOG: playback diagnostics for the "jumps to end" investigation.
+final diagLog = AreaKeyLog(LogKeys.player);
 
 FvpPlayer useFvpPlayer(BuildContext context) {
-  final autoPlay = useAppStore().select(context, (state) => state.autoPlay);
-  final rate = useAppStore().select(context, (state) => state.rate);
-  final volume = useAppStore().select(context, (state) => state.volume);
-  final isMuted = useAppStore().select(context, (state) => state.isMuted);
-  final repeat = useAppStore().select(context, (state) => state.repeat);
+  final appStore = useAppStore();
+  final autoPlay = appStore.select(context, (state) => state.autoPlay);
+  final rate = appStore.select(context, (state) => state.rate);
+  final volume = appStore.select(context, (state) => state.volume);
+  final isMuted = appStore.select(context, (state) => state.isMuted);
+  // 副音 volume policy (see background_volume_policy.dart): off = master.
+  // The fg ratio resolves per foreground media (sub_media §5.5).
+  final bgVolume = useBackgroundVolumeContext(context);
+  final bgActive = bgVolume.active;
+  final fgVolumePercent = bgVolume.ratio.fgPercent;
+  final fgMuted = bgVolume.fgMuted;
+  final useScenario = appStore.select(context,
+      (s) => !s.useLegacyStoragePersistence && s.useScenarioDrivenPlayback);
+  final scenarioRepeat =
+      usePlaybackScenarioStore().select(context, (s) => s.activeScenarioRepeat);
+  final repeat = useScenario
+      ? scenarioRepeat
+      : appStore.select(context, (state) => state.repeat);
   final playQueue =
       usePlayQueueStore().select(context, (state) => state.playQueue);
   final currentIndex =
       usePlayQueueStore().select(context, (state) => state.currentIndex);
   final bool alwaysPlayFromBeginning =
-      useAppStore().select(context, (state) => state.alwaysPlayFromBeginning);
+      appStore.select(context, (state) => state.alwaysPlayFromBeginning);
 
   final history = useHistoryStore().select(context, (state) => state.history);
 
@@ -57,6 +95,34 @@ FvpPlayer useFvpPlayer(BuildContext context) {
 
   final isInitializing = useState(false);
 
+  /// Live-progress DB throttle: last DB write time and position (events reset
+  /// the 10s window; the per-second timer writes the media column at most every
+  /// 10s so crash-resume is at most ~10s stale).
+  final lastProgressWrite = useRef<DateTime?>(null);
+  final lastWrittenPosMs = useRef<int?>(null);
+
+  /// Position sanitizer: last accepted (monotonic, in-range) position for the
+  /// current file, and a flag raised by a user seek that resets the guard.
+  final lastSanePosMs = useRef<int?>(null);
+  final userSeekPending = useRef<bool>(false);
+
+  /// Feed generation captured by [init] at open time. A duration arrival that
+  /// happens after the controller has moved on to a NEWER feed belongs to a
+  /// superseded open (double-open race) and must not clear the switch freeze.
+  final openVmFeedGen = useRef<int?>(null);
+
+  /// Per-open resume gate: after an open the player reports pre-seek head
+  /// samples (~533ms) until the duration-arrival resume decision settles.
+  /// Persist + History writes are skipped while unsettled so a next/prev
+  /// tap inside the window cannot clobber the real stored progress.
+  final positionLock = useRef(PlaybackPositionLock());
+
+  /// Lock-independent step accumulation (mirror of the media_kit hook; see
+  /// [StepIntent]): the position lock unlocks on its ±2s landing tolerance,
+  /// so chaining a relative step onto it (or onto the raw position) makes
+  /// repeated presses recompute the same target.
+  final stepIntent = useRef(StepIntent());
+
   MediaStream mediaStream = useMemoized(() => MediaStream());
   final streamUrl = useMemoized(() => mediaStream.url);
 
@@ -78,23 +144,30 @@ FvpPlayer useFvpPlayer(BuildContext context) {
   useEffect(() {
     if (file?.type != ContentType.video) {
       usePlayerUiStore().updateAspectRatio(0);
+      usePlayerUiStore().updateVideoSize(0, 0);
       return;
     }
 
     if (width != 0 && height != 0) {
       usePlayerUiStore().updateAspectRatio(width / height);
+      usePlayerUiStore().updateVideoSize(width, height);
     } else {
       usePlayerUiStore().updateAspectRatio(0);
+      usePlayerUiStore().updateVideoSize(0, 0);
     }
     return;
   }, [file?.type, width, height]);
 
   Future<void> init(FileItem? file) async {
     isInitializing.value = true;
+    // CLOSE_DEBUG_LOG: vm double-open / back-to-0% investigation. Capture the
+    // controller's feed generation at open time so a duration arrival from a
+    // superseded open (double-open race) can be recognized and dropped.
+    openVmFeedGen.value = VirtualMediaController.instance.feedGeneration;
 
     try {
       if (controller.value.value.isInitialized) {
-        logger('Dispose player');
+        areaKeyLog.i('Dispose player');
         controller.value.dispose();
       }
 
@@ -104,40 +177,153 @@ FvpPlayer useFvpPlayer(BuildContext context) {
         final storage = useStorageStore().findById(file.storageId);
         final auth = storage?.getAuth();
 
-        logger('Open file: $file');
+        // CLOSE_DEBUG_LOG
+        diagLog.d('open uri=${file.uri} type=${file.storageType} source=${checkDataSourceType(file).name}');
+        areaKeyLog.i('Open file: $file');
+
+        // A wildcard WebDAV entry whose host was never resolved would dial
+        // `192.168.*.*`. Resolve once and rebuild the address from the storage
+        // record; explain a failure instead of initializing an unplayable source.
+        var playUri = file.uri;
+        if (storage is WebDAVStorage) {
+          final target = await webdavPlaybackTarget(storage, file.path);
+          if (target.uri == null) {
+            if (context.mounted) {
+              await showWebdavPlaybackFailure(context, file, target.failure!);
+            }
+            return;
+          }
+          playUri = target.uri!;
+        }
 
         switch (checkDataSourceType(file)) {
           case DataSourceType.file:
+            // Hook-level fallback: repair the known-broken '/X:/...' shape
+            // before it reaches dart:io; other forms pass through untouched.
             controller.value = VideoPlayerController.file(
-              File(file.uri),
+              File(sanitizePlayableUri(playUri)),
               httpHeaders: auth != null ? {'authorization': auth} : {},
             );
           case DataSourceType.contentUri:
-            final isExists = await SafUtil().exists(file.uri, false);
+            bool isExists = false;
+            try {
+              isExists = await SafUtil().exists(playUri, false);
+            } catch (e) {
+              areaKeyLog.w('SafUtil.exists failed for $playUri: $e');
+            }
             controller.value = VideoPlayerController.contentUri(
-              isExists ? Uri.parse(file.uri) : Uri.parse(''),
+              isExists ? Uri.parse(playUri) : Uri.parse(''),
             );
           default:
             controller.value = VideoPlayerController.networkUrl(
               Uri.parse(file.storageType == StorageType.ftp
-                  ? '$streamUrl/${file.uri}'
-                  : file.uri),
+                  ? '$streamUrl/$playUri'
+                  : playUri),
               httpHeaders: auth != null ? {'authorization': auth} : {},
             );
         }
       }
       await controller.value.initialize();
+      // CLOSE_DEBUG_LOG
+      diagLog.d(
+          'opened dur=${controller.value.value.duration.inMilliseconds}ms pos=${controller.value.value.position.inMilliseconds}ms playing=${controller.value.value.isPlaying}');
       await controller.value.setLooping(repeat == Repeat.one ? true : false);
       await controller.value.setPlaybackSpeed(rate);
-      await controller.value.setVolume(isMuted ? 0 : volume / 100);
+      await controller.value
+          .setVolume(BackgroundVolumePolicy.toFvpScale(
+              BackgroundVolumePolicy.foregroundEngineVolume(
+            master: volume,
+            muted: isMuted,
+            bgActive: bgActive,
+            fgPercent: fgVolumePercent,
+            fgMuted: fgMuted,
+          )));
     } catch (e) {
-      logger('Error initializing player: $e');
+      // CLOSE_DEBUG_LOG
+      diagLog.w('open error: $e');
+      areaKeyLog.e('Error initializing player: $e');
+      // Fail-open (mirror of the media_kit hook): a failed open never lands
+      // its locked target, so release the position-intent lock instead of
+      // blocking legitimate saves until the lock timeout fires.
+      positionLock.value.unlock();
     } finally {
       isInitializing.value = false;
     }
   }
 
+  // Save-on-switch MUST be declared BEFORE the init effect below:
+  // flutter_hooks runs same-build cleanups in declaration order, and init()
+  // synchronously replaces controller.value — a cleanup declared after it
+  // would read the NEW (uninitialized) controller, fail its isInitialized
+  // check and silently skip the old file's final save (a deterministic ≤10s
+  // progress loss on every switch).
   useEffect(() {
+    return () {
+      if (isAndroid &&
+          globals.initUri == file?.uri &&
+          globals.initUri != null &&
+          globals.initUri!.startsWith('content://')) {
+        return;
+      }
+
+      if (file != null &&
+          controller.value.value.isInitialized &&
+          controller.value.value.duration != Duration.zero) {
+        // Skip saving when the change is a scenario stop: the registry's
+        // stop() clears the queue facade (playQueue becomes empty) and resets
+        // progress itself. On a normal track change the facade still holds the
+        // next entry, so the pre-stop position never overwrites the reset.
+        // While a VM session owns the queue its segments' media_nodes progress
+        // belongs to the controller (feed pre-write + anchor flush): saving
+        // the leaving segment's live position here would clobber the just
+        // pre-written landing target of a same-physical-file jump.
+        if (!(useScenario && usePlayQueueStore().state.playQueue.isEmpty) &&
+            !VirtualMediaController.instance.isActive) {
+          // Position-intent lock: the player reports pre-land samples until
+          // the resume seek has been OBSERVED at its target — skip the write
+          // entirely (not a 0 write).
+          if (positionLock.value.blocksWrites) {
+            diagLog.d(
+                'persist skipped (locked phase=${positionLock.value.phase.name} target=${positionLock.value.targetMs}) file=${file.name} pos=${controller.value.value.position.inMilliseconds}ms');
+            return;
+          }
+          final rawPosMs = controller.value.value.position.inMilliseconds;
+          final durMs = controller.value.value.duration.inMilliseconds;
+      final posMs = sanePlaybackPos(
+        lastSanePosMs.value,
+        rawPosMs,
+        durMs,
+        userSeeked: false,
+        inFlightTargetMs: positionLock.value.blocksWrites
+            ? positionLock.value.targetMs
+            : null,
+      );
+          final sanePosition = Duration(milliseconds: posMs);
+          areaKeyLog.i('Save progress: ${file.name}, position: $sanePosition, duration: ${controller.value.value.duration}');
+          persistPlaybackProgress(
+            file: file,
+            position: sanePosition,
+            durationMs: durMs,
+            writeTag: 'cleanup',
+          );
+          lastProgressWrite.value = DateTime.now();
+          lastWrittenPosMs.value = posMs;
+          lastSanePosMs.value = posMs;
+          useHistoryStore().add(Progress(
+            dateTime: DateTime.now().toUtc(),
+            position: sanePosition,
+            duration: controller.value.value.duration,
+            file: file,
+          ));
+        }
+      }
+    };
+  }, [file]);
+
+  useEffect(() {
+    // Position-intent lock: writes stay blocked from the open until the
+    // resume/VM/user target has been observed ONCE (not merely issued).
+    positionLock.value.armPending();
     init(file);
     return;
   }, [file?.uri]);
@@ -149,6 +335,66 @@ FvpPlayer useFvpPlayer(BuildContext context) {
       }
     };
   }, []);
+
+  // Scenario resume: when a same-scenario re-play re-feeds the SAME file
+  // (value-equal FileItem), the init effect above does not re-run, so a paused
+  // video stays paused. autoPlay flipping false→true is the only signal that
+  // survives; resume playback here. Declared after the init effect so a NEW
+  // file's init sets isInitializing synchronously first and this skips.
+  useEffect(() {
+    // Shutdown fence: mirrors the media_kit hook — the quiesce pause wakes this
+    // effect, and resuming here would drive play() into a disposing controller.
+    if (AppShutdown.isActive) return;
+    if (useScenario &&
+        autoPlay &&
+        controller.value.value.isInitialized &&
+        !controller.value.value.isCompleted &&
+        !controller.value.value.isPlaying) {
+      controller.value.play();
+    }
+    return;
+  }, [
+    useScenario,
+    autoPlay,
+    controller.value.value.isInitialized,
+    controller.value.value.isPlaying,
+    controller.value.value.isCompleted,
+  ]);
+
+  // CLOSE_DEBUG_LOG: capture video_player backend errors (a failing file may
+  // end without ever completing normally).
+  final hasError = useListenableSelector(
+      controller.value, () => controller.value.value.hasError);
+  useEffect(() {
+    if (hasError) {
+      diagLog.w('player.error: ${controller.value.value.errorDescription}');
+      if (VirtualMediaController.instance.isActive) {
+        VirtualMediaController.instance.handleSegmentError();
+      }
+      // Fail-open: a broken open can never land its locked target.
+      positionLock.value.unlock();
+    }
+    return;
+  }, [hasError]);
+
+  // Position-intent lock landing check (mirror of the media_kit position
+  // stream listener): the controller notifies on every frame; the player
+  // must be OBSERVED once at/near the locked target before writes resume.
+  useEffect(() {
+    final c = controller.value;
+    void listener() {
+      if (positionLock.value.checkLanding(
+          c.value.position.inMilliseconds, c.value.duration.inMilliseconds)) {
+        // CLOSE_DEBUG_LOG (no file here: the listener's closure can lag the
+        // current file — pos/target identify the landing).
+        diagLog.d(
+            'lock landed pos=${c.value.position.inMilliseconds}ms target-reached phase=unlocked');
+      }
+    }
+
+    c.addListener(listener);
+    return () => c.removeListener(listener);
+  }, [controller.value]);
 
   useEffect(() {
     () async {
@@ -162,13 +408,18 @@ FvpPlayer useFvpPlayer(BuildContext context) {
             ? '$streamUrl/${externalSubtitles[currentExternalSubtitle].uri}'
             : externalSubtitles[currentExternalSubtitle].uri;
 
-        logger('External subtitle uri: $uri');
+        areaKeyLog.i('External subtitle uri: $uri');
 
         if (Platform.isAndroid &&
             externalSubtitles[currentExternalSubtitle]
                 .uri
                 .startsWith('content://')) {
-          isExists = await SafUtil().exists(uri, false);
+          try {
+            isExists = await SafUtil().exists(uri, false);
+          } catch (e) {
+            areaKeyLog.w('SafUtil.exists subtitle failed for $uri: $e');
+            isExists = false;
+          }
         }
 
         if (isExists) {
@@ -188,20 +439,88 @@ FvpPlayer useFvpPlayer(BuildContext context) {
           controller.value.value.isCompleted &&
           controller.value.value.position != Duration.zero &&
           controller.value.value.duration != Duration.zero) {
-        logger('Completed: ${file.name}');
-        if (repeat == Repeat.one) return;
-        if (currentPlayIndex == playQueue.length - 1) {
-          if (repeat == Repeat.all) {
-            await usePlayQueueStore().updateCurrentIndex(playQueue[0].index);
-          }
-        } else {
-          await usePlayQueueStore()
-              .updateCurrentIndex(playQueue[currentPlayIndex + 1].index);
+        if (useScrubDragStore().state.any) {
+          diagLog.d('completed suppressed hold/seek');
+          usePlayerUiStore().updatePendingCompleted(true);
+          return;
         }
+        // A-B editor open: locked to the CURRENT media — no segment switch and
+        // no queue advance. Pause and wait for the user.
+        if (SegmentEditGuard.transportFrozen) {
+          controller.value.pause();
+          return;
+        }
+        if (await VirtualMediaController.instance.maybeHandleCompleted()) {
+          return;
+        }
+        // CLOSE_DEBUG_LOG
+        diagLog.d(
+            'completed fired pos=${controller.value.value.position.inMilliseconds}ms dur=${controller.value.value.duration.inMilliseconds}ms file=${file.name} repeat=$repeat curIdx=$currentPlayIndex total=${playQueue.length}');
+        areaKeyLog.i('Completed: ${file.name}');
+        persistPlaybackProgress(
+          file: file,
+          position: controller.value.value.position,
+          completed: true,
+          writeTag: 'completed',
+        );
+        lastProgressWrite.value = DateTime.now();
+        lastWrittenPosMs.value =
+            controller.value.value.position.inMilliseconds;
+        if (repeat == Repeat.one) return;
+        final handled = await PlaybackProviderRegistry.advanceOnComplete(repeat);
+        // CLOSE_DEBUG_LOG
+        diagLog.d('completed advance handled=$handled');
+        if (handled) return;
+        await advancePlayQueueOnCompleted(repeat);
+      } else if (usePlayerUiStore().state.pendingCompleted) {
+        // A seek reset the backend completion flag (a drag returned from 100%
+        // to a mid position): drop the stale suppressed latch so the release
+        // cannot advance (see shouldFlushSuppressedCompletion).
+        usePlayerUiStore().updatePendingCompleted(false);
       }
     }();
     return;
   }, [controller.value.value.isCompleted]);
+
+  // Flush suppressed completed when hold released.
+  final pendingCompletedFvp = usePlayerUiStore().select(context, (s) => s.pendingCompleted);
+  final isHoldingDownFvp = useScrubDragStore().select(context, (s) => s.isHolding);
+  useEffect(() {
+    if (!pendingCompletedFvp || isHoldingDownFvp) return;
+    if (!shouldFlushSuppressedCompletion(
+      pendingCompleted: pendingCompletedFvp,
+      holding: isHoldingDownFvp,
+      completed: controller.value.value.isCompleted,
+    )) {
+      // Stale latch: a seek during the drag carried playback off the end, so
+      // the release position decides playback — never advance (the
+      // "touch 100%, come back to 50%, still jumps" defect).
+      usePlayerUiStore().updatePendingCompleted(false);
+      return;
+    }
+    usePlayerUiStore().updatePendingCompleted(false);
+    () async {
+      if (repeat == Repeat.one) return;
+      if (SegmentEditGuard.transportFrozen) {
+        controller.value.pause();
+        return;
+      }
+      if (await VirtualMediaController.instance.maybeHandleCompleted()) {
+        return;
+      }
+      final handled = await PlaybackProviderRegistry.advanceOnComplete(repeat);
+      if (handled) return;
+      await advancePlayQueueOnCompleted(repeat);
+    }();
+    return;
+  }, [
+    pendingCompletedFvp,
+    isHoldingDownFvp,
+    controller.value.value.isCompleted,
+    repeat,
+    currentPlayIndex,
+    playQueue.length,
+  ]);
 
   useEffect(() {
     if (controller.value.value.isInitialized) {
@@ -212,14 +531,21 @@ FvpPlayer useFvpPlayer(BuildContext context) {
 
   useEffect(() {
     if (controller.value.value.isInitialized) {
-      controller.value.setVolume(isMuted ? 0 : volume / 100);
+      controller.value.setVolume(BackgroundVolumePolicy.toFvpScale(
+          BackgroundVolumePolicy.foregroundEngineVolume(
+        master: volume,
+        muted: isMuted,
+        bgActive: bgActive,
+        fgPercent: fgVolumePercent,
+        fgMuted: fgMuted,
+      )));
     }
     return;
-  }, [volume, isMuted]);
+  }, [volume, isMuted, bgActive, fgVolumePercent, fgMuted]);
 
   useEffect(() {
     if (controller.value.value.isInitialized) {
-      logger('Set looping: $looping');
+      areaKeyLog.i('Set looping: $looping');
       controller.value.setLooping(repeat == Repeat.one ? true : false);
     }
     return;
@@ -230,17 +556,107 @@ FvpPlayer useFvpPlayer(BuildContext context) {
       if (controller.value.value.duration != Duration.zero &&
           file != null &&
           file.type == ContentType.video) {
-        Progress? progress = history[file.getID()];
-        if (progress != null) {
-          if (!alwaysPlayFromBeginning &&
-              (progress.duration.inMilliseconds -
-                      progress.position.inMilliseconds) >
-                  5000) {
-            logger(
-                'Resume progress: ${file.name} position: ${progress.position} duration: ${progress.duration}');
-            await controller.value.seekTo(progress.position);
+        // CLOSE_DEBUG_LOG
+        diagLog.d('durationArrived dur=${controller.value.value.duration.inMilliseconds}ms file=${file.name}');
+        // VM feeds open like any ordinary single file: the controller
+        // pre-wrote the landing position (jump target, or 0 for sequential
+        // advance) into media_nodes BEFORE this open, and the shared
+        // DB-authoritative resume below lands it. The only VM touch point
+        // left here is the switch-freeze bookkeeping.
+        final vmCtrlDur = VirtualMediaController.instance;
+        if (vmCtrlDur.isActive) {
+          // A duration from an open that started under an OLDER feed belongs
+          // to a superseded file: dropping it keeps the newer feed's switch
+          // freeze intact until its own duration arrives. A null generation
+          // (open raced before capture) must NOT clear: its file is unknown.
+          final openGen = openVmFeedGen.value;
+          if (openGen != null && openGen == vmCtrlDur.feedGeneration) {
+            vmCtrlDur.clearTransition();
+          }
+        } else {
+          // The play queue left the session: clearTransition() can never fire
+          // for it (it is gated on isActive), so the orphaned freeze is
+          // released here — otherwise `transitioning` latches and blocks the
+          // stale-session cleanup forever, leaving every progress surface
+          // partitioning this normal file into virtual segments.
+          vmCtrlDur.releaseOrphanedTransition();
+        }
+        // Completed files start from the beginning — resuming at the end would
+        // instantly complete again and spin the auto-advance loop. A VM feed
+        // under the CURRENT generation is an explicit targeted open (the
+        // controller pre-wrote the landing position): the user's jump intent
+        // outranks the global always-play-from-beginning setting.
+        final vmOpenGen = openVmFeedGen.value;
+        final vmTargeted = vmCtrlDur.isActive &&
+            vmOpenGen != null &&
+            vmOpenGen == vmCtrlDur.feedGeneration;
+        final wasCompleted = await readPlaybackCompleted(file);
+        // CLOSE_DEBUG_LOG
+        diagLog.d(
+            'resume eval wasCompleted=$wasCompleted alwaysFromBeginning=$alwaysPlayFromBeginning vmTargeted=$vmTargeted');
+        if ((wasCompleted || alwaysPlayFromBeginning) && !vmTargeted) {
+          areaKeyLog.i('Skip resume for ${file.name}');
+          positionLock.value.unlock();
+        } else {
+          final dbPos = await readPlaybackProgress(file);
+          final budget = await readHistoryRestoreBudget(file);
+          final (decision, resumeAt) = resolveOpenResume(
+              dbPos, controller.value.value.duration.inMilliseconds, budget);
+          // CLOSE_DEBUG_LOG: logged unconditionally — the previously silent
+          // branches (fromBeginningExplicit / empty history) must be
+          // attributable from the same repro log.
+          diagLog.d('resume decision=$decision dbPos=$dbPos budget=$budget '
+              'target=$resumeAt dur=${controller.value.value.duration.inMilliseconds}ms file=${file.name}');
+          switch (decision) {
+            case OpenResumeDecision.seekDb:
+              areaKeyLog.i('Resume DB progress: ${file.name} position: $resumeAt');
+              // Lock BEFORE issuing the seek: landing checks run on the
+              // controller listener, which can fire before the await
+              // completes.
+              positionLock.value.armTarget(resumeAt);
+              await controller.value.seekTo(Duration(milliseconds: resumeAt));
+            case OpenResumeDecision.fromBeginningExplicit:
+              // The row at ≤0 carries no budget: an explicit "from the
+              // beginning" (e.g. a VM sequential-advance pre-write). Never
+              // resurrect a stale HistoryStore position on top of it. Locked
+              // at 0 — the first head tick lands and unlocks.
+              areaKeyLog.i('Explicit from-beginning row for ${file.name}');
+              positionLock.value.armTarget(0);
+            case OpenResumeDecision.fallbackHistory:
+              Progress? progress =
+                  // history[file.getID()];  // legacy: surface-dependent uri key
+                  history[canonicalProgressKey(file.storageId, file.path,
+                      uri: file.uri)]; // unified
+              if (progress != null &&
+                  (progress.duration.inMilliseconds -
+                          progress.position.inMilliseconds) >
+                      5000) {
+                // CLOSE_DEBUG_LOG
+                diagLog.d('resume seek history pos=${progress.position.inMilliseconds}ms dur=${progress.duration.inMilliseconds}ms');
+                areaKeyLog.i('Resume progress: ${file.name} position: ${progress.position} duration: ${progress.duration}');
+                positionLock.value.armTarget(progress.position.inMilliseconds);
+                await controller.value.seekTo(progress.position);
+                // One history fallback was consumed: burn budget so a
+                // repeated failed open cannot keep re-falling back forever.
+                // The seek landing (or this file's own live saves) will
+                // re-write a real positive position next.
+                if (dbPos == null || dbPos <= 0) {
+                  await spendHistoryRestoreBudget(file);
+                }
+              } else {
+                // Previously a SILENT fall-through to the head — now
+                // attributable (history empty or remaining <5s).
+                diagLog.d('resume fallbackHistory empty -> head '
+                    'hasEntry=${progress != null} file=${file.name}');
+                positionLock.value.unlock();
+              }
           }
         }
+      } else if (file == null || file.type != ContentType.video) {
+        // Non-video opens have no resume decision: unblock persistence so
+        // audio saves keep working exactly as before. A video file whose
+        // duration has not arrived yet stays locked until its resume lands.
+        positionLock.value.unlock();
       }
 
       if (autoPlay) {
@@ -254,42 +670,176 @@ FvpPlayer useFvpPlayer(BuildContext context) {
     return;
   }, [controller.value.value.duration]);
 
+  // Write duration + probed dimensions to media_nodes DB when they first
+  // become available (lazy probe backfill: playing a file fills any gaps
+  // left by an unprobed scan).
+  final durationSaved = useState(false);
+  final dimsSaved = useState(false);
   useEffect(() {
-    return () {
-      if (isAndroid &&
-          globals.initUri == file?.uri &&
-          globals.initUri != null &&
-          globals.initUri!.startsWith('content://')) {
+    final d = controller.value.value.duration;
+    final size = controller.value.value.size;
+    final w = size.width.round();
+    final h = size.height.round();
+    if (file == null) return null;
+    final needDuration = d != Duration.zero && !durationSaved.value;
+    final needDims = w > 0 && h > 0 && !dimsSaved.value;
+    if (!needDuration && !needDims) return null;
+    if (needDuration) durationSaved.value = true;
+    if (needDims) dimsSaved.value = true;
+    // Immediate live-progress seed: give the progress UIs the just-parsed
+    // duration right away instead of waiting for the next 1s timer tick.
+    if (needDuration) {
+      usePlaybackProgressStore().update(
+        // file.getID(),  // legacy: surface/platform-dependent uri key
+        canonicalProgressKey(file.storageId, file.path,
+            uri: file.uri), // unified
+        controller.value.value.position.inMilliseconds,
+        d.inMilliseconds,
+      );
+    }
+    () async {
+      try {
+        final dbPath = file.path.join('/');
+        if (dbPath.isNotEmpty) {
+          await DbModule.mediaNodeRepo.updateFileMediaInfo(
+            storageId: file.storageId,
+            path: dbPath,
+            durationMs: needDuration ? d.inMilliseconds : null,
+            width: needDims ? w : null,
+            height: needDims ? h : null,
+            pixelCount: needDims ? w * h : null,
+          );
+          areaKeyLog.i('Saved media info to DB: ${file.name} '
+              'dur=${needDuration ? d.inMilliseconds : "-"}ms');
+        }
+      } catch (e) {
+        areaKeyLog.e('Error saving media info to DB: $e');
+      }
+    }();
+    return null;
+  }, [controller.value.value.duration, controller.value.value.size]);
+
+  // Live progress: update the in-memory store every second so progress UIs can
+  // tick in real time; throttle media-column DB writes to at most once per 10s
+  // (each save event — including track change — resets the 10s window) so
+  // crash-resume is at most ~10s stale while IO stays bounded.
+  useEffect(() {
+    final current = file;
+    if (current == null) return null;
+
+    lastProgressWrite.value = DateTime.now();
+    lastSanePosMs.value = null;
+    userSeekPending.value = false;
+
+    final timer = Timer.periodic(const Duration(seconds: 1), (_) async {
+      // Position-intent lock fail-open: runs BEFORE the duration early-return
+      // so a pending lock (duration never arrives) still releases.
+      final timeout = positionLock.value.tickTimeout();
+      if (timeout == PositionLockTimeoutAction.retrySeek) {
+        final target = positionLock.value.targetMs;
+        // CLOSE_DEBUG_LOG
+        diagLog.d('lock timeout retry seek target=$target file=${current.name} '
+            'src=lock-retry(native)');
+        if (target != null) {
+          await controller.value.seekTo(Duration(milliseconds: target));
+        }
+      } else if (timeout == PositionLockTimeoutAction.released) {
+        // CLOSE_DEBUG_LOG
+        diagLog.d('lock timeout released file=${current.name}');
+      }
+      if (!controller.value.value.isInitialized ||
+          controller.value.value.duration == Duration.zero) {
         return;
       }
+      final rawPosMs = controller.value.value.position.inMilliseconds;
+      final durMs = controller.value.value.duration.inMilliseconds;
+      final userSeeked = userSeekPending.value;
+      userSeekPending.value = false;
+      final posMs = sanePlaybackPos(
+        lastSanePosMs.value,
+        rawPosMs,
+        durMs,
+        userSeeked: userSeeked,
+        inFlightTargetMs: positionLock.value.blocksWrites
+            ? positionLock.value.targetMs
+            : null,
+      );
+      if (rawPosMs != posMs) {
+        areaKeyLog.d(
+            'progress glitch raw=$rawPosMs kept=$posMs userSeek=$userSeeked');
+      }
+      lastSanePosMs.value = posMs;
+      // final fileId = current.getID();  // legacy: surface/platform-dependent uri key
+      final fileId = canonicalProgressKey(current.storageId, current.path,
+          uri: current.uri); // unified
+      usePlaybackProgressStore().update(fileId, posMs, durMs);
 
-      if (file != null &&
-          controller.value.value.isInitialized &&
-          controller.value.value.duration.inSeconds != 0) {
-        logger(
-            'Save progress: ${file.name}, position: ${controller.value.value.position}, duration: ${controller.value.value.duration}');
-        useHistoryStore().add(Progress(
-          dateTime: DateTime.now().toUtc(),
-          position: controller.value.value.position,
-          duration: controller.value.value.duration,
-          file: file,
-        ));
+      final lastWrite = lastProgressWrite.value;
+      final now = DateTime.now();
+      if (posMs != lastWrittenPosMs.value &&
+          (lastWrite == null ||
+              now.difference(lastWrite) >= const Duration(seconds: 10))) {
+        // Position-intent lock: skip the throttled DB write until the
+        // locked target has been observed; the in-memory store update above
+        // still ticks the UI.
+        if (positionLock.value.blocksWrites) {
+          diagLog.d(
+              'persist skipped (locked phase=${positionLock.value.phase.name} target=${positionLock.value.targetMs}) file=${current.name} pos=${posMs}ms');
+        } else {
+          persistPlaybackProgress(
+              file: current,
+              position: Duration(milliseconds: posMs),
+              durationMs: durMs,
+              writeTag: 'timer');
+        }
+        lastProgressWrite.value = now;
+        lastWrittenPosMs.value = posMs;
+      }
+    });
+
+    return () {
+      timer.cancel();
+      if (controller.value.value.isInitialized &&
+          controller.value.value.duration != Duration.zero) {
+        final raw = controller.value.value.position.inMilliseconds;
+        final dur = controller.value.value.duration.inMilliseconds;
+        usePlaybackProgressStore().update(
+          // current.getID(),  // legacy: surface/platform-dependent uri key
+          canonicalProgressKey(current.storageId, current.path,
+              uri: current.uri), // unified
+          sanePlaybackPos(
+            lastSanePosMs.value,
+            raw,
+            dur,
+            userSeeked: false,
+            inFlightTargetMs: positionLock.value.blocksWrites
+                ? positionLock.value.targetMs
+                : null,
+          ),
+          dur,
+        );
       }
     };
   }, [file]);
 
   useEffect(() {
     if (controller.value.value.isPlaying) {
-      logger('Enable wakelock');
+      areaKeyLog.i('Enable wakelock');
       WakelockPlus.enable();
     } else {
-      logger('Disable wakelock');
+      areaKeyLog.i('Disable wakelock');
       WakelockPlus.disable();
     }
     return;
   }, [controller.value.value.isPlaying]);
 
   Future<void> play() async {
+    if (useScenario && file == null) {
+      // The player was fully stopped (feed cleared). Re-feed the ACTIVE
+      // context — a tag view resumes inside its own list (never the scenario
+      // item behind it), and a lost tag bookmark starts from the top.
+      await PlaybackProviderRegistry.resumeActive();
+    }
     if (!controller.value.value.isInitialized &&
         !isInitializing.value &&
         file != null) {
@@ -302,33 +852,207 @@ FvpPlayer useFvpPlayer(BuildContext context) {
     controller.value.pause();
   }
 
-  Future<void> seek(Duration newPosition) async {
-    logger('Seek to: $newPosition');
-    if (controller.value.value.duration == Duration.zero) return;
-    newPosition.inSeconds < 0
-        ? await controller.value.seekTo(Duration.zero)
-        : newPosition.inSeconds > controller.value.value.duration.inSeconds
-            ? await controller.value.seekTo(controller.value.value.duration)
-            : await controller.value.seekTo(newPosition);
+  // ── Seek-burst control (mirror of the media_kit hook) ──
+  //
+  // Only the PROGRESS WRITES are collapsed (one Drift read+write per repeat
+  // would hammer the UI isolate); the seeks themselves are issued one per press
+  // so a held key advances frame by frame instead of jumping once.
+  //
+  // NOTE: the media_kit hook additionally has a rapid-step burst that bypasses
+  // media_kit's seek mutex and toggles mpv `hr-seek`. Neither has a counterpart
+  // here — `video_player`'s `seekTo` is not serialized by the plugin, and fvp's
+  // seek precision (`fastSeek`) is a global registration option, not a
+  // per-seek/per-burst property.
+  final userSeekWrite = useRef(
+      TrailingCoalescer<({FileItem file, Duration position, int durationMs})>());
+  final userSeekWriteTimer = useRef<Timer?>(null);
+  // Last payload actually written, so a single seek does not pay a redundant
+  // trailing write 350ms later.
+  final lastUserSeekWrite =
+      useRef<({FileItem file, Duration position, int durationMs})?>(null);
+
+  void persistUserSeekWrite(
+      ({FileItem file, Duration position, int durationMs}) w) {
+    if (lastUserSeekWrite.value == w) return;
+    lastUserSeekWrite.value = w;
+    unawaited(persistPlaybackProgress(
+      file: w.file,
+      position: w.position,
+      durationMs: w.durationMs,
+      userSeekToHead: w.position == Duration.zero,
+      userSeek: true,
+      writeTag: 'user-seek',
+    ));
   }
 
-  Future<void> backward(int seconds) async => await seek(
-      Duration(seconds: controller.value.value.position.inSeconds - seconds));
+  void persistUserSeekBurst(Duration target) {
+    final FileItem? f = file;
+    if (f == null) return;
+    final w = (
+      file: f,
+      position: target,
+      durationMs: controller.value.value.duration.inMilliseconds,
+    );
+    final bool leading = !userSeekWrite.value.hasPending;
+    userSeekWrite.value.record(w);
+    if (leading) persistUserSeekWrite(w);
+    userSeekWriteTimer.value?.cancel();
+    userSeekWriteTimer.value = Timer(kUserSeekWriteDebounce, () {
+      final pending = userSeekWrite.value.flush();
+      if (pending != null) persistUserSeekWrite(pending);
+    });
+  }
 
-  Future<void> forward(int seconds) async => await seek(
-      Duration(seconds: controller.value.value.position.inSeconds + seconds));
+  void flushUserSeekBurst() {
+    userSeekWriteTimer.value?.cancel();
+    userSeekWriteTimer.value = null;
+    final pending = userSeekWrite.value.flush();
+    if (pending != null) persistUserSeekWrite(pending);
+  }
+
+  // Attribution-only [src]: see the media_kit hook — log only, the
+  // tear-off still satisfies `Future<void> Function(Duration)`.
+  Future<void> seek(Duration newPosition, [String src = 'player']) async {
+    // An absolute jump re-anchors the NEXT relative step on the fresh
+    // position; a cross-segment step re-anchors below (its local axis
+    // changes). Only 'step' keeps the accumulation alive.
+    if (src != 'step') stepIntent.value.reset();
+    // Virtual Media: cross-segment targets open WITH the intra-segment
+    // offset (pendingSeekMs handoff) instead of flashing 0% first — unless
+    // the drag strategy says to hold the picture until release (spec §6).
+    if (VirtualMediaController.instance.isActive) {
+      final vm = VirtualMediaController.instance;
+      final item = vm.state.item;
+      if (item != null) {
+        final (segIdx, localMs) = item.locate(newPosition.inMilliseconds);
+        final curSeg = vm.state.segmentIndex;
+        // CLOSE_DEBUG_LOG: vm seek-coordinate attribution (mirror of the
+        // media_kit hook).
+        diagLog.d('[vm-seek] target=${newPosition.inMilliseconds}V '
+            'resolved seg=$segIdx local=$localMs cur=$curSeg src=$src');
+        if (segIdx != curSeg &&
+            newPosition.inMilliseconds < item.offsetOf(curSeg)) {
+          diagLog.w('[vm-seek] backward cross-segment '
+              'target=${newPosition.inMilliseconds}V seg=$segIdx cur=$curSeg '
+              '(legal for chapter/rewind; investigate otherwise)');
+        }
+        if (segIdx == vm.state.segmentIndex) {
+          final clamped =
+              clampVmLocalMs(item.segments[segIdx].durationMs, localMs);
+          // Step accumulation on the SEGMENT-LOCAL axis (the axis
+          // seekRelative reads — see StepIntent).
+          if (src == 'step') stepIntent.value.note(clamped);
+          userSeekPending.value = true;
+          lastSanePosMs.value = null;
+          // Position-intent lock + save-once (mirror of the media_kit hook).
+          positionLock.value.armTarget(clamped);
+          if (file != null) {
+            unawaited(persistPlaybackProgress(
+              file: file,
+              position: Duration(milliseconds: clamped),
+              durationMs: controller.value.value.duration.inMilliseconds,
+              userSeekToHead: clamped == 0,
+              userSeek: true,
+              writeTag: 'user-seek',
+            ));
+          }
+          await controller.value.seekTo(Duration(milliseconds: clamped));
+        } else {
+          final dragging = useScrubDragStore().state.any;
+          // A cross-segment step lands on ANOTHER segment: the local axis the
+          // accumulator was recorded in no longer applies.
+          stepIntent.value.reset();
+          final decision = decideVmDragSeek(
+            strategy: useAppStore().state.vmCrossSegmentDragStrategy,
+            isDragging: dragging,
+            crossSegment: true,
+          );
+          if (decision == VmDragSeekDecision.stashPreview) {
+            vm.stashDragTarget(newPosition.inMilliseconds);
+          } else if (!vmCrossJumpStashes(
+            dragging: dragging,
+            withinThrottleWindow: vm.shouldThrottleCrossJump(),
+          )) {
+            vm.markCrossJump();
+            await vm.jumpToSegment(segIdx, localMs: localMs);
+          } else {
+            // Throttled tick: keep the newest target for the release commit.
+            vm.stashDragTarget(newPosition.inMilliseconds);
+          }
+        }
+        return;
+      }
+    }
+    areaKeyLog.i('Seek to: $newPosition src=$src');
+    if (controller.value.value.duration == Duration.zero) return;
+    // A user-initiated jump resets the position-sanitizer guard so the new
+    // position (possibly backward) is accepted on the next sample.
+    userSeekPending.value = true;
+    lastSanePosMs.value = null;
+    final totalMs = controller.value.value.duration;
+    final target = clampSeekTarget(newPosition, totalMs);
+    if (src == 'step') stepIntent.value.note(target.inMilliseconds);
+    // Position-intent lock + save-once (mirror of the media_kit hook): the
+    // user's explicit target is the authoritative progress from this moment.
+    // A burst collapses to leading+trailing writes.
+    positionLock.value.armTarget(target.inMilliseconds);
+    persistUserSeekBurst(target);
+    await controller.value.seekTo(target);
+  }
+
+  /// Relative skip on the VIRTUAL timeline (ms precision, clamped).
+  /// See the media_kit hook for the coordinate rationale.
+  Future<void> seekRelative(int deltaMs) async {
+    final vm = VirtualMediaController.instance;
+    final item = vm.state.item;
+    final rawPosMs = controller.value.value.position.inMilliseconds;
+    // Same accumulation contract as the media_kit hook: step intent → lock
+    // intent → reported. The lock unlocks early (landing tolerance) and the
+    // reported position can sit still, so neither is a sound base alone.
+    final int? pendingIntent =
+        positionLock.value.blocksWrites ? positionLock.value.targetMs : null;
+    final int baseMs = stepIntent.value
+        .baseFor(reportedMs: rawPosMs, lockIntentMs: pendingIntent);
+    if (vm.isActive && item != null) {
+      const handler = VirtualSeekHandler();
+      final target = handler.resolveRelativeSeek(
+        item,
+        segmentIndex: vm.state.segmentIndex,
+        localMs: baseMs,
+        deltaMs: deltaMs,
+      );
+      await seek(Duration(milliseconds: target.virtualMs), 'step');
+      return;
+    }
+    final totalMs = controller.value.value.duration.inMilliseconds;
+    if (totalMs <= 0) return;
+    final target = (baseMs + deltaMs).clamp(0, totalMs);
+    await seek(Duration(milliseconds: target), 'step');
+  }
+
+  Future<void> backward(int seconds) async => seekRelative(-seconds * 1000);
+
+  Future<void> forward(int seconds) async => seekRelative(seconds * 1000);
 
   Future<void> stepBackward() async {
     if (file?.type == ContentType.video) {
+      // PotPlayer parity: entering frame mode pauses first, then steps.
+      // Must also clear autoPlay so the scenario-resume effect does not
+      // immediately re-play (全平台：按帧后保持暂停，长按多帧松手仍暂停).
+      await useAppStore().updateAutoPlay(false);
+      await controller.value.pause();
       await controller.value.step(frames: -1);
-      logger('Step backward');
+      areaKeyLog.i('Step backward');
     }
   }
 
   Future<void> stepForward() async {
     if (file?.type == ContentType.video) {
+      // PotPlayer parity: entering frame mode pauses first, then steps.
+      await useAppStore().updateAutoPlay(false);
+      await controller.value.pause();
       await controller.value.step(frames: 1);
-      logger('Step forward');
+      areaKeyLog.i('Step forward');
     }
   }
 
@@ -341,18 +1065,154 @@ FvpPlayer useFvpPlayer(BuildContext context) {
     }
 
     if (file != null && controller.value.value.duration != Duration.zero) {
-      logger(
-          'Save progress: ${file.name}, position: ${controller.value.value.position}, duration: ${controller.value.value.duration}');
+      // Position-intent lock (see the file-change cleanup): pausing / leaving
+      // before the locked target lands would persist a pre-land sample.
+      if (positionLock.value.blocksWrites) {
+        diagLog.d(
+            'persist skipped (locked phase=${positionLock.value.phase.name} target=${positionLock.value.targetMs}) file=${file.name} pos=${controller.value.value.position.inMilliseconds}ms');
+        return;
+      }
+      final rawPosMs = controller.value.value.position.inMilliseconds;
+      final durMs = controller.value.value.duration.inMilliseconds;
+      final posMs = sanePlaybackPos(
+        lastSanePosMs.value,
+        rawPosMs,
+        durMs,
+        userSeeked: userSeekPending.value,
+        inFlightTargetMs: positionLock.value.blocksWrites
+            ? positionLock.value.targetMs
+            : null,
+      );
+      final sanePosition = Duration(milliseconds: posMs);
+      areaKeyLog.i('Save progress: ${file.name}, position: $sanePosition, duration: ${controller.value.value.duration}');
+      persistPlaybackProgress(
+        file: file,
+        position: sanePosition,
+        durationMs: durMs,
+        userSeekToHead: userSeekPending.value && posMs == 0,
+        writeTag: 'saveProgress',
+      );
+      lastProgressWrite.value = DateTime.now();
+      lastWrittenPosMs.value = posMs;
+      lastSanePosMs.value = posMs;
       useHistoryStore().add(Progress(
         dateTime: DateTime.now().toUtc(),
-        position: controller.value.value.position,
+        position: sanePosition,
         duration: controller.value.value.duration,
         file: file,
       ));
     }
   }
 
-  useEffect(() => saveProgress, []);
+  // Dispose-time save: capture the LATEST saveProgress closure each build —
+  // the mount-time closure would persist the CURRENT position onto the FIRST
+  // file's row (cross-file clobber).
+  final latestSaveProgress = useRef(saveProgress);
+  latestSaveProgress.value = saveProgress;
+  useEffect(() => () => latestSaveProgress.value(), []);
+
+  // Desktop shutdown: the window close tears the engine down without
+  // unmounting the tree, so the cleanups above never run. Register so the
+  // close can save + dispose the controller before the isolate dies (see
+  // [AppShutdown]).
+  useEffect(() {
+    final unregisterQuiesce = AppShutdown.registerQuiesce(() async {
+      if (controller.value.value.isInitialized) {
+        await controller.value.pause();
+      }
+    });
+    final unregisterSave = AppShutdown.registerSave(
+      () => latestSaveProgress.value(),
+    );
+    final unregisterDispose = AppShutdown.registerDisposer(() async {
+      if (controller.value.value.isInitialized) {
+        controller.value.dispose();
+      }
+    });
+    return () {
+      unregisterDispose();
+      unregisterSave();
+      unregisterQuiesce();
+    };
+  }, []);
+
+  // Virtual Media timeline translation (spec §4.2).
+  final vmCtrlF = VirtualMediaController.instance;
+  final isVmF = vmCtrlF.isActive;
+  // Stale-session self-heal (mirrors the media_kit hook): clear a store item
+  // that is no longer the active session so progress surfaces drop the
+  // phantom dual time / segment marks after a direct normal-file open.
+  final vmStaleF = vmCtrlF.state.item != null && !isVmF;
+  useEffect(() {
+    if (vmStaleF) vmCtrlF.reconcileStaleSession();
+    return null;
+  }, [vmStaleF]);
+  final vmDurF = isVmF
+      ? Duration(milliseconds: vmCtrlF.totalDurationMs)
+      : duration;
+  // While a switch is in flight the new file reports 0% pre-seek: freeze
+  // the exposed position on the jump target instead of flashing backward.
+  final vmFrozenF = isVmF &&
+      vmCtrlF.state.transitioning &&
+      vmCtrlF.state.pendingSeekMs != null;
+  final vmPosF = isVmF
+      ? (vmFrozenF
+          ? Duration(
+              milliseconds: vmCtrlF.currentOffsetMs +
+                  (vmCtrlF.state.pendingSeekMs ?? 0))
+          : vmCtrlF.translatePosition(position))
+      : position;
+  // Gated on the position lock: while a target is pending/locked the raw
+  // position is a pre-land sample — feeding it to the controller would
+  // pollute the anchor flush with the leaving file's offset.
+  if (isVmF && !positionLock.value.blocksWrites) {
+    vmCtrlF.noteTick(position.inMilliseconds);
+  }
+  // Raw buffered end is local to the current segment; map it onto the
+  // virtual total so the bar and the duration share one axis.
+  final rawBufferedEndF = buffered.isEmpty
+      ? Duration.zero
+      : buffered.reduce((max, curr) => curr.end > max.end ? curr : max).end;
+  final vmBufferF = isVmF && vmCtrlF.state.item != null
+      ? Duration(
+          milliseconds: const VirtualSeekHandler().virtualBufferMs(
+            vmCtrlF.state.item!,
+            segmentIndex: vmCtrlF.state.segmentIndex,
+            rawBufferMs: rawBufferedEndF.inMilliseconds,
+          ))
+      : rawBufferedEndF;
+
+  // Central drag-release commit (spec §6): a stashed cross-segment target
+  // (preview strategy, or a throttled direct tick) lands exactly once when
+  // the drag ends. Covers every slider — none needs its own commit path.
+  // The re-invoked seek re-gates with dragging=false, so it always acts.
+  final dragActiveF = useScrubDragStore().select(context, (s) => s.any);
+  useEffect(() {
+    if (!dragActiveF) {
+      // Drag ended: land the collapsed trailing progress write immediately.
+      flushUserSeekBurst();
+      final stashed = VirtualMediaController.instance.takeDragTarget();
+      if (stashed != null &&
+          VirtualMediaController.instance.isActive) {
+        diagLog.d('[bg-scrub] drag-release commit stashed=$stashed');
+        seek(Duration(milliseconds: stashed), 'release-commit');
+      }
+    }
+    return;
+  }, [dragActiveF]);
+
+  // Media identity changed: a pending burst write must still reach the file it
+  // was recorded for (mirror of the media_kit hook).
+  final mediaUriF = file?.uri;
+  useEffect(() {
+    flushUserSeekBurst();
+    stepIntent.value.reset();
+    lastUserSeekWrite.value = null;
+    return;
+  }, [mediaUriF]);
+
+  // Unmount: cancel the debounce timer and land the last pending write.
+  useEffect(() => flushUserSeekBurst, []);
 
   final fvpPlayer = useMemoized(
     () => FvpPlayer(
@@ -362,13 +1222,13 @@ FvpPlayer useFvpPlayer(BuildContext context) {
       externalSubtitle: externalSubtitle,
       externalSubtitles: externalSubtitles,
       position:
-          !controller.value.value.isInitialized || duration == Duration.zero
+          !controller.value.value.isInitialized || vmDurF == Duration.zero
               ? Duration.zero
-              : position,
-      duration: controller.value.value.isInitialized ? duration : Duration.zero,
-      buffer: buffered.isEmpty || duration == Duration.zero
+              : vmPosF,
+      duration: controller.value.value.isInitialized ? vmDurF : Duration.zero,
+      buffer: !controller.value.value.isInitialized || vmDurF == Duration.zero
           ? Duration.zero
-          : buffered.reduce((max, curr) => curr.end > max.end ? curr : max).end,
+          : vmBufferF,
       width: width,
       height: height,
       play: play,
@@ -389,6 +1249,9 @@ FvpPlayer useFvpPlayer(BuildContext context) {
       externalSubtitles,
       position,
       duration,
+      vmPosF,
+      vmDurF,
+      vmBufferF,
       buffered,
       width,
       height,
@@ -403,5 +1266,20 @@ FvpPlayer useFvpPlayer(BuildContext context) {
     ],
   );
 
+  // AB-loop engine binding: lifecycle-driven so backend swaps rebind and a
+  // disposed player never leaves a zombie loop (see AbLoopEngine). The fvp
+  // wrapper exposes no position stream, so the engine polls the LIVE
+  // controller through this closure every 250 ms. Declared last so its
+  // cleanup runs FIRST on unmount, before controller.dispose().
+  useEffect(() {
+    AbLoopEngine.instance.attach(
+      player: fvpPlayer,
+      pollSource: () => controller.value.value.position,
+    );
+    return AbLoopEngine.instance.detach;
+  }, []);
+
   return fvpPlayer;
 }
+
+

@@ -27,7 +27,7 @@ class SpeedSelector extends HookWidget {
         (itemWidth / 2) -
         horizontalPadding;
 
-    final double targetOffset = initialCenterOffset + visualOffset;
+    final double targetOffset = initialCenterOffset - visualOffset;
 
     final double topPosition = screenSize.height / 2 - 30;
 

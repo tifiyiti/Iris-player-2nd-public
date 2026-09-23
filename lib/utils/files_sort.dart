@@ -23,8 +23,7 @@ List<FileItem> filesSort({
         result = a.size.compareTo(b.size);
         break;
       case SortBy.lastModified:
-        result = (a.lastModified ?? DateTime(0))
-            .compareTo(b.lastModified ?? DateTime(0));
+        result = (a.lastModified ?? DateTime(0)).compareTo(b.lastModified ?? DateTime(0));
         break;
     }
 

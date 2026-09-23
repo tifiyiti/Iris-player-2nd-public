@@ -1,17 +1,28 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
-import 'package:iris/globals.dart' show speedStops, speedSelectorItemWidth;
+import 'package:iris/features/speed/model/speed_gesture_math.dart';
+import 'package:iris/features/speed/model/speed_gesture_resolver.dart';
+import 'package:iris/features/windows/desktop_keyboard/controller/resolve_keyboard_scheme.dart';
+import 'package:iris/globals.dart' show speedStops;
 import 'package:iris/hooks/use_brightness.dart';
 import 'package:iris/hooks/use_volume.dart';
+import 'package:iris/features/meta_settings/meta_settings_module.dart';
 import 'package:iris/models/player.dart';
+import 'package:iris/models/store/app_state.dart';
+import 'package:iris/models/store/phone_landscape_slider_type_helper.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_player_ui_store.dart';
+import 'package:iris/store/use_scrub_drag_store.dart';
+import 'package:iris/features/virtual_media/playback/vm_playback_controller.dart';
+import 'package:iris/utils/live_seek_throttle.dart';
 import 'package:iris/utils/logger.dart';
 import 'package:iris/utils/platform.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
+final areaKeyLog = AreaKeyLog(LogKeys.legacyGesture);
 
 class Gesture {
   final void Function(TapDownDetails) onTapDown;
@@ -33,6 +44,9 @@ class Gesture {
   final double? brightness;
   final double? volume;
 
+  final bool isStepSeconds;
+  final int? seekStepSeconds;
+
   Gesture({
     required this.onTapDown,
     required this.onTap,
@@ -51,6 +65,8 @@ class Gesture {
     required this.isRightGesture,
     required this.brightness,
     required this.volume,
+    this.isStepSeconds = false,
+    this.seekStepSeconds = 5,
   });
 }
 
@@ -61,6 +77,7 @@ Gesture useGesture({
   required void Function(Offset position) showSpeedSelector,
   required void Function(double finalSpeed) hideSpeedSelector,
   required void Function(double speed, double visualOffset) updateSelectedSpeed,
+  void Function()? showTitleOnly,
 }) {
   final context = useContext();
 
@@ -76,6 +93,12 @@ Gesture useGesture({
   final isLeftGesture = useState(false);
   final isRightGesture = useState(false);
 
+  // Live pan-seek throttle + the newest target: an unthrottled per-update seek
+  // floods the backend, and the release must still commit the exact final
+  // position (the last tick can be dropped).
+  final panSeekThrottle = useRef(LiveSeekThrottle());
+  final pendingPanSeekMs = useRef<int?>(null);
+
   final brightness = useBrightness(isLeftGesture.value);
   final volume = useVolume(isRightGesture.value);
 
@@ -86,13 +109,26 @@ Gesture useGesture({
   }
 
   void onTap() {
-    if (usePlayerUiStore().state.isShowControl) {
-      hideControl();
-    } else {
+    final ui = usePlayerUiStore().state;
+    final bool rc = shouldRequireClickToShowPanel(useAppStore().state);
+    if (!ui.isShowControl) {
+      if (rc) usePlayerUiStore().updateIsPanelClickArmed(true);
       showControl();
+    } else if (rc && !ui.isPanelClickArmed) {
+      usePlayerUiStore().updateIsPanelClickArmed(true);
+      showControl();
+    } else {
+      hideControl();
     }
   }
 
+  // NOTE:
+  // Known limitation: the double-tap action is dispatched from
+  // onDoubleTapDown — on the second press-down — while Flutter has not yet
+  // confirmed the double tap (it may still be cancelled afterwards). A second
+  // press that is then cancelled (dragged away / preempted) still fires one
+  // action once, and it cannot be undone.
+  // Accepted as a known limitation; no fix planned.
   void onDoubleTapDown(TapDownDetails details) {
     final player = context.read<MediaPlayer>();
 
@@ -120,23 +156,33 @@ Gesture useGesture({
         }
       }
     } else if (isDesktop) {
-      // 桌面端双击切换全屏
-      usePlayerUiStore()
-          .updateFullScreen(!usePlayerUiStore().state.isFullScreen);
+      // Desktop double-click: PotPlayer scheme = play/pause (spec), legacy = toggle fullscreen.
+      final scheme = resolveKeyboardScheme(
+        stored: useAppStore().state.keyboardShortcutScheme,
+        metadataEnabled: useAppStore().state.useMetadataSettings && MetaSettingsModule.ready,
+      );
+      if (scheme == KeyboardShortcutScheme.potplayer) {
+        if (player.isPlaying) {
+          useAppStore().updateAutoPlay(false);
+          player.pause();
+        } else {
+          useAppStore().updateAutoPlay(true);
+          player.play();
+        }
+      } else {
+        usePlayerUiStore().updateFullScreen(!usePlayerUiStore().state.isFullScreen);
+      }
     }
   }
 
   void onLongPressStart(LongPressStartDetails details) {
-    if (gestureState.value['isTouch'] as bool &&
-        context.read<MediaPlayer>().isPlaying) {
+    if (gestureState.value['isTouch'] as bool && context.read<MediaPlayer>().isPlaying) {
       gestureState.value['isLongPress'] = true;
       gestureState.value['startPanOffset'] = details.globalPosition;
 
       final currentRate = useAppStore().state.rate;
-      final closestSpeed = speedStops.reduce(
-          (a, b) => (a - currentRate).abs() < (b - currentRate).abs() ? a : b);
-      gestureState.value['initialSpeedIndex'] =
-          speedStops.indexOf(closestSpeed);
+      final closestSpeed = speedStops.reduce((a, b) => (a - currentRate).abs() < (b - currentRate).abs() ? a : b);
+      gestureState.value['initialSpeedIndex'] = speedStops.indexOf(closestSpeed);
 
       showSpeedSelector(details.globalPosition);
       updateSelectedSpeed(closestSpeed, 0.0);
@@ -146,23 +192,27 @@ Gesture useGesture({
   void onLongPressMoveUpdate(LongPressMoveUpdateDetails details) {
     if (!(gestureState.value['isLongPress'] as bool)) return;
 
-    final startDx = (gestureState.value['startPanOffset'] as Offset).dx;
-    final currentDx = details.globalPosition.dx;
-    final deltaDx = currentDx - startDx;
+    final start = gestureState.value['startPanOffset'] as Offset;
+    final total = details.globalPosition - start;
 
-    const double sensitivity = speedSelectorItemWidth;
-    final double visualOffset = deltaDx;
-
-    int steps = (-visualOffset / sensitivity).round();
-
-    int initialIndex = gestureState.value['initialSpeedIndex'] as int? ??
-        speedStops.indexOf(1.0);
-    int finalIndex = (initialIndex + steps).clamp(0, speedStops.length - 1);
-
+    final mode = resolveSpeedGestureMode(
+      useAppStore().state,
+      metadataEnabled:
+          useAppStore().state.useMetadataSettings && MetaSettingsModule.ready,
+    );
+    final int initialIndex =
+        gestureState.value['initialSpeedIndex'] as int? ?? speedStops.indexOf(1.0);
+    final int finalIndex = resolveDualAxisSpeedIndex(
+      baseIndex: initialIndex,
+      total: total,
+      mode: mode,
+      isSelectorVisible: true,
+    );
     double selectedSpeed = speedStops[finalIndex];
 
-    updateSelectedSpeed(selectedSpeed, visualOffset);
+    updateSelectedSpeed(selectedSpeed, total.dx);
     if (useAppStore().state.rate != selectedSpeed) {
+      HapticFeedback.selectionClick();
       useAppStore().updateRate(selectedSpeed);
     }
   }
@@ -199,18 +249,20 @@ Gesture useGesture({
       final startDx = details.globalPosition.dx;
 
       if (startDx < edgeDeadZone || startDx > screenSize.width - edgeDeadZone) {
-        logger("Edge swipe detected. Ignoring for system navigation.");
+        areaKeyLog.i("Edge swipe detected. Ignoring for system navigation.");
         return;
       }
 
       gestureState.value['isTouch'] = true;
       gestureState.value['isDragging'] = true;
       gestureState.value['startPanOffset'] = details.globalPosition;
-      gestureState.value['startSeekPosition'] =
-          context.read<MediaPlayer>().position;
+      gestureState.value['startSeekPosition'] = context.read<MediaPlayer>().position;
       gestureState.value['panDirection'] = null;
       isLeftGesture.value = false;
       isRightGesture.value = false;
+
+      panSeekThrottle.value.reset();
+      pendingPanSeekMs.value = null;
     }
   }
 
@@ -225,8 +277,7 @@ Gesture useGesture({
     const double panDeadzone = 8.0;
     if (gestureState.value['panDirection'] == null) {
       if (totalDx.abs() > panDeadzone || totalDy.abs() > panDeadzone) {
-        gestureState.value['panDirection'] =
-            totalDx.abs() > totalDy.abs() ? Axis.horizontal : Axis.vertical;
+        gestureState.value['panDirection'] = totalDx.abs() > totalDy.abs() ? Axis.horizontal : Axis.vertical;
       }
     }
 
@@ -235,22 +286,23 @@ Gesture useGesture({
 
     // 水平滑动 (Seek)
     if (direction == Axis.horizontal) {
-      if (!usePlayerUiStore().state.isSeeking) {
-        usePlayerUiStore().updateIsSeeking(true);
-      }
+      useScrubDragStore().beginSeek(ScrubOwners.areaGesture);
 
       const double sensitivity = 3.0; // 每滑动3像素代表1秒
       final double seekSecondsOffset = totalDx / sensitivity;
-      final startSeconds =
-          (gestureState.value['startSeekPosition'] as Duration).inSeconds;
+      final startSeconds = (gestureState.value['startSeekPosition'] as Duration).inSeconds;
 
       int targetSeconds = (startSeconds + seekSecondsOffset).round();
 
       // 边界检查
-      targetSeconds = targetSeconds.clamp(
-          0, context.read<MediaPlayer>().duration.inSeconds);
+      targetSeconds = targetSeconds.clamp(0, context.read<MediaPlayer>().duration.inSeconds);
 
-      context.read<MediaPlayer>().seek(Duration(seconds: targetSeconds));
+      // Throttled live seek (one per 120ms); the exact final target is
+      // committed on release in `_resetPanState`.
+      pendingPanSeekMs.value = targetSeconds * 1000;
+      if (panSeekThrottle.value.allow(DateTime.now())) {
+        context.read<MediaPlayer>().seek(Duration(seconds: targetSeconds));
+      }
       showProgress();
     }
 
@@ -258,8 +310,7 @@ Gesture useGesture({
     if (direction == Axis.vertical) {
       // 仅在垂直滑动开始时判断一次左右区域
       if (!isLeftGesture.value && !isRightGesture.value) {
-        isLeftGesture.value =
-            startOffset.dx < MediaQuery.sizeOf(context).width / 2;
+        isLeftGesture.value = startOffset.dx < MediaQuery.sizeOf(context).width / 2;
         isRightGesture.value = !isLeftGesture.value;
 
         if (isRightGesture.value) {
@@ -283,9 +334,18 @@ Gesture useGesture({
 
   // ignore: no_leading_underscores_for_local_identifiers
   void _resetPanState() {
-    if (usePlayerUiStore().state.isSeeking) {
-      usePlayerUiStore().updateIsSeeking(false);
+    useScrubDragStore().endSeek(ScrubOwners.areaGesture);
+
+    // Commit the exact final drag target (live ticks are throttled and the last
+    // one can be dropped). VM cross-segment targets keep the hooks' stashed
+    // release-commit path instead.
+    final int? pending = pendingPanSeekMs.value;
+    pendingPanSeekMs.value = null;
+    panSeekThrottle.value.reset();
+    if (pending != null && !VirtualMediaController.instance.isActive) {
+      context.read<MediaPlayer>().seek(Duration(milliseconds: pending));
     }
+
     gestureState.value = {
       ...gestureState.value,
       'isDragging': false,
@@ -302,8 +362,23 @@ Gesture useGesture({
 
   void onHover(PointerHoverEvent event) {
     if (event.kind != PointerDeviceKind.touch) {
-      usePlayerUiStore().updateIsHovering(true);
-      showControl();
+      final bool rc = shouldRequireClickToShowPanel(useAppStore().state);
+      final bool armed = usePlayerUiStore().state.isPanelClickArmed;
+      final bool seeking = useScrubDragStore().state.isScrubbing;
+      final bool holding = useScrubDragStore().state.isHolding;
+      final bool hiddenForRc = rc && !seeking && !holding && !armed;
+      if (hiddenForRc) {
+        if (showTitleOnly != null) {
+          showTitleOnly!.call();
+        } else {
+          usePlayerUiStore().updateIsShowControl(true);
+          usePlayerUiStore().updateIsHovering(true);
+          showControl();
+        }
+      } else {
+        usePlayerUiStore().updateIsHovering(true);
+        showControl();
+      }
     }
   }
 

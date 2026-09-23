@@ -9,6 +9,10 @@ part 'history_state.g.dart';
 abstract class HistoryState with _$HistoryState {
   const factory HistoryState({
     @Default({}) Map<String, Progress> history,
+
+    /// Maximum number of history records kept (FIFO eviction of the oldest).
+    /// Persisted so a future user setting can tune it; defaults to 500.
+    @Default(500) int maxHistoryRecords,
   }) = _HistoryState;
 
   factory HistoryState.fromJson(Map<String, dynamic> json) =>

@@ -1,13 +1,74 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'package:iris/models/enums/storage_list_error.dart';
 import 'package:iris/models/file.dart';
+import 'package:iris/models/storages/file_list_result.dart';
 import 'package:iris/models/storages/storage.dart';
 import 'package:iris/utils/check_content_type.dart';
 import 'package:iris/utils/get_subtitle_map.dart';
 import 'package:iris/utils/logger.dart';
+import 'package:iris/utils/storage_path_guard.dart';
 import 'package:path/path.dart' as p;
 import 'package:pure_ftp/pure_ftp.dart';
+final areaKeyLog = AreaKeyLog(LogKeys.legacyDb);
+
+/// Classifies an FTP listing failure so the UI can explain WHY it failed
+/// instead of rendering an unreachable host as an empty directory.
+///
+/// Mirrors [classifyStorageListFailure] (WebDAV) so both remote storages share
+/// the same [StorageListErrorKind] contract: unreachable never implies the
+/// DB rows were deleted.
+StorageListErrorKind classifyFtpListFailure(Object error) {
+  final text = error.toString().toLowerCase();
+
+  if (text.contains('530') ||
+      text.contains('531') ||
+      text.contains('532') ||
+      text.contains('login incorrect') ||
+      text.contains('authentication failed') ||
+      text.contains('unauthorized') ||
+      text.contains('forbidden')) {
+    return StorageListErrorKind.unauthorized;
+  }
+
+  if (error is TimeoutException || text.contains('timeout')) {
+    return StorageListErrorKind.timeout;
+  }
+
+  if (error is SocketException ||
+      text.contains('socket') ||
+      text.contains('failed host lookup') ||
+      text.contains('connection refused') ||
+      text.contains('network is unreachable') ||
+      text.contains('host unreachable') ||
+      text.contains('no route to host')) {
+    return StorageListErrorKind.unreachable;
+  }
+
+  return StorageListErrorKind.unknown;
+}
 
 Future<List<FileItem>> getFTPFiles(
+    FTPStorage storage, List<String> path) async =>
+    (await getFTPFilesResult(storage, path)).items;
+
+/// Lists [path], reporting failures through [FileListResult] instead of
+/// collapsing them into an empty list (which made an offline host look like
+/// an empty folder and risked the caller purging the DB snapshot).
+Future<FileListResult> getFTPFilesResult(
+  FTPStorage storage,
+  List<String> path,
+) async {
+  if (hasUnsafeRemotePathSegment(path)) {
+    areaKeyLog.w('getFTPFiles rejected traversal path: $path');
+    return const FileListResult(<FileItem>[],
+        errorKind: StorageListErrorKind.unknown);
+  }
+  return _listFtpFiles(storage, path);
+}
+
+Future<FileListResult> _listFtpFiles(
     FTPStorage storage, List<String> path) async {
   final username = storage.username.isEmpty ? 'anonymous' : storage.username;
 
@@ -24,13 +85,19 @@ Future<List<FileItem>> getFTPFiles(
     logCallback: null,
   );
 
+  // Reject traversal in requested path.
+  if (hasUnsafeRemotePathSegment(path)) {
+    areaKeyLog.w('getFTPFiles rejected traversal path: $path');
+    return const FileListResult(<FileItem>[],
+        errorKind: StorageListErrorKind.unknown);
+  }
+  bool connected = false;
   try {
     await client.connect();
+    connected = true;
     await client.fs.changeDirectory(path.join('/').replaceAll('//', '/'));
 
     final files = await client.fs.listDirectory();
-
-    await client.disconnect();
 
     final baseUri =
         'ftp?host=${storage.host}&port=${storage.port}&path=${path.join('/').replaceAll('//', '/')}';
@@ -49,6 +116,10 @@ Future<List<FileItem>> getFTPFiles(
     List<FileItem> fileItems = [];
 
     for (final file in files) {
+      if (file.name.contains('/') || file.name == '..' || file.name == '.') {
+        areaKeyLog.w('getFTPFiles skip traversal file: ${file.name}');
+        continue;
+      }
       final basename = p.basenameWithoutExtension(file.name).split('.').first;
       fileItems.add(
         FileItem(
@@ -70,10 +141,20 @@ Future<List<FileItem>> getFTPFiles(
       );
     }
 
-    return fileItems;
+    return FileListResult(fileItems);
   } catch (error) {
-    logger('Error getting FTP files: $error');
-    return [];
+    areaKeyLog.e('Error getting FTP files: $error');
+    return FileListResult(
+      const <FileItem>[],
+      errorKind: classifyFtpListFailure(error),
+      errorDetail: error.toString(),
+    );
+  } finally {
+    if (connected) {
+      try {
+        await client.disconnect();
+      } catch (_) {}
+    }
   }
 }
 
@@ -91,14 +172,22 @@ Future<bool> testFTP(FTPStorage storage) async {
     logCallback: null,
   );
 
+  bool connected = false;
   try {
     await client.connect();
+    connected = true;
     await client.fs.listDirectory();
     await client.disconnect();
     return true;
   } catch (error) {
-    logger('Error testing FTP: $error');
+    areaKeyLog.e('Error testing FTP: $error');
     return false;
+  } finally {
+    if (connected) {
+      try {
+        await client.disconnect();
+      } catch (_) {}
+    }
   }
 }
 

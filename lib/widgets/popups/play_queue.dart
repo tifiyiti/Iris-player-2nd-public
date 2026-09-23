@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart' hide Chip;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
+import 'package:iris/features/tag_play/model/domain/tag_play_tag.dart';
+import 'package:iris/models/db/db_module.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/progress.dart';
 import 'package:iris/models/storages/storage.dart';
@@ -9,8 +11,14 @@ import 'package:iris/store/use_history_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/utils/file_size_convert.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/utils/path_conv.dart';
+import 'package:iris/widgets/a11y_tooltip.dart';
 import 'package:iris/widgets/chip.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+
+/// Canonical membership key of a [FileItem], matching [TagPlayMember.mediaKey].
+String tagMediaKeyOf(String storageId, List<String> pathSegments) =>
+    '$storageId:${canonicalDbPath(pathSegments.join('/'))}';
 
 class PlayQueue extends HookWidget {
   const PlayQueue({super.key});
@@ -22,10 +30,29 @@ class PlayQueue extends HookWidget {
         usePlayQueueStore().select(context, (state) => state.playQueue);
     final currentIndex =
         usePlayQueueStore().select(context, (state) => state.currentIndex);
+    final popupDirection =
+        useAppStore().select(context, (state) => state.defaultPopupDirection);
 
     final int currentPlayIndex = useMemoized(
         () => playQueue.indexWhere((element) => element.index == currentIndex),
         [playQueue, currentIndex]);
+
+    // Per-row tag labels: one bulk query for the whole visible queue.
+    final tagFeature = useAppStore()
+        .select(context, (s) => !s.useLegacyStoragePersistence && s.useMetadataSettings);
+    final tagsFuture = useMemoized(() async {
+      if (!tagFeature) return const <String, List<TagPlayTag>>{};
+      final keys = <String>{
+        for (final item in playQueue)
+          if (item.file.storageId.isNotEmpty && item.file.path.isNotEmpty)
+            tagMediaKeyOf(item.file.storageId, item.file.path),
+      };
+      if (keys.isEmpty) return const <String, List<TagPlayTag>>{};
+      return DbModule.tagPlayRepo.tagsOfMediaKeys(keys);
+    }, [playQueue, tagFeature]);
+    final tagsByKey = useFuture(tagsFuture).data ??
+        const <String, List<TagPlayTag>>{};
+    final tagsLoaded = tagsByKey.isNotEmpty;
 
     final itemScrollController = useMemoized(() => ItemScrollController(), []);
     final scrollOffsetController =
@@ -72,16 +99,35 @@ class PlayQueue extends HookWidget {
                   textAlign: TextAlign.center,
                 ),
                 minLeadingWidth: 14,
-                title: Text(
-                  playQueue[index].file.name,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: currentPlayIndex == index
-                      ? TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        )
-                      : null,
+                title: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        playQueue[index].file.name,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: currentPlayIndex == index
+                            ? TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              )
+                            : null,
+                      ),
+                    ),
+                    if (tagFeature) ...[
+                      const SizedBox(width: 8),
+                      _tagIndicator(
+                        context,
+                        tags: tagsByKey[tagMediaKeyOf(
+                              playQueue[index].file.storageId,
+                              playQueue[index].file.path,
+                            )] ??
+                            const [],
+                        loaded: tagsLoaded,
+                        isCurrent: currentPlayIndex == index,
+                      ),
+                    ],
+                  ],
                 ),
                 subtitle: Row(
                   children: [
@@ -94,8 +140,12 @@ class PlayQueue extends HookWidget {
                                   : null)),
                     const Spacer(),
                     () {
-                      final Progress? progress = useHistoryStore()
-                          .findById(playQueue[index].file.getID());
+                      final Progress? progress = useHistoryStore().findById(
+                          // playQueue[index].file.getID());  // legacy: surface-dependent uri key
+                          canonicalProgressKey(
+                              playQueue[index].file.storageId,
+                              playQueue[index].file.path,
+                              uri: playQueue[index].file.uri)); // unified
                       if (progress != null &&
                           progress.file.type == ContentType.video) {
                         if ((progress.duration.inMilliseconds -
@@ -135,6 +185,9 @@ class PlayQueue extends HookWidget {
                   ],
                 ),
                 trailing: PopupMenuButton<FileOptions>(
+                  // Windows drops the payload (AXTree graft race, see
+                  // rowTooltip); other platforms keep "Show menu".
+                  tooltip: rowTooltip(null),
                   clipBehavior: Clip.hardEdge,
                   constraints: const BoxConstraints(minWidth: 200),
                   onSelected: (value) async {
@@ -143,7 +196,11 @@ class PlayQueue extends HookWidget {
                         usePlayQueueStore().remove(playQueue[index]);
                         break;
                       case FileOptions.openInFolder:
-                        await openInFolder(context, playQueue[index].file);
+                        await openInFolder(
+                          context,
+                          playQueue[index].file,
+                          direction: popupDirection,
+                        );
                         break;
                       default:
                         break;
@@ -198,6 +255,36 @@ class PlayQueue extends HookWidget {
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  /// Compact per-row tag label: tag chips when membered, a muted no-tag
+  /// marker once loaded with no memberships (disambiguated from a real tag
+  /// via the subdued colour).
+  Widget _tagIndicator(
+    BuildContext context, {
+    required List<TagPlayTag> tags,
+    required bool loaded,
+    required bool isCurrent,
+  }) {
+    if (!loaded) return const SizedBox.shrink();
+    if (tags.isEmpty) {
+      return Text(
+        getLocalizations(context).tag_no_tag,
+        style: TextStyle(
+          fontSize: 12,
+          color: Theme.of(context).colorScheme.outline,
+        ),
+      );
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final tag in tags) ...[
+          Chip(text: tag.name, primary: isCurrent),
+          const SizedBox(width: 4),
+        ],
       ],
     );
   }

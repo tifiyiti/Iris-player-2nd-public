@@ -1,7 +1,7 @@
 name: iris
 description: A lightweight video player
 publish_to: none
-version: 1.5.2+3
+version: 2.0.0+6
 
 environment:
   sdk: ^3.5.4
@@ -18,9 +18,9 @@ dependencies:
   flutter_hooks: ^0.21.3+1
   flutter_secure_storage: ^8.1.0
   flutter_zustand: ^0.0.5
-  media_kit: ^1.2.0
-  media_kit_video: ^1.3.0
-  media_kit_libs_video: ^1.0.6
+  media_kit: ^1.2.6
+  media_kit_video: ^1.3.1
+  media_kit_libs_video: ^1.0.7
   path: ^1.9.1
   path_provider: ^2.1.5
   package_info_plus: ^9.0.0
@@ -47,29 +47,57 @@ dependencies:
   saf_util: ^0.11.0
   screen_brightness: ^2.1.7
   flutter_volume_controller: ^1.3.3
-  fvp: ^0.34.0
+  fvp: ^0.37.3
   video_player: ^2.10.0
+  battery_plus: ^5.0.2
   wakelock_plus: ^1.4.0
   popover: ^0.3.1
   pure_ftp: ^0.7.5
+  win32: ^5.14.0
+  ffi: ^2.1.0
+  open_filex: ^4.7.0
+  image: ^4.5.4
+  image_picker: ^1.2.3
   drives_windows:
     git:
       url: https://github.com/nini22P/drives_windows
-      ref: main
+      # Pinned: newer main requires win32 ^6 which conflicts with
+      # package_info_plus (win32 ^5). Bump both together later.
+      ref: 7bca74761a9bbc0b1c41b4f81186d1fc0aa9a079
   media_stream:
     git:
       url: https://github.com/nini22P/media_stream
       ref: main
+  drift: ^2.30.1
+  drift_flutter: ^0.2.8
+  drift_db_viewer: ^2.1.0
+  synchronized: ^3.4.0
+  sqflite: ^2.4.2
+  crypto: ^3.0.2
+  cryptography: ^2.7.0
+  logging: ^1.3.0
+  network_info_plus: ^7.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  fake_async: ^1.3.1
   dart_pubspec_licenses: ^3.0.9
-  build_runner: ^2.8.0
+  build_runner: ^2.10.5
   freezed: ^3.2.3
   json_serializable: ^6.11.1
   msix: ^3.16.12
+  drift_dev: ^2.30.1
+  # Test-only: StoreLocator for the no-dispose StoreScope equivalent
+  # (flutter_zustand re-exports create/Store only; StoreLocator is zustand API).
+  zustand: ^0.0.5
+  # Test-only: host-side sqlite3 loader override for drift widget tests
+  # (see IRIS_SQLITE3_DLL in settings migration tests).
+  sqlite3: ^2.4.0
+  # Test-only: fake platform for the FVP open-generation test
+  # (video_player's own platform interface, re-exported transitively).
+  video_player_platform_interface: ^6.4.0
   # flutter_hooks_lint: ^1.4.0
   # custom_lint: ^0.8.1
 
@@ -80,11 +108,12 @@ flutter:
     - assets/images/
 
 msix_config:
-  display_name: IRIS player
+  display_name: IRIS
   identity_name: 22P.IRISplayer
   publisher_display_name: 22P
   publisher: CN=9740B6B2-E777-4F52-8ECD-C4A577A73010
-  msix_version: 1.5.2.0
+  # msix_version is intentionally omitted: the msix plugin derives it from the
+  # pubspec `version` above (major.minor.patch.0), so it can never drift.
   logo_path: assets/images/logo.png
   trim_logo: false
   languages: en-us, zh-cn

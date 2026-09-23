@@ -5,8 +5,7 @@ import 'package:iris/models/store/app_state.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 
-Future<void> showOrientationDialog(BuildContext context) async =>
-    await showDialog<void>(
+Future<void> showOrientationDialog(BuildContext context) async => await showDialog<void>(
       context: context,
       builder: (context) => const OrientationDialog(),
     );
@@ -17,12 +16,13 @@ class OrientationDialog extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
-    final orientation =
-        useAppStore().select(context, (state) => state.orientation);
+    final orientation = useAppStore().select(context, (state) => state.preferredOrientation);
 
     void updateOrientation(ScreenOrientation? newOrientation) {
       if (newOrientation == null) return;
-      useAppStore().updateOrientation(newOrientation);
+
+      useAppStore().updatePreferredOrientation(newOrientation);
+      useAppStore().updateRuntimeOrientation(newOrientation);
       Navigator.pop(context);
     }
 

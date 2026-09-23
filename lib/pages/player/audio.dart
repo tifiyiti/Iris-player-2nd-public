@@ -54,7 +54,7 @@ class Audio extends HookWidget {
         [cover?.storageId]);
     final auth = useMemoized(() => storage?.getAuth(), [storage]);
 
-    return IgnorePointer(
+    final canvas = IgnorePointer(
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -105,6 +105,9 @@ class Audio extends HookWidget {
         ],
       ),
     );
+    // Windows AXTree-crash mitigation (#103808 family): decorative cover
+    // canvas — playback controls keep their semantics in the control bar.
+    return ExcludeSemantics(child: canvas);
   }
 
   Widget _buildNarrowLayout(

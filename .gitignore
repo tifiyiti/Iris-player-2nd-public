@@ -1,3 +1,4 @@
+.gradle/
 # Miscellaneous
 *.class
 *.log
@@ -48,3 +49,24 @@ app.*.map.json
 
 # l10n
 lib/l10n/app_localizations*.dart
+
+# Build artifacts
+IRIS-windows.zip
+IRIS-windows-*.zip
+IRIS-*.zip
+/IRIS/
+IRIS-windows-installer.exe
+IRIS-windows-installer-*.exe
+IRIS-windows-store.msix
+IRIS-*.msix
+IRIS-android-*.apk
+IRIS-*.apk
+app-*.apk
+/artifacts/
+/temps/
+
+# Local AI scratch area (never committed)
+.ai_knowledge/
+.opencode/
+/.opensquilla/
+/.commandcode/

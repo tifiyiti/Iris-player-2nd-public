@@ -1,6 +1,6 @@
 # IRIS Privacy Policy
 
-**Last Updated:** June 7, 2025
+**Last Updated:** August 25, 2026
 
 Thank you for using IRIS ("the Application"). We are committed to protecting your privacy. This Privacy Policy explains how we handle information in connection with your use of the Application.
 
@@ -33,7 +33,7 @@ We strictly adhere to the principles of lawfulness, legitimacy, and necessity in
 We place great importance on the security of your information.
 
 * **Storage Location**: All your personal data, including WebDAV credentials, playback history, and application settings, is **stored only locally on your device**. We do not upload this information to any external servers.
-* **Security Measures**: We use industry-standard security technologies to protect sensitive information stored on your device from unauthorized access, use, or disclosure.
+* **Security Measures**: By default, network-storage credentials (such as WebDAV / FTP passwords) are kept by the operating system's encrypted credential storage and are bound to your local user account. When the experimental metadata-driven settings system is enabled, these credentials are stored in plaintext inside the application's local database file on your device. All such data remains stored locally only. Please do not share folders containing this database (for example, the `userdata` folder of the portable edition) with untrusted parties.
 
 ### Information Sharing and Disclosure
 
