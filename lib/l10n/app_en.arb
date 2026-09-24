@@ -800,10 +800,21 @@
   "set_speed_gesture_mode": "Speed gesture mode",
   "set_speed_rate_mode": "Playback speed picker",
   "set_rate_mode_dual_wheel": "Dual wheel",
+  "set_rate_mode_slider": "Slider",
   "set_rate_mode_list": "Flat list (0.1)",
-  "rate_wheel_int_label": "Integer",
-  "rate_wheel_dec_label": "Decimal",
-  "rate_wheel_hint": "The decimal wheel adapts to the integer part: no 0 at 0, only 0 at 10",
+  "rate_picker_title": "Playback speed: {speed}X",
+  "@rate_picker_title": {
+    "placeholders": {
+      "speed": { "type": "String" }
+    }
+  },
+  "rate_value": "{value}X",
+  "@rate_value": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "rate_picker_drag": "Drag to move",
   "set_virtual_media_cross_drag": "Cross-segment drag strategy",
   "set_vm_dual_time_sync": "Dual-time second sync",
   "set_vm_hide_chunk_when_single_segment": "Hide chunk ring for single segments",
@@ -876,7 +887,7 @@
   "set_keybind_editor_desc": "Only the PotPlayer scheme is editable: up to 4 bindings per action, can clear to unbind; bold blue means customized",
   "set_window_keep_in_bounds_desc": "When playing next video/audio, pull the window back into view if it moved off-screen (desktop only; skipped in fullscreen/maximized)",
   "set_speed_gesture_mode_desc": "Takes effect only after long-press horizontal swipe; horizontal 0.1 fine + vertical 1.0 coarse (dual) / horizontal 0.1 only (single)",
-  "set_speed_rate_mode_desc": "Dual wheel (alarm-clock style, integer + tenths) or the legacy flat 0.1 list",
+  "set_speed_rate_mode_desc": "Dual wheel, slider, or the legacy flat list",
   "set_legacy_compat_desc": "Non-developers do not touch — legacy compatibility switches left over from development; toggling them may crash the app or lose data",
   "set_slider_type_desc": "Normal / Circle / Sideway; Sideway shares the total panel size, legacy falls back to Normal",
   "set_portrait_bar_align": "Portrait bar alignment",
@@ -3166,6 +3177,9 @@
   "storage_name_tag_port": "Port",
   "storage_name_tag_path": "Path",
   "storage_keep_saved_password_hint": "Leave blank to keep the saved password",
+
+  "storage_password_locked_title": "Storage password unavailable",
+  "storage_password_locked_message": "The saved password for these entries cannot be decrypted on this device (for example after restoring a backup on a new device). Nothing was changed — the entries and their cached hosts are kept as-is. Open each one and enter its password again to restore access.",
 
   "storage_shared_library_title": "Use the same media library?",
   "storage_shared_library_message": "{name} already uses this account and path tree. This entry will share its media library instead of storing duplicate nodes.",

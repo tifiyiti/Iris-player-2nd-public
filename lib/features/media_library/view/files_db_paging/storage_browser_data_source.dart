@@ -135,14 +135,17 @@ class StorageBrowserDataSource extends PaginatedBrowserDataSource<FileItem> {
     return (canonicalDbPath(rawFolderPath), canonicalOccurrencePath(rawItemPath));
   }
 
-  void _playFromCurrentDir(BuildContext context, FileItem tapped) {
+  /// Returns true when playback actually started, false when nothing played
+  /// (empty dir, or a failure already surfaced by the action's error dialog).
+  /// The caller uses the result to decide whether the popup may close.
+  Future<bool> _playFromCurrentDir(BuildContext context, FileItem tapped) async {
     final playable = _sortedItems.where((f) => f.isPlayable).toList();
-    if (playable.isEmpty) return;
+    if (playable.isEmpty) return false;
 
     if (_useScenarioMode) {
       final (folderPath, itemPath) = _storageRelativePaths(tapped);
       // v15-D6: surface failures via the uniform copyable error dialog.
-      ScenarioPlaybackActions.runPlayAction(
+      return ScenarioPlaybackActions.runPlayAction(
         context,
         () => ScenarioPlaybackActions.playFolderScopeInDefaultScenario(
           storageId: storage.id,
@@ -154,7 +157,6 @@ class StorageBrowserDataSource extends PaginatedBrowserDataSource<FileItem> {
               ScenarioPlaybackActions.scenarioSortDirectionFrom(_sortOrder),
         ),
       );
-      return;
     }
 
     final queue = playable
@@ -164,12 +166,13 @@ class StorageBrowserDataSource extends PaginatedBrowserDataSource<FileItem> {
         .toList();
     final idx = playable.indexOf(tapped);
 
-    useAppStore().updateAutoPlay(true);
-    useAppStore().updateShuffle(false);
-    usePlayQueueStore().setSource(
+    await useAppStore().updateAutoPlay(true);
+    await useAppStore().updateShuffle(false);
+    await usePlayQueueStore().setSource(
       PlayQueueSource.explicit(items: queue),
       initialPos: idx,
     );
+    return true;
   }
 
   List<FileItem> get _filtered {
@@ -519,8 +522,9 @@ class StorageBrowserDataSource extends PaginatedBrowserDataSource<FileItem> {
       return true;
     }
     if (item.isPlayable) {
-      _playFromCurrentDir(context, item);
-      Navigator.pop(context);
+      // The play flow can raise its first-use notice / error dialogs on this
+      // route, so the popup must only close once playback actually started.
+      _playAndMaybeClose(context, item);
       return true;
     }
     return false;
@@ -795,6 +799,18 @@ class StorageBrowserDataSource extends PaginatedBrowserDataSource<FileItem> {
     if (navigator.mounted && !stay && navigator.canPop()) {
       navigator.pop();
     }
+  }
+
+  /// Tap-to-play: runs the play flow to completion — its first-use notice /
+  /// error dialogs must resolve on this route first — and closes the popup only
+  /// when playback actually started (unless the user pinned "stay on play").
+  Future<void> _playAndMaybeClose(BuildContext context, FileItem item) async {
+    // Capture the navigator + pin BEFORE the await so no BuildContext crosses
+    // the async gap (the dialogs outlive this tile's context).
+    final navigator = Navigator.of(context);
+    final stay = usePlaybackScenarioStore().storagesDbStayOnPlay;
+    final ok = await _playFromCurrentDir(context, item);
+    if (ok) _closePopupOnPlaySuccess(navigator, stay: stay);
   }
 
   @override

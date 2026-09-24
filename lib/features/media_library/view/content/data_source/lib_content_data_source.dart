@@ -347,12 +347,32 @@ class LibContentDataSource extends PaginatedBrowserDataSource<LibContentItem> {
       _store.navigateInto(item);
       return true;
     }
-    _playFromCurrentDir(context, item);
-    Navigator.pop(context);
+    // The play flow can raise its first-use notice / No Media confirm on this
+    // route, so the popup must only close once playback actually started.
+    _playAndMaybeClose(context, item);
     return true;
   }
 
-  Future<void> _playFromCurrentDir(BuildContext context, LibContentItem tapped) async {
+  /// Runs [_playFromCurrentDir] to completion and closes the popup only when
+  /// playback actually started (unless the user pinned "stay on play"). The
+  /// navigator + pin are captured BEFORE the await so no BuildContext crosses
+  /// the async gap.
+  Future<void> _playAndMaybeClose(
+      BuildContext context, LibContentItem item) async {
+    final navigator = Navigator.of(context);
+    final stay = usePlaybackScenarioStore().storagesDbStayOnPlay;
+    final result = await _playFromCurrentDir(context, item);
+    if (result == NoMediaActionResult.success) {
+      if (navigator.mounted && !stay && navigator.canPop()) {
+        navigator.pop();
+      }
+    }
+  }
+
+  /// Returns [NoMediaActionResult.success] only when playback actually started,
+  /// so [_playAndMaybeClose] can leave the popup open on cancel / failure.
+  Future<NoMediaActionResult> _playFromCurrentDir(
+      BuildContext context, LibContentItem tapped) async {
     final allItems = _rt.items;
     final playable = allItems.where((i) => !i.isDirectory).where((i) {
       if (i is NodeLibContentItem) {
@@ -364,7 +384,7 @@ class LibContentDataSource extends PaginatedBrowserDataSource<LibContentItem> {
       return false;
     }).toList();
 
-    if (playable.isEmpty) return;
+    if (playable.isEmpty) return NoMediaActionResult.cancelled;
 
     final fileItems = playable.map((i) {
       final node = (i as NodeLibContentItem).node as MediaFile;
@@ -372,11 +392,12 @@ class LibContentDataSource extends PaginatedBrowserDataSource<LibContentItem> {
     }).toList();
 
     final clickedIndex = playable.indexOf(tapped);
-    if (clickedIndex < 0 || clickedIndex >= fileItems.length) return;
+    if (clickedIndex < 0 || clickedIndex >= fileItems.length) {
+      return NoMediaActionResult.cancelled;
+    }
 
     if (_useScenarioMode) {
-      await _playScenarioScope(context, tapped, fileItems[clickedIndex]);
-      return;
+      return _playScenarioScope(context, tapped, fileItems[clickedIndex]);
     }
 
     // State ② (paged queue) and ③ (legacy): explicit queue of the current page.
@@ -392,6 +413,7 @@ class LibContentDataSource extends PaginatedBrowserDataSource<LibContentItem> {
       PlayQueueSource.explicit(items: queue),
       initialPos: clickedIndex,
     );
+    return NoMediaActionResult.success;
   }
 
   /// Scenario-mode playback for the current view (D7/F132 state ①).

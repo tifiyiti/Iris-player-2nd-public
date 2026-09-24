@@ -27,9 +27,18 @@ class StorageDao extends DatabaseAccessor<AppDatabase> with _$StorageDaoMixin {
     return (delete(storagesTable)..where((t) => t.id.equals(id))).go();
   }
 
-  Future<void> replaceAll(List<StoragesTableCompanion> entries) {
+  /// Full replace, optionally sparing [preserveIds].
+  ///
+  /// Preserved ids are neither deleted nor re-inserted, so their rows stay
+  /// byte-for-byte as they are. Used to protect entries whose password could
+  /// not be decrypted: the in-memory placeholder must not overwrite the stored
+  /// cipher/connection fields.
+  Future<void> replaceAll(
+    List<StoragesTableCompanion> entries, {
+    Set<String> preserveIds = const <String>{},
+  }) {
     return transaction(() async {
-      if (entries.isEmpty) {
+      if (entries.isEmpty && preserveIds.isEmpty) {
         // Tripwire: a full replace with nothing to insert clears the table.
         // Intended only for a user-initiated "no storages left" state; anything
         // else is the storage-loss bug in disguise.
@@ -39,7 +48,13 @@ class StorageDao extends DatabaseAccessor<AppDatabase> with _$StorageDaoMixin {
               'holds ${rows.length} row(s) — clearing them all');
         }
       }
-      await delete(storagesTable).go();
+      if (preserveIds.isEmpty) {
+        await delete(storagesTable).go();
+      } else {
+        await (delete(storagesTable)
+              ..where((t) => t.id.isNotIn(preserveIds)))
+            .go();
+      }
       for (final e in entries) {
         await insert(e);
       }

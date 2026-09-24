@@ -710,10 +710,21 @@
   "set_speed_gesture_mode": "变速手势",
   "set_speed_rate_mode": "播放速度选择方式",
   "set_rate_mode_dual_wheel": "双滚轮",
+  "set_rate_mode_slider": "滑块",
   "set_rate_mode_list": "平铺列表（0.1）",
-  "rate_wheel_int_label": "整数",
-  "rate_wheel_dec_label": "小数",
-  "rate_wheel_hint": "小数轮随整数部分自动调整：整数为 0 时无 0，整数为 10 时仅 0",
+  "rate_picker_title": "播放速度: {speed}X",
+  "@rate_picker_title": {
+    "placeholders": {
+      "speed": { "type": "String" }
+    }
+  },
+  "rate_value": "{value}X",
+  "@rate_value": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "rate_picker_drag": "拖动以移动位置",
   "set_virtual_media_cross_drag": "虚拟跨段拖动策略",
   "set_vm_dual_time_sync": "双层时间同步",
   "set_vm_hide_chunk_when_single_segment": "单段时隐藏分块圆环",
@@ -780,7 +791,7 @@
   "set_keybind_editor_desc": "仅 PotPlayer 方案可改：每动作最多 4 个绑定，可清空解绑；蓝色加粗为已自定义",
   "set_window_keep_in_bounds_desc": "播放下一视频/音频时若窗口已移出屏幕则自动拉回可视区域（仅桌面；全屏/最大化时不处理）",
   "set_speed_gesture_mode_desc": "仅长按横滑入态后生效；横 0.1 精调，纵 1.0 粗调（双档）/ 仅横 0.1（单档）",
-  "set_speed_rate_mode_desc": "双滚轮（闹钟式，整数 + 小数）或旧的 0.1 平铺列表",
+  "set_speed_rate_mode_desc": "双滚轮、滑块，或旧的平铺列表",
   "set_legacy_compat_desc": "非开发人员勿触——开发遗留的兼容开关，误触可能造成 App 崩溃或数据丢失",
   "set_slider_type_desc": "普通 / 圆环 / 侧滑；侧滑下共用面板总尺寸，旧版降级为普通",
   "set_portrait_bar_align": "竖屏底栏对齐",
@@ -3008,6 +3019,9 @@
   "storage_name_tag_port": "端口",
   "storage_name_tag_path": "路径",
   "storage_keep_saved_password_hint": "留空保持原密码",
+
+  "storage_password_locked_title": "存储密码无法解密",
+  "storage_password_locked_message": "以下条目的已保存密码在本设备上无法解密（例如在新设备上恢复备份后）。配置未被改动，条目及其已缓存的主机都会保留。请逐个打开并重新输入密码以恢复访问。",
 
   "storage_shared_library_title": "共用同一媒体库？",
   "storage_shared_library_message": "{name} 已使用该账户与路径树。新条目将共享其媒体库，不重复存储节点。",

@@ -32,7 +32,11 @@ class MigrationV22 {
       await db.customStatement(
           'CREATE INDEX IF NOT EXISTS idx_scan_queue_storage_status ON scan_queue(storage_id, status, depth)');
     } catch (e) {
-      _log.w('MigrationV22: create failed: $e');
+      // Do NOT swallow: a half-built table would only surface later as a
+      // confusing DAO failure. Rethrowing rolls the migration back
+      // (user_version stays at the previous value) so the next open retries.
+      _log.e('MigrationV22: create failed', e);
+      rethrow;
     }
   }
 
@@ -46,8 +50,12 @@ class MigrationV22 {
         ],
       ).get();
       return rows.isNotEmpty;
-    } catch (_) {
-      return null;
+    } catch (e) {
+      // A failed existence probe is an infrastructure failure, not evidence the
+      // table is absent; rethrow so the open retries instead of acting on a
+      // guess (which would surface as a misleading secondary error).
+      _log.e('MigrationV22: sqlite_master probe failed', e);
+      rethrow;
     }
   }
 }

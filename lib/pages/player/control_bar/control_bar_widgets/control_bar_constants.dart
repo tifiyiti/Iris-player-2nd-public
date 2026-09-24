@@ -24,8 +24,7 @@ const double kOverlayGradientTopOpacity = 0.0;
 const double kOverlayGradientMidOpacity = 0.25;
 const double kOverlayGradientBottomOpacity = 0.65;
 
-// Rate / Volume breakpoints
-const double kRateTileBreakpoints = 600.0;
+// Volume breakpoint
 const double kVolumeControlBreakpoints = 768.0;
 
 // control_bar_constants.dart

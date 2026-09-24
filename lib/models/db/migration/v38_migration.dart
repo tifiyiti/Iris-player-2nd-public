@@ -93,6 +93,9 @@ class MigrationV38 {
       if (segments.isEmpty) return null;
       return canonicalDbPath(segments.join('/'));
     } catch (_) {
+      // Deliberately swallowed (allowlisted): a malformed legacy `base_path`
+      // only means this one row keeps its absolute path; schema state is
+      // unaffected, so it must not abort the migration.
       return null;
     }
   }

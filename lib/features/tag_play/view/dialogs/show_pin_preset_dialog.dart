@@ -23,7 +23,7 @@ class _PinPresetDialog extends HookWidget {
     final repo = DbModule.tagPlayRepo;
     final store = useTagPlayStore();
     final presets = useState<List<TagPlayPinPreset>?>(null);
-    final nameCtrl = TextEditingController();
+    final nameCtrl = useTextEditingController();
 
     Future<void> refresh() async {
       presets.value = await repo.presets();

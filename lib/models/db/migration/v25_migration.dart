@@ -41,8 +41,11 @@ class MigrationV25 {
       try {
         await m.addColumn(db.videoTagsTable, db.videoTagsTable.systemKind);
       } catch (e) {
-        _log.w('MigrationV25: add column failed: $e');
-        return;
+        // Do NOT swallow: the column would stay missing while the version
+        // advances, and the legacy adoption below would run against a broken
+        // table. Rethrowing rolls the migration back so the next open retries.
+        _log.e('MigrationV25: add column failed', e);
+        rethrow;
       }
     }
     await _adoptLegacyRows();

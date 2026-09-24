@@ -32,7 +32,11 @@ class MigrationV24 {
           'ALTER TABLE media_nodes ADD COLUMN history_restore_budget INTEGER NULL',
         );
       } catch (e) {
-        _log.w('MigrationV24: add column failed: $e');
+        // Do NOT swallow: a missing column while the version advances would
+        // break every later read/write. Rethrowing rolls the migration back so
+        // the next open retries.
+        _log.e('MigrationV24: add column failed', e);
+        rethrow;
       }
     }
   }

@@ -808,6 +808,17 @@ abstract class AppState with _$AppState {
     @JsonKey(includeToJson: false, includeFromJson: false)
     SpeedRatePickerMode speedRatePickerMode,
 
+    /// Remembered position of the playback-speed picker card, as a fraction
+    /// (0..1) of the travel available to it inside the safe area; 0.5 = centred.
+    ///
+    /// Stored RELATIVE, not in pixels: an absolute offset drifts as soon as the
+    /// window is resized or the device rotates. Shared by every
+    /// `speed.rateMode` shape, so a spot the user parks applies whichever
+    /// picker opens next. Persisted as `speed.dialogOffset` (`"x,y"`).
+    @Default(Offset(0.5, 0.5))
+    @JsonKey(includeToJson: false, includeFromJson: false)
+    Offset speedRateDialogOffset,
+
     // ── Virtual media (metadata era, AUX rows `virtualmedia.`) ──────────────
     //
     // Persisted EXCLUSIVELY as `virtualmedia.` AUX rows (JsonKey-excluded).
@@ -842,6 +853,18 @@ abstract class AppState with _$AppState {
     @Default('')
     @JsonKey(includeToJson: false, includeFromJson: false)
     String screenshotDesktopDir,
+    // ── Frame-tools float panel position ──────────────────────────────────
+    //
+    // A FRACTION (0..1) of the available travel inside the hosting Stack, not
+    // pixels: an absolute offset silently drifts when the window grows — a
+    // panel parked in the corner stops being corner-anchored and ends up
+    // mid-screen — whereas a fraction re-derives the same spot at any size,
+    // rotation or window width. 0.5 keeps it horizontally centred, matching
+    // the first-reveal placement. Persisted as `screenshot.frameToolsOffset`
+    // (`"x,y"`).
+    @Default(Offset(0.5, 0.21))
+    @JsonKey(includeToJson: false, includeFromJson: false)
+    Offset frameToolsPanelFraction,
   }) = _AppState;
 
   factory AppState.fromJson(Map<String, dynamic> json) =>

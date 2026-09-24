@@ -187,18 +187,19 @@ abstract final class EditorBindings {
         },
         open: _openSpeedGestureModeDialog,
       ),
-      // Playback-speed picker shape (more menu / control-bar RATE): dual-wheel
-      // vs the legacy flat list. Value lives in the `speed.rateMode` AUX row.
+      // Playback-speed picker shape (more menu / control-bar RATE): the
+      // dual wheel, the slider, or the legacy flat list. Value lives in the
+      // `speed.rateMode` AUX row.
       'speed_rate_mode': _tile(
         icon: Icons.tune_rounded,
         titleKey: 'speed_rate_mode',
-        subtitle: (s, t) {
-          final mode = resolveSpeedRatePickerMode(s,
-              metadataEnabled:
-                  s.useMetadataSettings && MetaSettingsModule.ready);
-          return mode == SpeedRatePickerMode.dualWheel
-              ? t.set_rate_mode_dual_wheel
-              : t.set_rate_mode_list;
+        subtitle: (s, t) => switch (resolveSpeedRatePickerMode(
+          s,
+          metadataEnabled: s.useMetadataSettings && MetaSettingsModule.ready,
+        )) {
+          SpeedRatePickerMode.dualWheel => t.set_rate_mode_dual_wheel,
+          SpeedRatePickerMode.slider => t.set_rate_mode_slider,
+          SpeedRatePickerMode.list => t.set_rate_mode_list,
         },
         open: _openSpeedRateModeDialog,
       ),

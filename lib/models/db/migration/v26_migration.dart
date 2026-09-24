@@ -29,7 +29,11 @@ class MigrationV26 {
     try {
       await m.createTable(table);
     } catch (e) {
-      _log.w('MigrationV26: create $name failed: $e');
+      // Do NOT swallow: a missing 副音 table while the version advances would
+      // break every later insert. Rethrowing rolls the migration back so the
+      // next open retries.
+      _log.e('MigrationV26: create $name failed', e);
+      rethrow;
     }
   }
 
@@ -43,8 +47,12 @@ class MigrationV26 {
         ],
       ).get();
       return rows.isNotEmpty;
-    } catch (_) {
-      return false;
+    } catch (e) {
+      // A failed existence probe is an infrastructure failure, not evidence the
+      // table is absent; rethrow so the open retries instead of acting on a
+      // guess (which would surface as a misleading secondary error).
+      _log.e('MigrationV26: sqlite_master probe failed', e);
+      rethrow;
     }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:iris/models/db/app_database.dart';
+import 'package:iris/models/db/migration/migration_guards.dart';
 import 'package:iris/utils/logger.dart';
 
 final _log = AreaKeyLog(LogKeys.legacyDb);
@@ -41,7 +42,15 @@ class MigrationV42 {
       try {
         await db.customStatement('DROP INDEX IF EXISTS $name');
       } catch (e) {
-        _log.w('MigrationV42: drop $name failed: $e');
+        // A hand-built/partial legacy database need not carry every feature
+        // table, so an absent index/table is tolerated. Every other failure
+        // must abort so drift rolls the schema version back and the next open
+        // retries.
+        if (!isMissingSchemaObject(e)) {
+          _log.e('MigrationV42: drop $name failed', e);
+          rethrow;
+        }
+        _log.w('MigrationV42: drop $name skipped, object absent: $e');
       }
     }
   }

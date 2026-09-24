@@ -21,6 +21,8 @@ import 'helpers/sqlite3_loader.dart';
 ///  * two wheels (whole 0..10 + tenths);
 ///  * tenths-wheel domain follows the whole wheel — coarse 0 offers [1..9]
 ///    (no 0.0), coarse 10 offers only [0] (no 10.1+);
+///  * a decimal point sits between the wheels and no explanatory copy is
+///    rendered — the dial itself teaches the coupling rules;
 ///  * Save persists the composed speed;
 ///  * `showRatePickerDialog` dispatches on `speed.rateMode` (dualWheel → wheel,
 ///    list or gate OFF → the legacy flat dialog).
@@ -50,13 +52,13 @@ void main() {
         reason: 'whole wheel spans 0..10');
     expect((wheels[1].childDelegate as dynamic).childCount, 10,
         reason: 'coarse 1 offers [0..9] on the tenths wheel');
-    expect(find.text('1.0X'), findsOneWidget);
+    expect(find.text('Playback speed: 1.0X'), findsOneWidget);
 
-    // Whole wheel 1 → 2; preview and save follow.
+    // Whole wheel 1 → 2; title value and save follow.
     await tester.drag(find.byType(ListWheelScrollView).first,
-        const Offset(0, -32));
+        const Offset(0, -kRateWheelItemExtent));
     await tester.pumpAndSettle();
-    expect(find.text('2.0X'), findsOneWidget);
+    expect(find.text('Playback speed: 2.0X'), findsOneWidget);
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     expect(useAppStore().state.rate, 2.0,
@@ -92,7 +94,45 @@ void main() {
             .toList();
     expect((wheels[1].childDelegate as dynamic).childCount, 1,
         reason: 'coarse 10 allows only the 10.0 tenths value');
-    expect(find.text('10.0X'), findsOneWidget);
+    expect(find.text('Playback speed: 10.0X'), findsOneWidget);
+  });
+
+  testWidgets('wheel is a bare dial: decimal point in, explanatory text out',
+      (tester) async {
+    await useAppStore().updateRate(1.5);
+    await _open(tester, showRateWheelDialog);
+
+    // The two wheels read as one number only when a decimal point sits
+    // between them.
+    expect(find.text('.'), findsOneWidget,
+        reason: 'a decimal point bridges the coarse and tenths wheels');
+    // No more per-column labels / explanatory sentence: the constraint is
+    // learned by spinning the wheel, and every pixel goes to the digits.
+    expect(find.text('Integer'), findsNothing);
+    expect(find.text('Decimal'), findsNothing);
+    expect(find.textContaining('adapts to the integer part'), findsNothing);
+    expect(find.byType(ListWheelScrollView), findsNWidgets(2));
+  });
+
+  testWidgets('two big wheels fit a 360x640 phone without overflow',
+      (tester) async {
+    // Space is the whole point of dropping the labels and the caption, so
+    // pin the layout to a small portrait phone and assert it stays intact.
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      tester.view.resetViewInsets();
+    });
+
+    await useAppStore().updateRate(3.7);
+    await _open(tester, showRateWheelDialog);
+
+    expect(find.byType(ListWheelScrollView), findsNWidgets(2));
+    expect(find.text('.'), findsOneWidget);
+    expect(find.text('Playback speed: 3.7X'), findsOneWidget);
+    expect(tester.takeException(), isNull, reason: 'no layout overflow');
   });
 
   testWidgets('default mode opens the wheel; rotation rows round-trip',
@@ -116,7 +156,8 @@ void main() {
     await _open(tester, showRatePickerDialog);
     expect(find.byType(ListWheelScrollView), findsNothing,
         reason: 'list mode keeps the legacy flat dialog');
-    expect(find.text('Playback speed'), findsOneWidget);
+    // Rate-independent: the card title is the only text carrying the label.
+    expect(find.textContaining('Playback speed'), findsOneWidget);
   });
 
   testWidgets('gate OFF degrades to the legacy flat dialog', (tester) async {

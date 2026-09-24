@@ -3,8 +3,12 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'playback_tools_store.freezed.dart';
 
-/// Ephemeral playback-tools state. Never persisted — the float panel is a
-/// per-session convenience, not a layout preference.
+/// Ephemeral playback-tools state — never persisted.
+///
+/// The panel's VISIBILITY resets per session; its POSITION deliberately does
+/// not, living in `AppState.frameToolsPanelFraction` (a `screenshot.` AUX row)
+/// instead: an open/closed overlay is a per-session convenience, but where you
+/// parked it is a layout preference.
 @freezed
 abstract class PlaybackToolsState with _$PlaybackToolsState {
   const factory PlaybackToolsState({

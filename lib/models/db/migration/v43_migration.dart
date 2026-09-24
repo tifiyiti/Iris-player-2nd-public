@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:iris/models/db/app_database.dart';
+import 'package:iris/models/db/migration/migration_guards.dart';
 import 'package:iris/utils/logger.dart';
 
 final _log = AreaKeyLog(LogKeys.legacyDb);
@@ -96,7 +97,14 @@ class MigrationV43 {
       try {
         await db.customStatement(stmt);
       } catch (e) {
-        _log.w('MigrationV43: index failed: $e');
+        // The recreated tables exist by now, but a hand-built database can
+        // still be partial: tolerate an absent object, abort on anything else
+        // so drift rolls the schema version back and the next open retries.
+        if (!isMissingSchemaObject(e)) {
+          _log.e('MigrationV43: index failed', e);
+          rethrow;
+        }
+        _log.w('MigrationV43: index skipped, object absent: $e');
       }
     }
   }

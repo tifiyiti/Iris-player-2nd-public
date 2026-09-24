@@ -25,6 +25,7 @@ import 'package:iris/features/tag_play/resolver/tag_view_resolver.dart';
 import 'package:iris/features/virtual_media/model/domain/vm_rule.dart';
 import 'package:iris/features/virtual_media/model/enum/vm_enums.dart';
 import 'package:iris/models/db/app_database.dart';
+import 'package:iris/models/db/storage_path_codec.dart';
 
 void main() {
   late AppDatabase db;
@@ -52,6 +53,7 @@ void main() {
   });
 
   tearDown(() async {
+    StoragePathCodec.baseResolver = (_) => null;
     await db.close();
   });
 
@@ -332,6 +334,61 @@ void main() {
     expect(snap.length, 2);
     expect(snap.items.map((e) => e.media.name).toSet(),
         {'0000.mp4', '0005.mp4'});
+  });
+
+  test('the indexed tag view and counts survive a configured base path',
+      () async {
+    // Production shape for a local drive: the storage carries a base path, so
+    // `media_nodes` stores RELATIVE paths (`A/0001.mp4`) while membership rows
+    // stay DOMAIN-absolute (`D:/A/0001.mp4` — what the queue hands to
+    // addMember). Joining the two domains in raw SQL used to match nothing:
+    // the indexed read returned a NON-NULL empty list, the walk fallback was
+    // skipped, and every tag view/intersection count came back empty/zero.
+    StoragePathCodec.baseResolver = (id) => id == 'st1' ? const ['D:'] : null;
+    final dao = MediaNodesDao(db);
+    for (var i = 0; i < 6; i++) {
+      final name = '${i.toString().padLeft(4, '0')}.mp4';
+      await dao.insertNode(MediaNode.file(
+        id: 'A/$name',
+        storageId: 'st1',
+        path: ['D:', 'A', name],
+        name: name,
+        mediaType: MediaType.video,
+        durationMs: 60000,
+      ));
+    }
+    final sid = await buildScenario(shared: true);
+    final tag = await tagRepo.createTag(name: 't');
+    await tagRepo.addMember(
+        tagId: tag.id, storageId: 'st1', pathSegments: ['D:/A/0001.mp4']);
+    await tagRepo.addMember(
+        tagId: tag.id, storageId: 'st1', pathSegments: ['D:/A/0003.mp4']);
+    // A member whose file is not in the scenario: counted nowhere.
+    await tagRepo.addMember(
+        tagId: tag.id, storageId: 'st1', pathSegments: ['D:/A/9999.mp4']);
+
+    final items = await sharedResolverWith()
+        .resolveTagViewIndexed(scenarioId: sid, tagId: tag.id);
+    expect(items, isNotNull);
+    expect(items!.map((e) => e.media.name).toList(),
+        ['0001.mp4', '0003.mp4'],
+        reason: 'members stored absolute must resolve against relative '
+            'media_nodes rows');
+
+    final counts = await sharedResolverWith().tagIntersectionCountsFor(sid);
+    expect(counts, isNotNull);
+    expect(counts![tag.id], 2,
+        reason: 'the scenario intersection count must not collapse to 0');
+
+    // The full resolver path: mode-1 view via the index, walk never consulted.
+    final resolver = TagViewResolver(
+      source: _ThrowingSource(),
+      indexedSource: ResolverIndexedTagItemsSource(sharedResolverWith()),
+      repo: tagRepo,
+    );
+    final snap = await resolver.resolve(tagId: tag.id, scenarioId: sid);
+    expect(snap.items.map((e) => e.media.name).toSet(),
+        {'0001.mp4', '0003.mp4'});
   });
 }
 

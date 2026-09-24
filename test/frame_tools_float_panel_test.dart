@@ -4,6 +4,8 @@ import 'package:iris/features/playback_tools/store/playback_tools_store.dart';
 import 'package:iris/features/playback_tools/view/frame_tools_float_panel.dart';
 import 'package:iris/l10n/app_localizations.dart';
 import 'package:iris/models/player.dart';
+import 'package:iris/models/store/app_state.dart';
+import 'package:iris/store/use_app_store.dart';
 import 'package:provider/provider.dart';
 // Test-only StoreLocator host (see pubspec dev_dependencies comment).
 import 'package:zustand/zustand.dart';
@@ -26,9 +28,15 @@ void main() {
   final steps = <int>[];
   late MediaPlayer player;
 
-  setUp(() {
+  setUp(() async {
     steps.clear();
     usePlaybackToolsStore().hideFrameTools();
+    // The panel position now lives in the AppStore singleton, so it would
+    // otherwise leak from one case into the next (a drag parks it, the next
+    // "first appearance" assertion measures the park). Reset to the model's
+    // own default rather than a literal, so the two can never drift.
+    await useAppStore().updateFrameToolsPanelFraction(
+        const AppState().frameToolsPanelFraction);
     player = MediaPlayer(
       isInitializing: false,
       isPlaying: false,
@@ -84,6 +92,17 @@ void main() {
   }
 
   Finder panelCard() => find.byKey(const ValueKey('frame_tools_panel'));
+
+  /// Where the card sits as a FRACTION of its available travel — the only
+  /// quantity that is supposed to stay constant across a resize.
+  double xFraction(WidgetTester tester) {
+    final pos = tester.widget<Positioned>(
+      find.ancestor(of: panelCard(), matching: find.byType(Positioned)).first,
+    );
+    final double span =
+        tester.getSize(find.byType(Stack)).width - tester.getSize(panelCard()).width;
+    return pos.left! / span;
+  }
 
   testWidgets('hidden state renders nothing', (tester) async {
     await pumpPanel(tester, visible: false);
@@ -314,5 +333,58 @@ void main() {
     await tester.pump();
 
     expect(steps.where((s) => s == 1).length, greaterThanOrEqualTo(3));
+  });
+
+  // ── Relative (fractional) placement ───────────────────────────────────────
+  //
+  // The panel used to remember ABSOLUTE pixels, which silently drifts the
+  // moment the host grows: a card parked in the corner keeps its old offset
+  // and ends up mid-screen. These cases pin the invariant the fix relies on.
+
+  testWidgets('a remembered spot comes back at the same relative place',
+      (tester) async {
+    await pumpPanel(tester);
+    await tester.drag(panelCard(), const Offset(5000, 0)); // park hard right
+    await tester.pump();
+    final double parked = xFraction(tester);
+    expect(parked, greaterThan(0.9), reason: 'the drag really did park it');
+
+    // A fresh key = the next time the panel is revealed.
+    await pumpPanel(tester);
+    expect(xFraction(tester), closeTo(parked, 0.02),
+        reason: 'the remembered spot must survive a remount as a fraction');
+  });
+
+  testWidgets('growing the host keeps the panel in the same relative spot',
+      (tester) async {
+    await pumpPanel(tester);
+    await tester.drag(panelCard(), const Offset(5000, 0));
+    await tester.pump();
+    final double before = xFraction(tester);
+
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await tester.pumpAndSettle();
+
+    expect(xFraction(tester), closeTo(before, 0.02),
+        reason:
+            'a fraction is invariant to host size; an absolute offset was not');
+  });
+
+  testWidgets('shrinking the host keeps the same relative spot too',
+      (tester) async {
+    await pumpPanel(tester);
+    await tester.drag(panelCard(), const Offset(0, 5000)); // park hard down
+    await tester.pump();
+    final double before = xFraction(tester);
+
+    shrinkViewport(tester, const Size(400, 600));
+    await tester.pumpAndSettle();
+
+    expect(xFraction(tester), closeTo(before, 0.02));
   });
 }

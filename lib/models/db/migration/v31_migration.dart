@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:iris/models/db/app_database.dart';
+import 'package:iris/models/db/migration/migration_guards.dart';
 import 'package:iris/utils/logger.dart';
 
 final _log = AreaKeyLog(LogKeys.legacyDb);
@@ -56,7 +57,11 @@ class MigrationV31 {
     try {
       await m.addColumn(db.storagesTable, db.storagesTable.dataScopeId);
     } catch (e) {
-      _log.w('MigrationV31: add storages_table.data_scope_id failed: $e');
+      // Do NOT swallow: without the scope column the rebuild below cannot run
+      // and every scope-keyed query breaks. Rethrowing rolls the migration back
+      // so the next open retries.
+      _log.e('MigrationV31: add storages_table.data_scope_id failed', e);
+      rethrow;
     }
   }
 
@@ -131,7 +136,16 @@ class MigrationV31 {
       try {
         await db.customStatement(stmt);
       } catch (e) {
-        _log.w('MigrationV31: index failed: $e');
+        // A hand-built/partial legacy database need not carry every feature
+        // table; an index is a pure performance artifact, so its absence is
+        // tolerated. Every other failure (disk full, lock, corruption) must
+        // abort so drift rolls the schema version back and the next open
+        // retries.
+        if (!isMissingSchemaObject(e)) {
+          _log.e('MigrationV31: index failed', e);
+          rethrow;
+        }
+        _log.w('MigrationV31: index skipped, object absent: $e');
       }
     }
   }
@@ -150,6 +164,9 @@ class MigrationV31 {
           'WHERE data_scope_id IS NULL',
         );
       } catch (e) {
+        // Deliberately swallowed (allowlisted): this runs from `beforeOpen` on
+        // EVERY open — unlike a version-gated migration, which would never
+        // retry — so a transient failure simply heals on the next launch.
         _log.w('MigrationV31: null-scope backfill on $table failed: $e');
       }
     }

@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:iris/models/db/app_database.dart';
+import 'package:iris/models/db/migration/migration_guards.dart';
 import 'package:iris/utils/logger.dart';
 
 final _log = AreaKeyLog(LogKeys.legacyDb);
@@ -64,9 +65,16 @@ class MigrationV35 {
       try {
         await db.customStatement(stmt);
       } catch (e) {
-        // A missing feature table (never created on this install) must not
-        // abort the migration; the remaining indexes still apply.
-        _log.w('MigrationV35: index failed: $e');
+        // A hand-built/partial legacy database need not carry every feature
+        // table; an index is a pure performance artifact, so its absence is
+        // tolerated. Every other failure (disk full, lock, corruption) must
+        // abort so drift rolls the schema version back and the next open
+        // retries.
+        if (!isMissingSchemaObject(e)) {
+          _log.e('MigrationV35: index failed', e);
+          rethrow;
+        }
+        _log.w('MigrationV35: index skipped, object absent: $e');
       }
     }
   }

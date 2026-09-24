@@ -26,7 +26,11 @@ class MigrationV21 {
       try {
         await m.createTable(db.vmProgressTable);
       } catch (e) {
-        _log.w('MigrationV21: vm_progress create failed: $e');
+        // Do NOT swallow: drift only rolls the schema version back when
+        // onUpgrade throws. A swallowed failure would stamp v21 with the table
+        // missing, and no later open would ever retry.
+        _log.e('MigrationV21: vm_progress create failed', e);
+        rethrow;
       }
     }
 
@@ -38,7 +42,11 @@ class MigrationV21 {
         await db.customStatement(
             "ALTER TABLE vm_rules ADD COLUMN player_title_separator TEXT NOT NULL DEFAULT ':'");
       } catch (e) {
-        _log.w('MigrationV21: addColumn failed: $e');
+        // Do NOT swallow: a missing column while the version advances would
+        // break the player-title separator. Rethrowing rolls the migration back
+        // so the next open retries.
+        _log.e('MigrationV21: addColumn failed', e);
+        rethrow;
       }
     }
   }
@@ -53,8 +61,12 @@ class MigrationV21 {
         ],
       ).get();
       return rows.isNotEmpty;
-    } catch (_) {
-      return null;
+    } catch (e) {
+      // A failed existence probe is an infrastructure failure, not evidence the
+      // table is absent; rethrow so the open retries instead of acting on a
+      // guess (which would surface as a misleading secondary error).
+      _log.e('MigrationV21: sqlite_master probe failed', e);
+      rethrow;
     }
   }
 

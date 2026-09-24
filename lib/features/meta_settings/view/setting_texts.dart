@@ -312,6 +312,7 @@ abstract final class SettingTexts {
           },
         'speed.rateMode' => switch (name) {
             'dualWheel' => t.set_rate_mode_dual_wheel,
+            'slider' => t.set_rate_mode_slider,
             'list' => t.set_rate_mode_list,
             _ => name,
           },

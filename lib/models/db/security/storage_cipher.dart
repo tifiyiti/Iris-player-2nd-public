@@ -55,6 +55,36 @@ class StorageCipher {
     return _resolveKey(storage: storage);
   }
 
+  /// Key used for ENCRYPTION.
+  ///
+  /// If an earlier read fell back to the ephemeral in-process key, re-read the
+  /// persisted key before sealing new data: encrypting with a key that is never
+  /// written to disk would strand the new password exactly like the row the
+  /// caller is trying to recover. On success the fallback is dropped so later
+  /// decrypts read the real key too.
+  static Future<SecretKey> _keyForEncrypt({FlutterSecureStorage? storage}) async {
+    final memory = _memoryKey;
+    if (storage != null || memory == null) {
+      return _getOrCreateKey(storage: storage);
+    }
+    const s = FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    );
+    try {
+      final b64 = await s.read(key: _keyName).timeout(keyReadTimeout);
+      if (b64 != null && b64.isNotEmpty) {
+        final bytes = base64Decode(b64);
+        if (bytes.length == 32) {
+          _memoryKey = null;
+          return SecretKey(bytes);
+        }
+      }
+    } catch (_) {
+      // Still unavailable — fall through to the in-process key.
+    }
+    return SecretKey(memory);
+  }
+
   static Future<SecretKey> _resolveKey({FlutterSecureStorage? storage}) async {
     final s = storage ??
         const FlutterSecureStorage(
@@ -109,7 +139,7 @@ class StorageCipher {
     String plaintext, {
     FlutterSecureStorage? storage,
   }) async {
-    final key = await _getOrCreateKey(storage: storage);
+    final key = await _keyForEncrypt(storage: storage);
     final nonce = _randomBytes(12);
     final box = await _aes.encrypt(
       utf8.encode(plaintext),

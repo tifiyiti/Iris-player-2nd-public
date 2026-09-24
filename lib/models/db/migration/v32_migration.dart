@@ -34,7 +34,11 @@ class MigrationV32 {
     try {
       await m.addColumn(db.bgMappingSegmentsTable, column);
     } catch (e) {
-      _log.w('MigrationV32: add ${column.name} failed: $e');
+      // Do NOT swallow: a missing column while the version advances would break
+      // the segment read/write paths. Rethrowing rolls the migration back so
+      // the next open retries.
+      _log.e('MigrationV32: add ${column.name} failed', e);
+      rethrow;
     }
   }
 
@@ -56,8 +60,12 @@ class MigrationV32 {
         if (row.read<String>('name') == column) return true;
       }
       return false;
-    } catch (_) {
-      return false;
+    } catch (e) {
+      // A failed existence probe is an infrastructure failure, not evidence the
+      // column is absent; rethrow so the open retries instead of acting on a
+      // guess (which would surface as a misleading secondary error).
+      _log.e('MigrationV32: PRAGMA table_info probe failed', e);
+      rethrow;
     }
   }
 }

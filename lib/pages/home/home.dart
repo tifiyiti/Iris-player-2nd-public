@@ -22,10 +22,12 @@ import 'package:iris/pages/home/player_dock_shell.dart';
 import 'package:iris/pages/player/player_view.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_player_ui_store.dart';
+import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/logger.dart';
 import 'package:iris/utils/platform.dart';
 import 'package:iris/utils/window_resize_guard.dart';
 import 'package:iris/widgets/dialogs/show_app_overview_dialog.dart';
+import 'package:iris/widgets/dialogs/show_storage_password_locked_dialog.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:window_size/window_size.dart' show getCurrentScreen;
 
@@ -133,6 +135,18 @@ class Home extends HookWidget {
         await useAppStore().initialized;
         if (!navigator.mounted) return;
         await showAppOverviewDialog(navigator.context, firstRun: true);
+      });
+      return null;
+    }, []);
+
+    // Storage-password decrypt failures: those entries were kept verbatim
+    // (never silently degraded to local storage), so tell the user once. The
+    // fix is to re-enter the password on the affected entry.
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await useStorageStore().initialized;
+        if (!context.mounted) return;
+        await showStoragePasswordLockedDialogIfNeeded(context);
       });
       return null;
     }, []);

@@ -193,6 +193,26 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
     await _persist(state);
   }
 
+  /// Discards a modal picker's preview in one step.
+  ///
+  /// The preview runs through [updateRateLive], which never reaches storage,
+  /// so an in-memory rollback is the whole job — and it must restore
+  /// `rateBeforeReset` too, because [applyRateChange] rewrites that on every
+  /// non-1.0 write and would otherwise leak the previewed speed into the
+  /// Z-key restore memory.
+  void rollbackRatePreview({
+    required double rate,
+    required double rateBeforeReset,
+  }) {
+    if (!_rateDirty &&
+        state.rate == rate &&
+        state.rateBeforeReset == rateBeforeReset) {
+      return;
+    }
+    _rateDirty = false;
+    set(state.copyWith(rate: rate, rateBeforeReset: rateBeforeReset));
+  }
+
   @override
   Future<void> dispose() async {
     // A held X/C mutates only memory; if the app tears down before the KeyUp
@@ -1354,6 +1374,24 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
     await _saveScreenshotRow('desktopDir', v, SettingValueType.string);
   }
 
+  /// Commits the frame-tools float panel position ONCE, at the end of a drag.
+  ///
+  /// Fractions are clamped to [0,1] so a stored value can never park the panel
+  /// outside the host; the drag itself stays memory-only (see the panel's
+  /// `onPanUpdate`), exactly like the control-group floating button.
+  Future<void> updateFrameToolsPanelFraction(Offset fraction) async {
+    final Offset clamped = Offset(
+      fraction.dx.clamp(0.0, 1.0).toDouble(),
+      fraction.dy.clamp(0.0, 1.0).toDouble(),
+    );
+    if (state.frameToolsPanelFraction == clamped) return;
+    set(state.copyWith(frameToolsPanelFraction: clamped));
+    // "x,y" string, the same shape sidePanelDialogOffset already round-trips.
+    await _saveScreenshotRow(
+        'frameToolsOffset', '${clamped.dx},${clamped.dy}',
+        SettingValueType.string);
+  }
+
   Future<AppState> applyScreenshotRows(AppState base,
       {Map<String, String>? prefetched}) async {
     if (!base.useMetadataSettings || !MetaSettingsModule.ready) return base;
@@ -1371,6 +1409,26 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
       next = next.copyWith(
           screenshotDesktopDir:
               ValueCodec.decodeString(desktopRaw) ?? next.screenshotDesktopDir);
+    }
+    final offsetRaw = rows['frameToolsOffset'];
+    if (offsetRaw != null) {
+      try {
+        final String decoded =
+            ValueCodec.decodeString(offsetRaw) ?? offsetRaw;
+        final List<String> parts = decoded.split(',');
+        if (parts.length == 2) {
+          final double? x = double.tryParse(parts[0]);
+          final double? y = double.tryParse(parts[1]);
+          if (x != null && y != null) {
+            next = next.copyWith(
+              frameToolsPanelFraction:
+                  Offset(x.clamp(0.0, 1.0), y.clamp(0.0, 1.0)),
+            );
+          }
+        }
+      } catch (_) {
+        // Malformed row: keep the default centred placement.
+      }
     }
     return next;
   }
@@ -1393,6 +1451,23 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
   Future<void> updateSpeedRatePickerMode(SpeedRatePickerMode mode) async {
     set(state.copyWith(speedRatePickerMode: mode));
     await _saveSpeedRow('rateMode', mode.name, SettingValueType.enumeration);
+  }
+
+  /// Commits the speed picker card's position ONCE, at the end of a drag.
+  ///
+  /// Fractions are clamped to [0,1] so a stored value can never park the card
+  /// outside its travel; drag frames stay memory-only (see
+  /// `DraggableDialogShell`), exactly like the control-group floating button.
+  Future<void> updateSpeedRateDialogOffset(Offset fraction) async {
+    final Offset clamped = Offset(
+      fraction.dx.clamp(0.0, 1.0).toDouble(),
+      fraction.dy.clamp(0.0, 1.0).toDouble(),
+    );
+    if (state.speedRateDialogOffset == clamped) return;
+    set(state.copyWith(speedRateDialogOffset: clamped));
+    // "x,y" string, the same shape sidePanelDialogOffset already round-trips.
+    await _saveSpeedRow(
+        'dialogOffset', '${clamped.dx},${clamped.dy}', SettingValueType.string);
   }
 
   Future<AppState> applySpeedRows(AppState base,
@@ -1443,6 +1518,25 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
       } else {
         areaKeyLog.w(
             'applySpeedRows: unknown rateMode "$rateRaw", keep ${next.speedRatePickerMode}');
+      }
+    }
+    final String? offsetRaw = rows['dialogOffset'];
+    if (offsetRaw != null) {
+      try {
+        final String decoded = ValueCodec.decodeString(offsetRaw) ?? offsetRaw;
+        final List<String> parts = decoded.split(',');
+        if (parts.length == 2) {
+          final double? x = double.tryParse(parts[0]);
+          final double? y = double.tryParse(parts[1]);
+          if (x != null && y != null) {
+            next = next.copyWith(
+              speedRateDialogOffset:
+                  Offset(x.clamp(0.0, 1.0), y.clamp(0.0, 1.0)),
+            );
+          }
+        }
+      } catch (_) {
+        // Malformed row: keep the centred default.
       }
     }
     return next;

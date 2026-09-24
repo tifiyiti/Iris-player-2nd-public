@@ -24,7 +24,11 @@ class MigrationV41 {
         'key TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL)',
       );
     } catch (e) {
-      _log.w('MigrationV41: app_meta failed: $e');
+      // Do NOT swallow: a missing app_meta while the version advances would
+      // make the persisted queue index unusable. Rethrowing rolls the migration
+      // back so the next open retries.
+      _log.e('MigrationV41: app_meta failed', e);
+      rethrow;
     }
   }
 }

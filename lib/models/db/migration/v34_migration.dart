@@ -40,7 +40,11 @@ class MigrationV34 {
         'UPDATE $table SET active_seq = id WHERE active_seq = 0',
       );
     } catch (e) {
-      _log.w('MigrationV34: backfill active_seq failed: $e');
+      // Do NOT swallow: an un-backfilled active_seq silently changes the
+      // activation order while the version advances. Rethrowing rolls the
+      // migration back so the next open retries.
+      _log.e('MigrationV34: backfill active_seq failed', e);
+      rethrow;
     }
   }
 
@@ -54,7 +58,11 @@ class MigrationV34 {
     try {
       await m.addColumn(db.bgMappingSegmentsTable, column);
     } catch (e) {
-      _log.w('MigrationV34: add ${column.name} failed: $e');
+      // Do NOT swallow: a missing column while the version advances would break
+      // the activation read/write paths. Rethrowing rolls the migration back so
+      // the next open retries.
+      _log.e('MigrationV34: add ${column.name} failed', e);
+      rethrow;
     }
   }
 
@@ -76,8 +84,12 @@ class MigrationV34 {
         if (row.read<String>('name') == column) return true;
       }
       return false;
-    } catch (_) {
-      return false;
+    } catch (e) {
+      // A failed existence probe is an infrastructure failure, not evidence the
+      // column is absent; rethrow so the open retries instead of acting on a
+      // guess (which would surface as a misleading secondary error).
+      _log.e('MigrationV34: PRAGMA table_info probe failed', e);
+      rethrow;
     }
   }
 }

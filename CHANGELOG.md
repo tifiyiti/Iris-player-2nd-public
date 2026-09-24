@@ -1,3 +1,21 @@
+## v2.0.2
+
+### Changelog
+
+* Playback-speed picker overhaul: `rateMode` now switches the picker content between slider, scrub, ruler and card, all three pickers live in one draggable card, plus a compact big-digit dual-wheel dial with a decimal point, uniform preset chips, and a speed entry in the More menu when the bar has no rate button
+* Storage passwords: rows whose password cannot be decrypted are no longer degraded or rewritten; a locked-password dialog explains the state, and the storage popup closes only after playback actually starts
+* Database migrations: failures are rethrown instead of stamping the schema version, so a broken migration can never be silently marked as applied
+* Tag play: member paths resolve against relative `media_nodes` rows, and the pin-preset name survives widget rebuilds
+* Playback tools: the frame-tools panel remembers its position as a fraction of the viewport
+
+### 更新日志
+
+* 播放速度选择器重做：`rateMode` 现在切换的是同一按钮的选择器内容——滑杆 / 拖动 / 刻度尺 / 卡片，三种选择器整合进一张可拖拽卡片，并新增带小数点的双轮大数字表盘、预设芯片对齐统一；控制栏没有倍速按钮时在「更多」里补上入口
+* 存储密码：无法解密的行不再被降级或改写，新增「密码已锁定」说明弹窗；存储弹窗只在真正开始播放后才关闭
+* 数据库迁移：失败改为抛出异常而不是写入版本号，避免损坏的迁移被静默标记为已完成
+* 标签播放：成员路径改为按相对 `media_nodes` 行解析；固定预设名称在组件重建后不再丢失
+* 播放工具：逐帧工具面板以视口比例记住位置
+
 ## v2.0.1
 
 ### Changelog

@@ -351,6 +351,10 @@ class UnifiedStorageStore extends PersistentStore<StorageState> {
     if (index < 0) return;
     final current = state.storages[index];
     if (current is! WebDAVStorage) return;
+    // A locked entry (undecryptable password) keeps its type so it stays
+    // editable, but its row must not be rewritten: broadcasting a new host
+    // would clear the lock and clobber the stored cipher.
+    if (DbModule.storageRepo.isLockedId(id)) return;
 
     final scopeId = current.dataScopeId ?? current.id;
     final newList = [...state.storages];
@@ -358,6 +362,7 @@ class UnifiedStorageStore extends PersistentStore<StorageState> {
     for (var i = 0; i < newList.length; i++) {
       final member = newList[i];
       if (member is! WebDAVStorage) continue;
+      if (DbModule.storageRepo.isLockedId(member.id)) continue;
       if ((member.dataScopeId ?? member.id) != scopeId) continue;
       final merged = _mergeResolvedHosts(hosts, member.resolvedHosts);
       if (const ListEquality<String>().equals(merged, member.resolvedHosts)) {

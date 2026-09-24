@@ -28,9 +28,9 @@ class RateButton extends HookWidget {
     final t = getLocalizations(context);
     final AppStore appStore = useAppStore();
     final rate = appStore.select(context, (s) => s.rate);
-    // Metadata picker mode: `dualWheel` swaps the flat dropdown for the wheel
-    // dialog, `list` (and gate OFF) keeps the legacy 100-item dropdown exactly
-    // as before.
+    // Metadata picker mode: `list` (and gate OFF) keeps the legacy 100-item
+    // dropdown exactly as before; every other mode swaps the picker CONTENT
+    // of the same button for its dialog.
     final SpeedRatePickerMode mode = appStore.select(
       context,
       (s) => resolveSpeedRatePickerMode(
@@ -52,11 +52,11 @@ class RateButton extends HookWidget {
         triggerMode: a11yActive ? TooltipTriggerMode.tap : null,
         child: TextButton(
           onPressed: () {
-            if (mode == SpeedRatePickerMode.dualWheel) {
+            if (mode == SpeedRatePickerMode.list) {
+              menuKey.currentState?.showButtonMenu();
+            } else {
               showControl();
               showRatePickerDialog(context);
-            } else {
-              menuKey.currentState?.showButtonMenu();
             }
           },
           style: ButtonStyle(overlayColor: overlayColor),

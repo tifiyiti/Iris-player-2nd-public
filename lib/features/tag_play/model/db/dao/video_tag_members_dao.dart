@@ -3,6 +3,9 @@ import 'package:iris/features/tag_play/model/db/adapters/tag_play_member_adapter
 import 'package:iris/features/tag_play/model/db/tables/video_tag_members_table.dart';
 import 'package:iris/features/tag_play/model/domain/tag_play_member.dart';
 import 'package:iris/models/db/app_database.dart';
+import 'package:iris/models/db/storage_path_codec.dart';
+import 'package:iris/models/db/storage_scope.dart';
+import 'package:iris/utils/path_conv.dart';
 import 'package:iris/utils/path_prefix_remap.dart';
 
 part 'video_tag_members_dao.g.dart';
@@ -41,57 +44,98 @@ class VideoTagMembersDao extends DatabaseAccessor<AppDatabase>
     return rows.map(TagPlayMemberAdapter.fromDb).toList(growable: false);
   }
 
-  /// Builds the `WHERE` clause from [clauses], so no caller has to hand-assemble
-  /// a leading `WHERE` vs a continuing `AND` (the two tag lookups below differ
-  /// only in whether they have an extra leading filter).
-  static String _where(List<String> clauses) =>
-      clauses.isEmpty ? '' : 'WHERE ${clauses.join(' AND ')}';
-
   /// Media node ids that [tagId]'s members resolve to, with the optional
   /// [addedAfter] cutoff applied to the MEMBER row.
   ///
   /// The shared-order tag reads address members by NODE ID (the derived index
-  /// stores node ids, not paths), so the `(storageId, path)` membership rows are
-  /// joined to `media_nodes` here instead of being looked up one at a time.
+  /// stores node ids, not paths), so the membership rows are resolved against
+  /// `media_nodes` here instead of being looked up one at a time.
   Future<List<int>> memberNodeIds(int tagId, {DateTime? addedAfter}) async {
-    final rows = await customSelect(
-      'SELECT n.id AS node_id FROM video_tag_members m '
-      'JOIN media_nodes n ON n.storage_id = m.storage_id AND n.path = m.path '
-      '${_where([
-        'm.tag_id = ?',
-        if (addedAfter != null) 'm.added_at >= ?',
-      ])}',
-      variables: [
-        Variable.withInt(tagId),
-        if (addedAfter != null)
-          Variable.withInt(addedAfter.millisecondsSinceEpoch),
-      ],
-    ).get();
-    return [for (final r in rows) r.read<int>('node_id')];
+    final members = await _members(tagId: tagId, addedAfter: addedAfter);
+    final ids = await _resolveNodeIds(members);
+    return [for (final id in ids) if (id != null) id];
   }
 
   /// Every tag's member node ids in one pass, as `(tagId, nodeId)` pairs, with
   /// the optional [addedAfter] cutoff applied to the MEMBER rows.
   ///
   /// The shared intersection count needs `nodeId → tagIds` to walk the index
-  /// once; one join beats a query per tag.
+  /// once; resolving every membership in one batch beats a query per tag.
   Future<List<({int tagId, int nodeId})>> memberNodeIdsByTag(
       {DateTime? addedAfter}) async {
-    final rows = await customSelect(
-      'SELECT m.tag_id AS tag_id, n.id AS node_id FROM video_tag_members m '
-      'JOIN media_nodes n ON n.storage_id = m.storage_id AND n.path = m.path '
-      '${_where([
-        if (addedAfter != null) 'm.added_at >= ?',
-      ])}',
-      variables: [
-        if (addedAfter != null)
-          Variable.withInt(addedAfter.millisecondsSinceEpoch),
-      ],
-    ).get();
+    final members = await _members(addedAfter: addedAfter);
+    final ids = await _resolveNodeIds(members);
     return [
-      for (final r in rows)
-        (tagId: r.read<int>('tag_id'), nodeId: r.read<int>('node_id')),
+      for (var i = 0; i < members.length; i++)
+        if (ids[i] != null) (tagId: members[i].tagId, nodeId: ids[i]!),
     ];
+  }
+
+  /// Membership rows for the given filters (raw rows — expiry filtering stays
+  /// a repository concern where the retention window is known).
+  ///
+  /// The [addedAfter] cutoff goes through Drift's typed DateTime expression,
+  /// which applies the column's storage unit; a raw `added_at >= <ms>` binding
+  /// compared unix SECONDS against milliseconds and matched nothing.
+  Future<List<VideoTagMembersTableData>> _members({
+    int? tagId,
+    DateTime? addedAfter,
+  }) {
+    return (select(videoTagMembersTable)
+          ..where((t) {
+            Expression<bool> cond = const Constant(true);
+            if (tagId != null) cond = cond & t.tagId.equals(tagId);
+            if (addedAfter != null) {
+              cond = cond & t.addedAt.isBiggerOrEqualValue(addedAfter);
+            }
+            return cond;
+          }))
+        .get();
+  }
+
+  /// Resolves membership rows to `media_nodes` ids (null = vanished file),
+  /// aligned 1:1 with [members].
+  ///
+  /// The two tables store DIFFERENT PATH DOMAINS: `video_tag_members.path` is
+  /// DOMAIN-absolute (`D:/Videos/a.mp4` — what the queue/resolver speak), while
+  /// `media_nodes.path` is RELATIVE to the storage base since schema v38, so a
+  /// raw `n.path = m.path` SQL join matched nothing once a base path was
+  /// configured. Following the media-node convention ("canonicalize on the
+  /// lookup side", see `MediaNodesDao.getByPath`), each member path is
+  /// relativized here and probed by `(data_scope_id, path)` — nodes are keyed
+  /// by SCOPE, not entry id, so linked entries find the shared library. The
+  /// codec is idempotent: rows stored in either form resolve.
+  Future<List<int?>> _resolveNodeIds(
+      List<VideoTagMembersTableData> members) async {
+    if (members.isEmpty) return const [];
+    // Dedup the probes per scope: one batched IN() per scope, not one query
+    // per member (a tag can carry thousands of rows).
+    final probes = <String, Set<String>>{};
+    final probeOf = <int, String>{};
+    for (final m in members) {
+      final scope = StorageScope.of(m.storageId);
+      final rel =
+          StoragePathCodec.relativize(m.storageId, canonicalDbPath(m.path));
+      probeOf[m.id] = '$scope|$rel';
+      probes.putIfAbsent(scope, () => <String>{}).add(rel);
+    }
+    final nodeIdByProbe = <String, int>{};
+    const chunkSize = 900; // stay under SQLite's 999-variable limit
+    for (final entry in probes.entries) {
+      final paths = entry.value.toList(growable: false);
+      for (var i = 0; i < paths.length; i += chunkSize) {
+        final chunk = paths.sublist(
+            i, i + chunkSize > paths.length ? paths.length : i + chunkSize);
+        final rows = await (select(attachedDatabase.mediaNodesTable)
+              ..where((t) =>
+                  t.dataScopeId.equals(entry.key) & t.path.isIn(chunk)))
+            .get();
+        for (final r in rows) {
+          nodeIdByProbe['${entry.key}|${r.path}'] = r.id;
+        }
+      }
+    }
+    return [for (final m in members) nodeIdByProbe[probeOf[m.id]]];
   }
 
   /// Newest membership row of [tagId], or null when the tag has none.
@@ -124,17 +168,22 @@ class VideoTagMembersDao extends DatabaseAccessor<AppDatabase>
 
   /// Membership counts per tag, in SQL, optionally ignoring members added
   /// before [addedAfter] (retention cutoff). One GROUP BY for the whole sheet.
+  ///
+  /// The cutoff uses Drift's typed DateTime expression for the same unit reason
+  /// as [_members]: the column stores unix seconds, a raw millisecond binding
+  /// counted nothing.
   Future<Map<int, int>> countsByTag({DateTime? addedAfter}) async {
-    final where = addedAfter == null ? '' : 'WHERE added_at >= ?';
-    final rows = await customSelect(
-      'SELECT tag_id, COUNT(*) AS c FROM video_tag_members $where GROUP BY tag_id',
-      variables: [
-        if (addedAfter != null)
-          Variable.withInt(addedAfter.millisecondsSinceEpoch),
-      ],
-    ).get();
+    final countExpr = countAll();
+    final query = selectOnly(videoTagMembersTable)
+      ..addColumns([videoTagMembersTable.tagId, countExpr])
+      ..groupBy([videoTagMembersTable.tagId]);
+    if (addedAfter != null) {
+      query.where(videoTagMembersTable.addedAt.isBiggerOrEqualValue(addedAfter));
+    }
+    final rows = await query.get();
     return {
-      for (final r in rows) r.read<int>('tag_id'): r.read<int>('c'),
+      for (final r in rows)
+        r.read(videoTagMembersTable.tagId)!: r.read(countExpr) ?? 0,
     };
   }
 

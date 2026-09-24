@@ -123,6 +123,40 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets(
+      'a locked entry seeds every field but the password, and Save stays gated',
+      (tester) async {
+    // A decrypt-failed placeholder: same entry shape, empty password.
+    final locked = WebDAVStorage(
+      id: 's1',
+      name: 'nas',
+      host: '192.168.*.*',
+      resolvedHosts: const <String>['192.168.1.7'],
+      basePath: const <String>['/media'],
+      port: '5005',
+      username: 'alice',
+      password: '',
+      https: false,
+      dataScopeId: 'scope-1',
+    );
+
+    await pumpOpener(tester, storage: locked);
+
+    expect(find.text('Edit WebDAV storage'), findsOneWidget);
+    // Everything except the password is pre-filled, so the user only retypes
+    // that — the wildcard/DHCP resolved-host cache survives the re-auth.
+    expect(find.text('192.168.*.*'), findsOneWidget);
+    expect(find.text('5005'), findsOneWidget);
+    expect(find.text('alice'), findsOneWidget);
+    expect(find.text('/media'), findsOneWidget);
+    // Save is gated on a successful connection test, so an empty password can
+    // never be written over the (currently unreadable) stored one.
+    final save =
+        tester.widget<TextButton>(find.widgetWithText(TextButton, 'Save'));
+    expect(save.onPressed, isNull);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('renders on desktop width through the dialog shell', (tester) async {
     await pumpOpener(tester, surface: const Size(1280, 800));
 

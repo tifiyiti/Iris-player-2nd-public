@@ -35,6 +35,7 @@ import 'package:iris/pages/player/control_bar/control_bar_widgets/seek_step_popo
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_player_ui_store.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/utils/layout_breakpoints.dart';
 import 'package:iris/utils/platform.dart';
 import 'package:iris/widgets/bottom_sheets/show_open_link_bottom_sheet.dart';
 import 'package:iris/widgets/controls/circle_slider_panel_width_control.dart';
@@ -112,6 +113,20 @@ class MoreMenuButton extends HookWidget {
     final bool oneHandedActive =
         (isDesktop || (isMobilePlatform && isLandscape)) &&
             phoneUseMode.usesOneHandedControls;
+    // Is the rendered bar a CircleSliderLayout? Same expression as
+    // `ControlBar.build` (`useOneHandedScrubber || useCircleSlider`), so the
+    // menu never disagrees with the layout it is attached to.
+    final PhoneLandscapeSliderType sliderType =
+        useAppStore().select(context, (s) => s.phoneLandscapeSliderType);
+    final bool sidewayOrCirclePanel = oneHandedActive ||
+        (isMobilePlatform && isLandscape && sliderType.isCircle);
+    // The speed row in More is a FALLBACK: show it exactly when the live bar
+    // carries no RateButton of its own. CircleSliderLayout never renders one
+    // (any width); the linear bars only get one from kMobileBreakpoint up.
+    // Width alone was the old gate (600) — wrong for sideway mode and it left
+    // a 600–640 hole where MobileControlLayout was active but the row hid.
+    final bool layoutHasRateButton =
+        !sidewayOrCirclePanel && width >= kMobileBreakpoint;
     final PhoneScrubberSlot scrubberSlot = resolveScrubberSlot(
       kind: scrubberKind,
       metadataEnabled: metaSettingsOn,
@@ -222,7 +237,7 @@ class MoreMenuButton extends HookWidget {
         // is permanently false): rule CRUD lives in meta-settings, playback
         // stays unaware single-video. Row hidden, definition kept as dead code.
         if (VirtualMediaGate.legacySheetEnabled) _virtualMediaItem(context, t),
-        if (width < kRateTileBreakpoints) _rateItem(context, t, rate),
+        if (!layoutHasRateButton) _rateItem(context, t, rate),
         if (shouldShowSidePanelEntry)
           _unifiedSidePanelItem(context, t, sidePanelTitle),
         // Fine-tune range retired — dial axis strip now mirrors global seek step.
