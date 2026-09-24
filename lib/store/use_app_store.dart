@@ -22,6 +22,8 @@ import 'package:iris/models/enums/webdav_scan_mode.dart' show WebDavScanMode;
 import 'package:iris/features/phone/one_handed_scrubber/controller/phone_ring_dial_math.dart';
 import 'package:iris/features/speed/model/enum/speed_gesture_mode.dart'
     show SpeedGestureMode;
+import 'package:iris/features/speed/model/enum/speed_rate_picker_mode.dart'
+    show SpeedRatePickerMode;
 import 'package:iris/features/virtual_media/model/enum/vm_enums.dart'
     show VmCrossSegmentDragStrategy, VmDualTimeSyncMode;
 import 'package:iris/features/virtual_media/rule/vm_tick_color.dart'
@@ -313,6 +315,15 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
     set(state.copyWith(circlePosY: v2));
     if (persist)
       await _saveSliderRow('circlePosY', v2, SettingValueType.double);
+  }
+
+  /// Side panel bottom button-block position (side-relative 0..1, 0 = the edge
+  /// facing the screen centre). Persisted as the `slider.barPos` AUX row, the
+  /// same lightweight path [updateCirclePosX] uses.
+  Future<void> updateSidewayBarPos(double v, {bool persist = true}) async {
+    final double v2 = v.clamp(0.0, 1.0).toDouble();
+    set(state.copyWith(sidewayBarPos: v2));
+    if (persist) await _saveSliderRow('barPos', v2, SettingValueType.double);
   }
 
   // ── Ring dial styling ────────────────────────────────────────────────────
@@ -663,6 +674,20 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
   Future<void> updatePhoneOneHandedScrubberKind(
       PhoneOneHandedScrubberKind kind) async {
     set(state.copyWith(phoneOneHandedScrubberKind: kind));
+    await _persist(state);
+  }
+
+  /// Phone-PORTRAIT bottom-bar alignment of the normal playback group.
+  /// Persisted as the `app.portraitPlaybackAlign` snapshot row.
+  Future<void> updatePortraitPlaybackAlign(PortraitBarAlign align) async {
+    set(state.copyWith(portraitPlaybackAlign: align));
+    await _persist(state);
+  }
+
+  /// Phone-PORTRAIT bottom-bar alignment of the group-2 副音 quick bar.
+  /// Persisted as the `app.portraitSubAudioAlign` snapshot row.
+  Future<void> updatePortraitSubAudioAlign(PortraitBarAlign align) async {
+    set(state.copyWith(portraitSubAudioAlign: align));
     await _persist(state);
   }
 
@@ -1365,27 +1390,62 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
     await _saveSpeedRow('gestureMode', mode.name, SettingValueType.enumeration);
   }
 
+  Future<void> updateSpeedRatePickerMode(SpeedRatePickerMode mode) async {
+    set(state.copyWith(speedRatePickerMode: mode));
+    await _saveSpeedRow('rateMode', mode.name, SettingValueType.enumeration);
+  }
+
   Future<AppState> applySpeedRows(AppState base,
       {Map<String, String>? prefetched}) async {
     if (!base.useMetadataSettings || !MetaSettingsModule.ready) return base;
     final Map<String, String> rows =
         prefetched ?? await MetaSettingsModule.loadSpeedRows();
     if (rows.isEmpty) return base;
-    String? raw = rows['gestureMode'];
-    if (raw == null) return base;
-    raw = raw.trim();
-    if (raw.startsWith('"') && raw.endsWith('"') && raw.length >= 2) {
-      try {
-        final decoded = json.decode(raw);
-        if (decoded is String) raw = decoded;
-      } catch (_) {}
+
+    // ValueCodec stores enumeration names verbatim; tolerate the JSON-quoted
+    // form older builds may have written.
+    String? name(String field) {
+      var raw = rows[field]?.trim();
+      if (raw == null) return null;
+      if (raw.startsWith('"') && raw.endsWith('"') && raw.length >= 2) {
+        try {
+          final decoded = json.decode(raw);
+          if (decoded is String) raw = decoded;
+        } catch (_) {}
+      }
+      return raw;
     }
-    for (final v in SpeedGestureMode.values) {
-      if (v.name == raw) return base.copyWith(speedGestureMode: v);
+
+    T? match<T extends Enum>(String? raw, List<T> values) {
+      if (raw == null) return null;
+      for (final v in values) {
+        if (v.name == raw) return v;
+      }
+      return null;
     }
-    areaKeyLog.w(
-        'applySpeedRows: unknown gestureMode "$raw", keep ${base.speedGestureMode}');
-    return base;
+
+    var next = base;
+    final String? gestureRaw = name('gestureMode');
+    if (gestureRaw != null) {
+      final mode = match(gestureRaw, SpeedGestureMode.values);
+      if (mode != null) {
+        next = next.copyWith(speedGestureMode: mode);
+      } else {
+        areaKeyLog.w(
+            'applySpeedRows: unknown gestureMode "$gestureRaw", keep ${next.speedGestureMode}');
+      }
+    }
+    final String? rateRaw = name('rateMode');
+    if (rateRaw != null) {
+      final mode = match(rateRaw, SpeedRatePickerMode.values);
+      if (mode != null) {
+        next = next.copyWith(speedRatePickerMode: mode);
+      } else {
+        areaKeyLog.w(
+            'applySpeedRows: unknown rateMode "$rateRaw", keep ${next.speedRatePickerMode}');
+      }
+    }
+    return next;
   }
 
   /// Rehydrates EVERY auxiliary (`<domain>.`) domain onto [base].
@@ -1823,6 +1883,7 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
       sidewayPanelHeightPx: pxH(rows['heightPx']) ?? base.sidewayPanelHeightPx,
       circlePosX: clamp01(rows['circlePosX']) ?? base.circlePosX,
       circlePosY: clamp01(rows['circlePosY']) ?? base.circlePosY,
+      sidewayBarPos: clamp01(rows['barPos']) ?? base.sidewayBarPos,
       sidewayHandleInsetH:
           handleInset(rows['handleInsetH']) ?? base.sidewayHandleInsetH,
       sidewayHandleInsetV:

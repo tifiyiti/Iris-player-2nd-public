@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:iris/features/background_playback/background_playback_gate.dart';
+import 'package:iris/features/background_playback/view/bg_source_rule_editor.dart';
 import 'package:iris/features/media_library/model/db/dao/for_page/media_node_page_result.dart';
 import 'package:iris/features/media_library/model/enum/basic_enum.dart';
 import 'package:iris/features/media_library/model/enum/media_lib_sources.dart';
@@ -17,9 +19,12 @@ import 'package:iris/features/scenario_playback/model/domain/scenario_exclude_ru
 import 'package:iris/features/scenario_playback/model/enum/exclude_rule_kind.dart';
 import 'package:iris/features/scenario_playback/model/enum/scenario_source_kind.dart';
 import 'package:iris/features/scenario_playback/actions/scenario_playback_actions.dart';
+import 'package:iris/features/scenario_playback/playback/scenario_playback_provider.dart';
 import 'package:iris/features/scenario_playback/store/playback_scenario_store_state.dart';
 import 'package:iris/features/scenario_playback/store/use_playback_scenario_store.dart';
 import 'package:iris/features/scenario_playback/view/coordinator/scenario_browser_store.dart';
+import 'package:iris/features/virtual_media/commands/vm_actions.dart';
+import 'package:iris/features/virtual_media/vm_gate.dart';
 import 'package:iris/models/db/db_module.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/get_localizations.dart';
@@ -568,6 +573,17 @@ class PagedScenarioBrowseDataSource
     final t = getLocalizations(scenario);
     final isDir = item.kind == ScenarioBrowseItemKind.directory;
     final isStorage = item.kind == ScenarioBrowseItemKind.storage;
+    String storageNameOf(String storageId) =>
+        useStorageStore().findById(storageId)?.name ?? storageId;
+    // Storage root → '' (whole storage); a directory → its storage-relative
+    // canonical path.
+    String folderPathOf(ScenarioBrowseItem e) {
+      if (e.kind == ScenarioBrowseItemKind.storage) return '';
+      final base =
+          useStorageStore().findById(e.storageId)?.basePath.join('/') ?? '';
+      return relativeToStoragePath(e.path, [base]);
+    }
+
     return [
       if (isStorage || isDir)
         GenericItemAction<ScenarioBrowseItem>(
@@ -585,6 +601,36 @@ class PagedScenarioBrowseDataSource
           onPressed: (ctx, i) {
             final e = i as ScenarioBrowseItem;
             _excludeDirectory(isStorage ? '' : e.path);
+          },
+        ),
+      // Folder quick-adds: the storage root / a directory becomes a 副音 source
+      // rule / a virtual-merge rule, prefilled with storage+folder defaults.
+      if ((isStorage || isDir) && BackgroundPlaybackGate.enabled)
+        GenericItemAction<ScenarioBrowseItem>(
+          label: t.lib_add_as_bg_source,
+          icon: const Icon(Icons.queue_music, size: 16),
+          onPressed: (ctx, i) {
+            final e = i as ScenarioBrowseItem;
+            openBgSourceRuleEditorForFolder(
+              ctx,
+              storageName: storageNameOf(e.storageId),
+              folderName: isStorage ? '' : e.name,
+              folderPath: folderPathOf(e),
+            );
+          },
+        ),
+      if ((isStorage || isDir) && VirtualMediaGate.enabled)
+        GenericItemAction<ScenarioBrowseItem>(
+          label: t.lib_add_as_vm_merge,
+          icon: const Icon(Icons.merge_type, size: 16),
+          onPressed: (ctx, i) {
+            final e = i as ScenarioBrowseItem;
+            openVmRuleEditorForFolder(
+              ctx,
+              storageName: storageNameOf(e.storageId),
+              folderName: isStorage ? '' : e.name,
+              folderPath: folderPathOf(e),
+            );
           },
         ),
       if (item.kind == ScenarioBrowseItemKind.file) ...[
@@ -627,6 +673,7 @@ class PagedScenarioBrowseDataSource
       path: path,
       recursive: true,
     );
+    await _signalDefinitionChanged();
   }
 
   Future<void> _excludeDirectory(String path) async {
@@ -641,6 +688,7 @@ class PagedScenarioBrowseDataSource
         recursive: true,
       ),
     );
+    await _signalDefinitionChanged();
   }
 
   Future<void> _addExplicitItem(ScenarioBrowseItem item) async {
@@ -649,6 +697,7 @@ class PagedScenarioBrowseDataSource
       storageId: item.storageId,
       path: item.path,
     );
+    await _signalDefinitionChanged();
   }
 
   Future<void> _excludeMedia(ScenarioBrowseItem item) async {
@@ -661,5 +710,17 @@ class PagedScenarioBrowseDataSource
         path: item.path,
       ),
     );
+    await _signalDefinitionChanged();
+  }
+
+  /// A definition edit changes the effective queue: re-validate the current
+  /// item when the edited scenario is the active one, then re-resolve the
+  /// player chrome and re-fetch any open queue list. Mirrors the Sources /
+  /// Manage "Remove" signal so a Browse edit cannot leave the chrome stale.
+  Future<void> _signalDefinitionChanged() async {
+    if (scenarioId == _store.state.activeScenarioId) {
+      await ScenarioPlaybackProvider(store: _store).revalidateCurrent();
+    }
+    await _store.notifyDefinitionChanged();
   }
 }

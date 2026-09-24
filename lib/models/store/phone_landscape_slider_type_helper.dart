@@ -90,11 +90,29 @@ String metaSliderTypeLabel(MetaSliderTypeOption option, AppLocalizations t) =>
 /// snapshot bit (also gate-gated) keeps a mouse move from revealing the bar —
 /// it appears on click instead. Both rules funnel through this one function so
 /// every hover/tap/panel-visibility path stays consistent.
-bool shouldRequireClickToShowPanel(AppState state) {
-  if (!state.useMetadataSettings) return false;
-  if (isDesktop) return !state.desktopHoverShowControlBar;
-  if (!state.sidewayPanelRequireClick) return false;
-  if (!state.phoneLandscapeUseMode.usesOneHandedControls) return false;
+bool shouldRequireClickToShowPanel(AppState state) =>
+    shouldRequireClickToShowPanelFrom(
+      useMetadataSettings: state.useMetadataSettings,
+      desktopHoverShowControlBar: state.desktopHoverShowControlBar,
+      sidewayPanelRequireClick: state.sidewayPanelRequireClick,
+      oneHandedControls: state.phoneLandscapeUseMode.usesOneHandedControls,
+    );
+
+/// [shouldRequireClickToShowPanel] over already-selected fields.
+///
+/// Lets a widget subscribe to a narrow AppState slice (record selector) instead
+/// of the whole object, so it does not rebuild on unrelated app-state changes.
+/// The AppState overload delegates here — this stays the single authority.
+bool shouldRequireClickToShowPanelFrom({
+  required bool useMetadataSettings,
+  required bool desktopHoverShowControlBar,
+  required bool sidewayPanelRequireClick,
+  required bool oneHandedControls,
+}) {
+  if (!useMetadataSettings) return false;
+  if (isDesktop) return !desktopHoverShowControlBar;
+  if (!sidewayPanelRequireClick) return false;
+  if (!oneHandedControls) return false;
   return true;
 }
 
@@ -195,9 +213,31 @@ bool resolveControlPanelVisible({
   required bool editing,
   required bool isVideo,
   required bool dragActive,
+}) =>
+    resolveControlPanelVisibleFrom(
+      requireClick: shouldRequireClickToShowPanel(appState),
+      isShowControl: isShowControl,
+      isHoverReveal: isHoverReveal,
+      isPanelClickArmed: isPanelClickArmed,
+      editing: editing,
+      isVideo: isVideo,
+      dragActive: dragActive,
+    );
+
+/// [resolveControlPanelVisible] over an already-resolved [requireClick].
+///
+/// Same contract; the AppState overload delegates here so a caller that only
+/// needs the click-to-show bit can avoid subscribing to the whole AppState.
+bool resolveControlPanelVisibleFrom({
+  required bool requireClick,
+  required bool isShowControl,
+  required bool isHoverReveal,
+  required bool isPanelClickArmed,
+  required bool editing,
+  required bool isVideo,
+  required bool dragActive,
 }) {
   if (editing || !isVideo || dragActive) return true;
-  final bool requireClick = shouldRequireClickToShowPanel(appState);
   // Desktop explicit shows (incl. startup) always reveal the bar; a passive
   // hover obeys the `app.desktopHoverShow*` switches. Mobile keeps the original
   // click-latch rule (`requireClick` is the one-handed side-panel gate there).

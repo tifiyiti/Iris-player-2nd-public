@@ -47,6 +47,7 @@ void main() {
         kWarningTagCommandGrammar,
         kWarningVmMergeConcept,
         kWarningAppOverview,
+        kWarningBgSourceManage,
       ]);
     });
   });

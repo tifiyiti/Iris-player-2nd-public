@@ -109,6 +109,81 @@ String? safReadableRelative(String raw) {
   return segs.join('/');
 }
 
+/// Whether [s] sits under [normBase] as a whole PATH SEGMENT, not merely as a
+/// raw string prefix.
+///
+/// A bare `startsWith` would treat `E:/media2/x` as being under `E:/media`
+/// (stripping to the wrong `2/x`). The match only holds when the base ends
+/// exactly at a `/` boundary (or the strings are equal); a base that already
+/// ends with `/` embeds its own boundary.
+bool _underBase(String s, String normBase) {
+  if (!s.toLowerCase().startsWith(normBase.toLowerCase())) return false;
+  if (s.length == normBase.length) return true;
+  if (normBase.endsWith('/')) return true;
+  return s[normBase.length] == '/';
+}
+
+/// Normalises [raw] (an absolute path or a browser-joined storage path) to the
+/// STORAGE-RELATIVE directory form rules store, by stripping the LONGEST
+/// registered storage base path it sits under.
+///
+/// Mirrors the editors' pick-time relativisation: SAF tree URIs decode to their
+/// readable relative tail ([safTreeRelativeTo]), non-SAF bases are stripped
+/// case-insensitively, and input under no base falls through (SAF input still
+/// decodes via [safReadableRelative]). `''` means the storage root.
+///
+/// LONGEST match (not first): overlapping bases are legal (`E:/media` and
+/// `E:/media/sub`), and taking the first would leave an `E:/media/sub` path
+/// relative to the shorter base (`sub/x` instead of `x`).
+///
+/// [storageBasePaths] are the joined `Storage.basePath` strings; taking plain
+/// strings keeps this util free of the model layer.
+String relativeToStoragePath(String raw, Iterable<String> storageBasePaths) {
+  var s = raw.trim().replaceAll('\\', '/');
+  if (s.isEmpty) return '';
+  // SAF tree bases yield a decoded relative tail; a base that matches exactly
+  // returns '' (the storage root). Keep the MOST SPECIFIC match: a longer
+  // decoded tail means a shorter (more specific) relative path.
+  String? safRel;
+  int bestBaseLen = -1;
+  String? bestBase;
+  for (final base in storageBasePaths) {
+    if (base.isEmpty) continue;
+    // Android SAF storage: resolve the encoded tree id to a readable relative
+    // directory (`Movies`, not the whole `content://...` URI).
+    if (base.startsWith('content://')) {
+      final rel = safTreeRelativeTo(s, base);
+      if (rel != null && (safRel == null || rel.length < safRel.length)) {
+        safRel = rel;
+      }
+      continue;
+    }
+    final normBase = base
+        .replaceAll('\\', '/')
+        .replaceAllMapped(RegExp(r'^file:///'), (m) => '');
+    if (normBase.isNotEmpty &&
+        _underBase(s, normBase) &&
+        normBase.length > bestBaseLen) {
+      bestBaseLen = normBase.length;
+      bestBase = normBase;
+    }
+  }
+  if (bestBase != null) {
+    s = s.substring(bestBase.length);
+  } else if (safRel != null) {
+    return safRel;
+  }
+  while (s.startsWith('/')) {
+    s = s.substring(1);
+  }
+  while (s.endsWith('/')) {
+    s = s.substring(0, s.length - 1);
+  }
+  s = s.trim();
+  if (isSafPath(s)) return safReadableRelative(s) ?? s;
+  return s;
+}
+
 /// Reversible canonical form for SAF content-prefixed input (scheme intact,
 /// empty/`..` segments dropped). Non-SAF input keeps the legacy behavior.
 String _canonicalSafOrLegacy(String raw) {

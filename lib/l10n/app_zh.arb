@@ -517,6 +517,7 @@
   "keybind_act_exit_app": "退出应用",
   "shot_invalid_dir_title": "目录无效",
   "shot_pick_error_android": "无法使用该目录，请重选一个可访问的文件夹。",
+  "shot_pick_unwritable": "该文件夹不可写入，已保留当前保存目录。",
   "shot_pick_error_desktop": "桌面端不支持 content:// 目录，请选择本地文件夹路径。",
   "shot_path_error": "路径无效：不能包含 .. 穿越上级目录{desktopNote}。",
   "@shot_path_error": {
@@ -533,6 +534,12 @@
   "shot_current_dir": "当前生效目录",
   "shot_reset": "恢复默认",
   "shot_saved_title": "截屏已保存",
+  "shot_custom_dir_skipped": "{path}\n\n所选目录不可写入，已改为保存到默认目录。",
+  "@shot_custom_dir_skipped": {
+    "placeholders": {
+      "path": {"type": "String"}
+    }
+  },
   "shot_unsupported_title": "当前后端不支持截屏",
   "shot_unsupported_body": "后端 {backend} 无法抓取视频帧。请切换到 MediaKit 后端后重试。",
   "@shot_unsupported_body": {
@@ -541,6 +548,28 @@
     }
   },
   "shot_failed_title": "截屏失败",
+  "shot_failed_generic": "截屏失败（发生未知错误）",
+  "shot_fail_frame_grab": "抓取画面失败：{detail}",
+  "@shot_fail_frame_grab": {
+    "placeholders": {
+      "detail": {"type": "String"}
+    }
+  },
+  "shot_fail_empty_frame": "后端未返回画面数据。",
+  "shot_fail_undecodable": "画面数据无法解码为图片。",
+  "shot_fail_write": "写入文件失败：{detail}",
+  "@shot_fail_write": {
+    "placeholders": {
+      "detail": {"type": "String"}
+    }
+  },
+  "shot_fail_no_dir": "无法定位保存目录：{detail}",
+  "@shot_fail_no_dir": {
+    "placeholders": {
+      "detail": {"type": "String"}
+    }
+  },
+  "shot_saf_dir_fallback": "已选系统目录",
   "shot_timeout": "截屏超时（15秒），请重试",
   "shot_saving": "正在保存截屏…",
   "shot_frame_prev": "上一帧",
@@ -679,6 +708,12 @@
   "set_keybind_editor": "自定义键盘快捷键",
   "set_legacy_compat": "旧版兼容",
   "set_speed_gesture_mode": "变速手势",
+  "set_speed_rate_mode": "播放速度选择方式",
+  "set_rate_mode_dual_wheel": "双滚轮",
+  "set_rate_mode_list": "平铺列表（0.1）",
+  "rate_wheel_int_label": "整数",
+  "rate_wheel_dec_label": "小数",
+  "rate_wheel_hint": "小数轮随整数部分自动调整：整数为 0 时无 0，整数为 10 时仅 0",
   "set_virtual_media_cross_drag": "虚拟跨段拖动策略",
   "set_vm_dual_time_sync": "双层时间同步",
   "set_vm_hide_chunk_when_single_segment": "单段时隐藏分块圆环",
@@ -745,8 +780,20 @@
   "set_keybind_editor_desc": "仅 PotPlayer 方案可改：每动作最多 4 个绑定，可清空解绑；蓝色加粗为已自定义",
   "set_window_keep_in_bounds_desc": "播放下一视频/音频时若窗口已移出屏幕则自动拉回可视区域（仅桌面；全屏/最大化时不处理）",
   "set_speed_gesture_mode_desc": "仅长按横滑入态后生效；横 0.1 精调，纵 1.0 粗调（双档）/ 仅横 0.1（单档）",
+  "set_speed_rate_mode_desc": "双滚轮（闹钟式，整数 + 小数）或旧的 0.1 平铺列表",
   "set_legacy_compat_desc": "非开发人员勿触——开发遗留的兼容开关，误触可能造成 App 崩溃或数据丢失",
   "set_slider_type_desc": "普通 / 圆环 / 侧滑；侧滑下共用面板总尺寸，旧版降级为普通",
+  "set_portrait_bar_align": "竖屏底栏对齐",
+  "set_portrait_bar_align_desc": "手机竖屏底部按钮的对齐方式；普通播放组与副音快速功能组分别设置",
+  "set_portrait_bar_align_playback": "普通播放组",
+  "set_portrait_bar_align_sub_audio": "副音快速功能",
+  "set_portrait_bar_align_summary": "播放：{playback} · 副音：{subAudio}",
+  "@set_portrait_bar_align_summary": {
+    "placeholders": {
+      "playback": {"type": "String"},
+      "subAudio": {"type": "String"}
+    }
+  },
   "set_circle_slider_center_action_desc": "点击圆心：无动作 / 收起控制栏 / 播放暂停（仅圆弧模式）",
   "set_screen_orientation_desc": "跟随系统 / 强制横竖屏；开启“记住上次方向”时自动回落",
   "set_gesture_profile_desc": "统一手势方案：经典 / 区域左右侧；竖屏固定常规区域",
@@ -1360,6 +1407,8 @@
   "lib_open_with": "用其它应用打开",
   "lib_play_append": "追加播放",
   "lib_add_as_source": "添加为源",
+  "lib_add_as_bg_source": "添加为音源",
+  "lib_add_as_vm_merge": "添加为虚拟合并",
   "lib_create_library": "创建媒体库",
   "lib_batch_create": "批量创建媒体库",
   "lib_load_error": "加载失败",
@@ -1512,6 +1561,7 @@
   "sld_corner_diagonal": "对角",
   "sld_panel_width": "总 Panel 宽度",
   "sld_panel_height": "总 Panel 高度",
+  "sld_bar_position": "按钮条位置（靠屏幕中心）",
   "sld_size_pct": "{label}  {pct}%  ·  ~{px} px",
   "@sld_size_pct": {
     "placeholders": {
@@ -1555,6 +1605,9 @@
   "desktop_center_zone_phone_mode": "使用手机中心扇区方案",
   "desktop_center_zone_phone_mode_desc": "开启后桌面端采用与手机一致的四扇区中心点按（含切换底部按钮组）；关闭时保持旧行为：四扇区均为切换控制栏。",
   "control_group_floating_button": "浮动切换按钮",
+  "control_group_floating_desc": "分别在横屏与竖屏下显示底部分组的浮动切换按钮。",
+  "control_group_floating_show_landscape": "横屏显示",
+  "control_group_floating_show_portrait": "竖屏显示",
   "control_group_button_tip": "切换底部控制组",
   "control_group_playback": "播放控制组",
   "control_group_background": "副音控制组",
@@ -2450,6 +2503,8 @@
   "bg_continuation_omitted": "…（已省略更早的项）",
   "dlg_warn_bg_continuation_title": "副音跨文件继续说明",
   "dlg_warn_bg_continuation_desc": "副音文件先于视频播放完时，说明副音列表的经过与继续位置",
+  "dlg_warn_bg_source_manage_title": "音源管理为暂存编辑",
+  "dlg_warn_bg_source_manage_desc": "此处的副音音源修改为暂存：不点 ✓ 不会保存，点放弃则保持当前音源不变",
   "bg_sources_storage_id_hint": "存储 ID",
   "bg_step_swap_only": "上/下一集：仅切换副音（视频位置不动）",
   "bg_step_follow_link": "上/下一集：同时带动视频（跟随联动）",
@@ -2618,6 +2673,7 @@
   "bg_src_auto_dedupe": "自动去重",
   "bg_src_auto_dedupe_desc": "同一文件被多个来源匹配时只保留一次（默认关闭——重复由你自行处理）",
   "bg_src_refresh_now": "立即更新",
+  "bg_src_refresh_idle_body": "副音未在播放——当前无需更新，音源改动将在下次启动副音时生效。",
   "bg_src_banner_fallback_title": "没有激活的来源",
   "bg_src_banner_fallback_body": "所有来源规则都已关闭，将自动改用内置「音库纯 tag 源」。",
   "bg_src_banner_refresh_body": "来源规则的改动仅在点「立即更新」或关闭再重开副音后生效。",
@@ -2696,6 +2752,13 @@
       "path": {"type": "String"}
     }
   },
+  "bg_source_manage_open": "音源管理",
+  "bg_source_manage_title": "副音音源管理",
+  "bg_source_manage_staged_hint": "此处修改暂不生效——点 ✓ 才应用，点放弃则保持当前音源不变",
+  "bg_source_manage_load_failed": "无法加载副音音源。",
+  "bg_source_manage_save_failed": "部分修改保存失败，音源列表可能只更新了一部分。",
+  "bg_source_manage_confirm": "确认",
+  "bg_source_manage_discard": "放弃",
   "set_bg_fallback_banner": "显示“无激活来源”提示",
   "set_bg_fallback_banner_desc": "当没有任何来源规则激活、改用内置源时，在副音来源里显示可关闭的提示条",
   "bg_mapping_missing_title": "映射文件不可用",

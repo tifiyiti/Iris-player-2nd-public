@@ -15,11 +15,24 @@ import 'package:iris/store/use_scrub_drag_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/platform.dart';
 
+/// The narrow AppState slice [ControlGroupFloatingButton] subscribes to.
+///
+/// Named record fields give structural equality, so the button rebuilds only
+/// when one of these actually changes — not on every AppState mutation.
+typedef _FloatingButtonAppSlice = ({
+  bool metaOn,
+  bool desktopHoverShowControlBar,
+  bool sidewayRequireClick,
+  bool oneHandedControls,
+  bool desktopPhoneMode,
+  ScreenOrientation runtimeOrientation,
+});
+
 /// Draggable one-handed bottom-group switch button.
 ///
 /// Lives in the player Stack; drag anywhere and the fraction (of the host box)
-/// is committed once on release. Visibility and position are persisted by
-/// [ControlGroupStore]; the More menu owns the on/off switch.
+/// is committed once on release. Visibility (per orientation) and position are
+/// persisted by [ControlGroupStore]; the More menu owns the visibility editor.
 ///
 /// The switch RIDES the control panel: it fades in and out with the bar (see
 /// [resolveControlPanelVisible], the very rule the bar itself is gated with) and
@@ -46,19 +59,35 @@ class ControlGroupFloatingButton extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final store = useControlGroupStore();
-    final bool enabled =
-        store.select(context, (s) => s.floatingButtonEnabled);
     final PlayerControlGroup group =
         store.select(context, (s) => s.group);
     final double storedX = store.select(context, (s) => s.floatingX);
     final double storedY = store.select(context, (s) => s.floatingY);
-    // Full AppState: both the phone-mode opt-in and the panel-visibility policy
-    // (require-click / hover switches) read it.
-    final AppState app = useAppStore().select(context, (s) => s);
+    // Narrow AppState subscription (record selector → structural equality): the
+    // button reads only the phone-mode opt-in, the orientation and the
+    // click-to-show policy inputs. Selecting the whole AppState (as before)
+    // rebuilt this persistent Stack child on EVERY app-state change.
+    final _FloatingButtonAppSlice app = useAppStore().select(context, (s) => (
+          metaOn: s.useMetadataSettings,
+          desktopHoverShowControlBar: s.desktopHoverShowControlBar,
+          sidewayRequireClick: s.sidewayPanelRequireClick,
+          oneHandedControls: s.phoneLandscapeUseMode.usesOneHandedControls,
+          desktopPhoneMode: s.desktopCenterZonePhoneMode,
+          runtimeOrientation: s.runtimeOrientation,
+        ));
     // The switch only exists where a second group does: phones, or desktop in
     // the phone-mode opt-in.
-    final bool supported =
-        isMobilePlatform || app.desktopCenterZonePhoneMode;
+    final bool supported = isMobilePlatform || app.desktopPhoneMode;
+    // Orientation decides WHICH visibility flag applies — the same single
+    // authority the control bar / overlay use.
+    final bool isLandscape = isLandscapeOrientation(
+      runtimeOrientation: app.runtimeOrientation,
+      realOrientation: MediaQuery.orientationOf(context),
+    );
+    final bool enabled = store.select(
+      context,
+      (s) => isLandscape ? s.floatingButtonLandscape : s.floatingButtonPortrait,
+    );
     // Same rule the control bar is gated with, so the two cannot drift.
     final List<PlayQueueItem> playQueue =
         usePlayQueueStore().select(context, (s) => s.playQueue);
@@ -71,8 +100,13 @@ class ControlGroupFloatingButton extends HookWidget {
           index >= 0 &&
           playQueue[index].file.type == ContentType.video;
     }, [playQueue, currentIndex]);
-    final bool panelVisible = resolveControlPanelVisible(
-      appState: app,
+    final bool panelVisible = resolveControlPanelVisibleFrom(
+      requireClick: shouldRequireClickToShowPanelFrom(
+        useMetadataSettings: app.metaOn,
+        desktopHoverShowControlBar: app.desktopHoverShowControlBar,
+        sidewayPanelRequireClick: app.sidewayRequireClick,
+        oneHandedControls: app.oneHandedControls,
+      ),
       isShowControl: usePlayerUiStore().select(context, (s) => s.isShowControl),
       isHoverReveal:
           usePlayerUiStore().select(context, (s) => s.isHoverReveal),

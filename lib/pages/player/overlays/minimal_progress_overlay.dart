@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
-import 'package:iris/features/background_playback/services/bg_vm_visibility.dart';
-import 'package:iris/features/background_playback/store/use_background_playback_store.dart';
 import 'package:iris/features/virtual_media/interaction/ui/vm_dual_time.dart';
 import 'package:iris/features/virtual_media/store/vm_playback_store.dart';
 import 'package:iris/models/file.dart';
@@ -91,14 +89,14 @@ class _MinimalProgressContent extends StatelessWidget {
     );
 
     // B-scheme dual time, compact single-line form (space is tight here):
-    // `totalPos / totalDur  subPos/subDur`. VM-only; the bg-suppression gate
-    // matches the shared ControlBarSlider so 副音 never shows VM sub times.
+    // `totalPos / totalDur  subPos/subDur`. This overlay is a passive
+    // foreground readout (display-only, no control ability), so it never
+    // re-targets to 副音: the foreground VM session decorates it exactly as in
+    // ordinary playback.
     final vmItemRaw = useVmPlaybackStore().select(context, (s) => s.item);
-    final bgIsControl = useBackgroundPlaybackStore()
-        .select(context, (s) => s.bgOwnsControls);
     final vmSync = useAppStore().select(context, (s) => s.vmDualTimeSync);
     final vmDual = VmDualTime.resolve(
-      vmItemForControlTarget(vmItemRaw, bgIsControl: bgIsControl),
+      vmItemRaw,
       progress.position.inMilliseconds,
       sync: vmSync,
     );

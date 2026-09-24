@@ -26,33 +26,108 @@ const double kBgEditorSheetBreakpoint = 600;
 ///
 /// Phone ⇒ bottom sheet, desktop ⇒ centred dialog; both share ONE cached form
 /// and a single keyboard padder (see [BgSourceRuleEditorForm]).
-Future<void> openBgSourceRuleEditor(
+///
+/// Returns the edited rule on save, or null when cancelled. With [persist]
+/// (the default) the rule is written to the repository before returning; pass
+/// `persist: false` to let a staging caller collect it without touching the DB.
+///
+/// The `default*` parameters prefill a NEW draft only (`initial == null`);
+/// editing an existing rule ignores them and keeps its stored values.
+Future<BgSourceRule?> openBgSourceRuleEditor(
   BuildContext context, {
   BgSourceRule? initial,
   required int sortOrder,
+  bool persist = true,
+  String? defaultName,
+  String? defaultDescription,
+  BgSourceRuleKind? defaultKind,
+  DirMatchMode? defaultMatchMode,
+  List<String>? defaultPaths,
+  String? defaultFileStorageId,
+  String? defaultFilePath,
 }) async {
   final width = MediaQuery.sizeOf(context).width;
-  final Future<bool?> saved;
+  final Future<BgSourceRule?> saved;
   if (width < kBgEditorSheetBreakpoint) {
-    saved = showModalBottomSheet<bool>(
+    saved = showModalBottomSheet<BgSourceRule>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (_) => BgSourceRuleEditorSheet(
         initial: initial,
         sortOrder: sortOrder,
+        persist: persist,
+        defaultName: defaultName,
+        defaultDescription: defaultDescription,
+        defaultKind: defaultKind,
+        defaultMatchMode: defaultMatchMode,
+        defaultPaths: defaultPaths,
+        defaultFileStorageId: defaultFileStorageId,
+        defaultFilePath: defaultFilePath,
       ),
     );
   } else {
-    saved = showDialog<bool>(
+    saved = showDialog<BgSourceRule>(
       context: context,
       builder: (_) => BgSourceRuleEditorDialog(
         initial: initial,
         sortOrder: sortOrder,
+        persist: persist,
+        defaultName: defaultName,
+        defaultDescription: defaultDescription,
+        defaultKind: defaultKind,
+        defaultMatchMode: defaultMatchMode,
+        defaultPaths: defaultPaths,
+        defaultFileStorageId: defaultFileStorageId,
+        defaultFilePath: defaultFilePath,
       ),
     );
   }
-  await saved;
+  return saved;
+}
+
+/// Default values for a folder-scoped NEW source rule (the media-browser
+/// trailing quick-add). Pure so it can be unit-tested.
+({String name, String description, DirMatchMode matchMode, List<String> paths})
+    folderSourceRuleDefaults({
+  required String storageName,
+  required String folderName,
+  required String folderPath,
+}) {
+  final trimmed = folderName.trim();
+  return (
+    name: trimmed.isEmpty ? storageName : '$storageName - $trimmed',
+    description: _formatTimestamp(DateTime.now()),
+    matchMode: DirMatchMode.specifiedDirRecursive,
+    paths: <String>[folderPath],
+  );
+}
+
+/// Quick-add entry for the media browsers: opens the 副音 source-rule editor
+/// prefilled to treat [folderPath] (storage-relative, `''` = storage root) as a
+/// recursive specified-directory source. Returns the saved rule or null.
+Future<BgSourceRule?> openBgSourceRuleEditorForFolder(
+  BuildContext context, {
+  required String storageName,
+  required String folderName,
+  required String folderPath,
+}) async {
+  final defaults = folderSourceRuleDefaults(
+    storageName: storageName,
+    folderName: folderName,
+    folderPath: folderPath,
+  );
+  final sortOrder = await DbModule.bgSourceRuleRepo.nextSortOrder();
+  if (!context.mounted) return null;
+  return openBgSourceRuleEditor(
+    context,
+    sortOrder: sortOrder,
+    defaultName: defaults.name,
+    defaultDescription: defaults.description,
+    defaultKind: BgSourceRuleKind.directory,
+    defaultMatchMode: defaults.matchMode,
+    defaultPaths: defaults.paths,
+  );
 }
 
 /// Desktop shell: centred dialog, height-capped.
@@ -61,10 +136,26 @@ class BgSourceRuleEditorDialog extends StatefulWidget {
     super.key,
     this.initial,
     required this.sortOrder,
+    this.persist = true,
+    this.defaultName,
+    this.defaultDescription,
+    this.defaultKind,
+    this.defaultMatchMode,
+    this.defaultPaths,
+    this.defaultFileStorageId,
+    this.defaultFilePath,
   });
 
   final BgSourceRule? initial;
   final int sortOrder;
+  final bool persist;
+  final String? defaultName;
+  final String? defaultDescription;
+  final BgSourceRuleKind? defaultKind;
+  final DirMatchMode? defaultMatchMode;
+  final List<String>? defaultPaths;
+  final String? defaultFileStorageId;
+  final String? defaultFilePath;
 
   @override
   State<BgSourceRuleEditorDialog> createState() =>
@@ -76,6 +167,14 @@ class _BgSourceRuleEditorDialogState extends State<BgSourceRuleEditorDialog> {
   late final Widget _form = BgSourceRuleEditorForm(
     initial: widget.initial,
     sortOrder: widget.sortOrder,
+    persist: widget.persist,
+    defaultName: widget.defaultName,
+    defaultDescription: widget.defaultDescription,
+    defaultKind: widget.defaultKind,
+    defaultMatchMode: widget.defaultMatchMode,
+    defaultPaths: widget.defaultPaths,
+    defaultFileStorageId: widget.defaultFileStorageId,
+    defaultFilePath: widget.defaultFilePath,
   );
 
   @override
@@ -102,10 +201,26 @@ class BgSourceRuleEditorSheet extends StatefulWidget {
     super.key,
     this.initial,
     required this.sortOrder,
+    this.persist = true,
+    this.defaultName,
+    this.defaultDescription,
+    this.defaultKind,
+    this.defaultMatchMode,
+    this.defaultPaths,
+    this.defaultFileStorageId,
+    this.defaultFilePath,
   });
 
   final BgSourceRule? initial;
   final int sortOrder;
+  final bool persist;
+  final String? defaultName;
+  final String? defaultDescription;
+  final BgSourceRuleKind? defaultKind;
+  final DirMatchMode? defaultMatchMode;
+  final List<String>? defaultPaths;
+  final String? defaultFileStorageId;
+  final String? defaultFilePath;
 
   @override
   State<BgSourceRuleEditorSheet> createState() =>
@@ -116,6 +231,14 @@ class _BgSourceRuleEditorSheetState extends State<BgSourceRuleEditorSheet> {
   late final Widget _form = BgSourceRuleEditorForm(
     initial: widget.initial,
     sortOrder: widget.sortOrder,
+    persist: widget.persist,
+    defaultName: widget.defaultName,
+    defaultDescription: widget.defaultDescription,
+    defaultKind: widget.defaultKind,
+    defaultMatchMode: widget.defaultMatchMode,
+    defaultPaths: widget.defaultPaths,
+    defaultFileStorageId: widget.defaultFileStorageId,
+    defaultFilePath: widget.defaultFilePath,
   );
 
   @override
@@ -135,6 +258,14 @@ class BgSourceRuleEditorForm extends HookWidget {
     super.key,
     this.initial,
     required this.sortOrder,
+    this.persist = true,
+    this.defaultName,
+    this.defaultDescription,
+    this.defaultKind,
+    this.defaultMatchMode,
+    this.defaultPaths,
+    this.defaultFileStorageId,
+    this.defaultFilePath,
   });
 
   /// Test seam: called once per form build (keyboard-frame tests assert 0
@@ -144,25 +275,47 @@ class BgSourceRuleEditorForm extends HookWidget {
   final BgSourceRule? initial;
   final int sortOrder;
 
+  /// When true the form writes the rule before popping; a staging caller passes
+  /// false to receive the built rule and persist it itself.
+  final bool persist;
+
+  /// Prefill for NEW drafts only (`initial == null`); a non-empty
+  /// [defaultName] wins over the timestamp default.
+  final String? defaultName;
+  final String? defaultDescription;
+  final BgSourceRuleKind? defaultKind;
+  final DirMatchMode? defaultMatchMode;
+  final List<String>? defaultPaths;
+  final String? defaultFileStorageId;
+  final String? defaultFilePath;
+
   @override
   Widget build(BuildContext context) {
     debugOnFormBuild?.call();
     final t = getLocalizations(context);
     final r = initial;
 
-    final nameCtrl = useTextEditingController(text: r?.name ?? '');
+    final nameCtrl =
+        useTextEditingController(text: r?.name ?? defaultName ?? '');
     final descCtrl = useTextEditingController(
       text: r?.description.isNotEmpty == true
           ? r!.description
-          : _formatTimestamp(DateTime.now()),
+          : (defaultDescription ?? _formatTimestamp(DateTime.now())),
     );
-    final storageCtrl = useTextEditingController(text: r?.fileStorageId ?? '');
-    final filePathCtrl = useTextEditingController(text: r?.filePath ?? '');
+    final storageCtrl = useTextEditingController(
+      text: r?.fileStorageId ?? defaultFileStorageId ?? '',
+    );
+    final filePathCtrl =
+        useTextEditingController(text: r?.filePath ?? defaultFilePath ?? '');
     final pathInputCtrl = useTextEditingController();
 
-    final kind = useState(r?.kind ?? BgSourceRuleKind.tag);
-    final matchMode = useState(r?.matchMode ?? DirMatchMode.specifiedDir);
-    final paths = useState<List<String>>(List.of(r?.paths ?? const []));
+    final kind = useState(r?.kind ?? defaultKind ?? BgSourceRuleKind.tag);
+    final matchMode = useState(
+      r?.matchMode ?? defaultMatchMode ?? DirMatchMode.specifiedDir,
+    );
+    final paths = useState<List<String>>(
+      List.of(r?.paths ?? defaultPaths ?? const []),
+    );
     final patterns =
         useState<List<DirPatternEntry>>(List.of(r?.patterns ?? const []));
     final tagId = useState<int?>(r?.tagId);
@@ -236,8 +389,10 @@ class BgSourceRuleEditorForm extends HookWidget {
         sortOrder: r?.sortOrder ?? sortOrder,
         createdAt: r?.createdAt ?? DateTime.now(),
       );
-      await DbModule.bgSourceRuleRepo.saveRule(rule);
-      if (context.mounted) Navigator.of(context).pop(true);
+      if (persist) {
+        await DbModule.bgSourceRuleRepo.saveRule(rule);
+      }
+      if (context.mounted) Navigator.of(context).pop(rule);
     }
 
     Future<void> pickDirectory() async {
@@ -273,7 +428,7 @@ class BgSourceRuleEditorForm extends HookWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(false),
+                onPressed: () => Navigator.of(context).pop(),
               ),
             ],
           ),
@@ -480,7 +635,7 @@ class BgSourceRuleEditorForm extends HookWidget {
             children: [
               Expanded(
                 child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
+                  onPressed: () => Navigator.of(context).pop(),
                   child: Text(t.vm_editor_cancel),
                 ),
               ),

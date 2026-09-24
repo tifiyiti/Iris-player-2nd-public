@@ -11,6 +11,7 @@ import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/platform.dart';
 import 'package:iris/widgets/controls/circle_style_control.dart';
+import 'package:iris/widgets/controls/normalized_slider_control.dart';
 import 'package:iris/widgets/controls/ring_dial_style_control.dart';
 
 Future<void> showSliderTypeDialog(BuildContext context) async {
@@ -246,6 +247,9 @@ class SliderTypeDialogBody extends HookWidget {
     final double widthPx = store.select(context, (s) => s.sidewayPanelWidthPx);
     final double heightPx =
         store.select(context, (s) => s.sidewayPanelHeightPx);
+    // Bottom button-block position (side-relative 0..1, 0 = screen-centre edge).
+    // Mode-agnostic: one knob drives the bar for both dial and classic circle.
+    final double barPos = store.select(context, (s) => s.sidewayBarPos);
 
     Future<void> setMode(bool toSideway) async {
       if (toSideway) {
@@ -490,6 +494,23 @@ class SliderTypeDialogBody extends HookWidget {
                     onChangeEnd: (v) => store.updateSidewayPanelHeightPx(v),
                     isWidth: false,
                   ),
+                const SizedBox(height: 4),
+                // Bottom button block position: one knob for BOTH scrubber
+                // designs (dial ring + classic circle), so it lives here in the
+                // shared panel section rather than in either style control.
+                NormalizedSliderControl(
+                  showControl: _noop,
+                  icon: Icons.align_horizontal_left_rounded,
+                  label: t.sld_bar_position,
+                  value: barPos * 100,
+                  min: 0,
+                  max: 100,
+                  divisions: 100,
+                  onChanged: (v) =>
+                      store.updateSidewayBarPos(v / 100.0, persist: false),
+                  onChangeEnd: (v) => store.updateSidewayBarPos(v / 100.0),
+                  valueBuilder: (v) => Text('${v.round()}%'),
+                ),
                 const SizedBox(height: 12),
                 const Divider(height: 1),
                 const SizedBox(height: 12),

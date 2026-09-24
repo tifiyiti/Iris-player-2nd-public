@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show compute;
 import 'package:image/image.dart' as img;
 import 'package:iris/features/playback_tools/services/screenshot_media_scan.dart';
 import 'package:iris/features/playback_tools/services/screenshot_paths.dart';
@@ -24,14 +25,17 @@ final Logger _log = Logger('playback_tools.screenshot');
 /// when set, otherwise the platform default (Android public
 /// `Pictures/IRIS Screenshots`, portable `<root>/screenshots`, installed
 /// `<pictures>/IRIS`). The file keeps the playing video's stem
-/// (`<stem>_HHmmss.png`) or the `iris_` prefix for remote sources.
+/// (`<stem>_yyyyMMdd_HHmmss_SSS.png`) or the `iris_` prefix for remote sources.
+///
+/// The date + millisecond stamp replaces the old `HHmmss`-only name: a bare
+/// clock stamp silently overwrote earlier shots taken at the same wall-clock
+/// time on another day (and same-second bursts).
 ///
 /// The old beside-video rule is gone on purpose: video-adjacent dirs are
 /// often read-only (scoped storage, removable media, network mounts), and a
 /// scattered layout is undiscoverable next to a gallery-visible folder.
 String resolveScreenshotTargetPath({
   required String? localVideoPath,
-  required String documentsDirPath,
   required String customDirPath,
   required String defaultDirPath,
   required DateTime now,
@@ -47,8 +51,11 @@ String resolveScreenshotTargetPath({
   final String dirPath =
       resolveScreenshotDirName(customDir: customDirPath, defaultDir: defaultDirPath);
   String two(int n) => n.toString().padLeft(2, '0');
-  return p.join(
-      dirPath, '${base}_${two(now.hour)}${two(now.minute)}${two(now.second)}.png');
+  String three(int n) => n.toString().padLeft(3, '0');
+  final String stamp = '${now.year}${two(now.month)}${two(now.day)}'
+      '_${two(now.hour)}${two(now.minute)}${two(now.second)}'
+      '_${three(now.millisecond)}';
+  return p.join(dirPath, '${base}_$stamp.png');
 }
 
 /// Outcome of one frame-capture attempt; callers render it as user feedback
@@ -62,9 +69,15 @@ sealed class ScreenshotResult {
 /// Frame captured and written to [path] (which may be the documents
 /// fallback when the beside-video write was denied by scoped storage).
 class ScreenshotSuccess extends ScreenshotResult {
-  const ScreenshotSuccess(this.path);
+  const ScreenshotSuccess(this.path, {this.customDirSkipped = false});
 
   final String path;
+
+  /// True when the user's custom directory was rejected (mapped but not
+  /// writable, e.g. no Android All-files access) and the capture fell back to
+  /// the default directory. Callers surface this so the silent fallback is
+  /// visible instead of looking like the custom dir was honored.
+  final bool customDirSkipped;
 }
 
 /// The active backend cannot capture frames at all (fvp: no screenshot
@@ -75,11 +88,42 @@ class ScreenshotUnsupported extends ScreenshotResult {
   final String backend;
 }
 
+/// Why a capture or write failed. The presentation layer maps each kind to a
+/// localized message (see `screenshotFailureMessage`); the service never
+/// carries user-facing text, only the machine-readable [ScreenshotFailureKind]
+/// plus an optional raw [ScreenshotFailure.detail] for diagnostics.
+enum ScreenshotFailureKind {
+  /// The backend threw while grabbing the raw frame.
+  frameGrab,
+
+  /// The backend returned no (or empty) frame bytes.
+  emptyFrame,
+
+  /// Non-PNG frame bytes could not be decoded/re-encoded as PNG.
+  undecodable,
+
+  /// Every path in the write chain failed.
+  write,
+
+  /// The platform save directory could not be resolved.
+  noDir,
+
+  /// The capture exceeded the hard timeout.
+  timeout,
+
+  /// An unexpected error escaped the capture pipeline.
+  unknown,
+}
+
 /// Capture or write failed for a stated reason (empty frame, IO error, ...).
 class ScreenshotFailure extends ScreenshotResult {
-  const ScreenshotFailure(this.reason);
+  const ScreenshotFailure(this.kind, {this.detail});
 
-  final String reason;
+  final ScreenshotFailureKind kind;
+
+  /// Raw diagnostic text (an exception's message); never shown verbatim on its
+  /// own — it is interpolated into the localized message for [kind].
+  final String? detail;
 }
 
 /// Raw frame source (media_kit `player.screenshot` in production).
@@ -111,9 +155,8 @@ bool isPngBytes(Uint8List bytes) =>
     bytes[3] == 0x47;
 
 /// Production [PngTranscoder]: pure-Dart decode + PNG re-encode via the
-/// already-depended `image` package. Runs on the caller's isolate; callers
-/// doing this off the UI thread (capture panel awaits without blocking
-/// input) keep first-tap latency out of the frame budget.
+/// already-depended `image` package. The capture core runs this through
+/// `compute`, so the decode/encode cost stays off the UI isolate.
 Future<Uint8List?> transcodeToPngBytes(Uint8List bytes) async {
   img.Image? decoded;
   try {
@@ -145,6 +188,7 @@ Future<ScreenshotResult> captureFrameCore({
   PngTranscoder? transcodeToPng,
   GalleryNotifier? notifyGalleryVisible,
   bool skipPermission = false,
+  bool customDirSkipped = false,
 }) async {
   // Capability gate: fvp exposes no frame grab — say so instead of failing.
   if (!isMediaKit) return const ScreenshotUnsupported('fvp');
@@ -154,10 +198,10 @@ Future<ScreenshotResult> captureFrameCore({
     rawBytes = await frameSource();
   } catch (e) {
     _log.warning('screenshot frame grab failed: $e');
-    return ScreenshotFailure('抓取画面失败: $e');
+    return ScreenshotFailure(ScreenshotFailureKind.frameGrab, detail: '$e');
   }
   if (rawBytes == null || rawBytes.isEmpty) {
-    return ScreenshotFailure('未取得有效画面数据（后端未返回帧）');
+    return const ScreenshotFailure(ScreenshotFailureKind.emptyFrame);
   }
 
   // PNG guarantee: the saved `.png` name must match real PNG content.
@@ -168,11 +212,13 @@ Future<ScreenshotResult> captureFrameCore({
   if (isPngBytes(rawBytes)) {
     pngBytes = rawBytes;
   } else {
-    final transcoded = await (transcodeToPng ?? transcodeToPngBytes)(
-      rawBytes,
-    );
+    // Off-isolate by default: a 1080p decode + PNG encode on the UI isolate
+    // would jank the player for hundreds of ms. Tests inject their own
+    // transcoder, so `compute` is only the production default.
+    final transcoded = await (transcodeToPng ??
+        (bytes) => compute(transcodeToPngBytes, bytes))(rawBytes);
     if (transcoded == null || transcoded.isEmpty) {
-      return ScreenshotFailure('画面数据无法解码为图片（后端返回了未知格式）');
+      return const ScreenshotFailure(ScreenshotFailureKind.undecodable);
     }
     pngBytes = transcoded;
   }
@@ -190,7 +236,6 @@ Future<ScreenshotResult> captureFrameCore({
   final String? localVideoPath = resolveLocalVideoPath();
   String targetFor(String custom, String def) => resolveScreenshotTargetPath(
         localVideoPath: localVideoPath,
-        documentsDirPath: documentsDirPath,
         customDirPath: custom,
         defaultDirPath: def,
         now: now,
@@ -219,13 +264,13 @@ Future<ScreenshotResult> captureFrameCore({
       } catch (e) {
         _log.warning('screenshot gallery notify failed ($path): $e');
       }
-      return ScreenshotSuccess(path);
+      return ScreenshotSuccess(path, customDirSkipped: customDirSkipped);
     } catch (e) {
       lastError = e;
       _log.warning('screenshot write failed ($path): $e');
     }
   }
-  return ScreenshotFailure('写入文件失败: $lastError');
+  return ScreenshotFailure(ScreenshotFailureKind.write, detail: '$lastError');
 }
 
 /// Captures the current video frame as a PNG into the platform default
@@ -243,28 +288,103 @@ Future<ScreenshotResult> captureCurrentFrame(MediaPlayer player) async {
     docsPath = docs.path;
   } catch (e) {
     _log.warning('screenshot documents dir failed: $e');
-    return ScreenshotFailure('无法定位保存目录: $e');
+    return ScreenshotFailure(ScreenshotFailureKind.noDir, detail: '$e');
   }
   final String defaultDir;
   try {
     defaultDir = await resolveScreenshotDefaultDir(documentsDirPath: docsPath);
   } catch (e) {
     _log.warning('screenshot default dir failed: $e');
-    return ScreenshotFailure('无法定位保存目录: $e');
+    return ScreenshotFailure(ScreenshotFailureKind.noDir, detail: '$e');
   }
-  final String customDir = isMobilePlatform
+  final String customDirRaw = isMobilePlatform
       ? useAppStore().state.screenshotMobileDir
       : useAppStore().state.screenshotDesktopDir;
+  // A picked Android SAF tree URI is mapped to its filesystem path so the
+  // plain-File write chain can honor the custom dir. When the mapped path is
+  // NOT writable (typically no All-files access) the custom dir is dropped
+  // outright: otherwise the chain burns a failed write before falling back,
+  // and the user never learns the choice was ignored.
+  final ResolvedPick pick = await resolvePickedScreenshotDir(customDirRaw);
   return captureFrameCore(
     isMediaKit: true,
     frameSource: () => player.player.screenshot(format: 'image/png'),
     resolveLocalVideoPath: _resolveCurrentPlayingLocalPath,
-    customDirPath: customDir,
+    customDirPath: pick.path,
     defaultDirPath: defaultDir,
     documentsDirPath: docsPath,
     now: DateTime.now(),
     writeBytes: (path, bytes) => File(path).writeAsBytes(bytes),
+    customDirSkipped: pick.skipped,
+    // `resolveScreenshotDefaultDir` above already probed storage permission;
+    // probing again here only doubles the system-dialog round trip.
+    skipPermission: true,
   );
+}
+
+/// Resolution of a picked screenshot directory for the capture writer.
+///
+/// [path] is the directory to feed the write chain (`''` = not usable, fall
+/// back to the default); [skipped] is true when a custom choice was DROPPED
+/// (mapped but unwritable) so the caller can tell the user, as opposed to a
+/// plain "no custom dir set".
+typedef ResolvedPick = ({String path, bool skipped});
+
+/// Best-effort resolution of a picked screenshot directory to a storable plain
+/// path, plus whether it can actually receive a write.
+///
+/// - Plain (non-SAF) input is returned verbatim; the write chain itself is the
+///   authority on writability there, so `skipped` stays false.
+/// - Android SAF tree URIs are mapped through [safTreeUriToPlainPath]; a mapped
+///   path is probed for writability. An unwritable or unmappable pick yields
+///   `path: ''` + `skipped: true` — the chain then goes straight to the default
+///   dir instead of attempting a doomed write.
+Future<ResolvedPick> resolvePickedScreenshotDir(String raw) async {
+  if (!isSafPath(raw)) return (path: raw, skipped: false);
+  final String? root = await androidStorageRoot();
+  final String? mapped = safTreeUriToPlainPath(raw, primaryRoot: root);
+  if (mapped == null) return (path: '', skipped: true);
+  final bool writable = await isDirWritable(mapped);
+  return writable ? (path: mapped, skipped: false) : (path: '', skipped: true);
+}
+
+/// Probes whether [dir] can receive a file write.
+///
+/// Creates the directory, writes and immediately deletes a probe file. This is
+/// the only reliable signal for the Android case: the mapped path LOOKS valid
+/// but a plain `File` write is rejected without All-files access. Best-effort —
+/// any error means "not writable".
+Future<bool> isDirWritable(String dir) async {
+  final Directory target = Directory(dir);
+  try {
+    await target.create(recursive: true);
+    final File probe =
+        File(p.join(dir, '.iris_write_probe_${DateTime.now().microsecondsSinceEpoch}'));
+    await probe.writeAsString('');
+    await probe.delete();
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+/// Best-effort Android shared-storage root (`/storage/emulated/0`).
+///
+/// Derived from `getExternalStorageDirectory()`
+/// (`<root>/Android/data/<pkg>/files`) by walking up to the storage root.
+/// Null when external storage is unavailable.
+Future<String?> androidStorageRoot() async {
+  try {
+    final ext = await getExternalStorageDirectory();
+    if (ext == null) return null;
+    String root = ext.path;
+    final marker = '${p.separator}Android${p.separator}';
+    final idx = root.indexOf(marker);
+    if (idx > 0) root = root.substring(0, idx);
+    return root;
+  } catch (_) {
+    return null;
+  }
 }
 
 /// Resolves the platform default screenshots directory, creating it.
@@ -283,6 +403,7 @@ Future<String> resolveScreenshotDefaultDir({
   String? documentsDirPath,
   String? portableRootOverride,
   String? picturesDirOverride,
+  bool skipPermissionProbe = false,
 }) async {
   final String docs = documentsDirPath ??
       (await getApplicationDocumentsDirectory()).path;
@@ -295,7 +416,7 @@ Future<String> resolveScreenshotDefaultDir({
   }
 
   if (isAndroid) {
-    if (!skipScreenshotPermissionProbe) {
+    if (!skipScreenshotPermissionProbe && !skipPermissionProbe) {
       try {
         await requestStoragePermission();
       } catch (e) {
@@ -356,20 +477,8 @@ bool skipScreenshotPermissionProbe = false;
 /// Best-effort Android public Pictures dir (`/storage/emulated/0/Pictures`).
 /// Null when the external storage root cannot be determined.
 Future<String?> _androidPicturesDir() async {
-  try {
-    final ext = await getExternalStorageDirectory();
-    if (ext == null) return null;
-    // `<root>/Android/data/<pkg>/files` → walk up to the storage root.
-    String root = ext.path;
-    final marker = '${p.separator}Android${p.separator}';
-    final idx = root.indexOf(marker);
-    if (idx > 0) root = root.substring(0, idx);
-    final pictures = p.join(root, 'Pictures');
-    if (await Directory(pictures).exists()) return pictures;
-    return pictures;
-  } catch (_) {
-    return null;
-  }
+  final String? root = await androidStorageRoot();
+  return root == null ? null : p.join(root, 'Pictures');
 }
 
 /// Installed-desktop pictures dir with per-OS fallbacks.
@@ -399,12 +508,13 @@ String _desktopPicturesDir(String docs) {
 /// Best-effort warmup of the platform default screenshots directory.
 ///
 /// Called once from startup (`completeStartupInitialization`, unawaited) so
-/// the first shutter tap skips the permission probe + public-dir mkdir that
-/// used to freeze the UI. Never throws; failures surface on the real
-/// capture attempt instead.
+/// the first shutter tap skips the public-dir mkdir that used to freeze the
+/// UI. It deliberately does NOT request storage permission: a prewarm must
+/// never pop the All-files-access prompt before the user asks for a
+/// screenshot. Never throws; failures surface on the real capture attempt.
 Future<void> prewarmScreenshotDir() async {
   try {
-    await resolveScreenshotDefaultDir();
+    await resolveScreenshotDefaultDir(skipPermissionProbe: true);
   } catch (e) {
     _log.warning('screenshot dir prewarm failed: $e');
   }

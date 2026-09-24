@@ -1,3 +1,27 @@
+## v2.0.1
+
+### Changelog
+
+* Secondary-audio source manager staged into the play queue: built-in rule guards, source-pool invalidation on confirm, clearer idle-state guidance
+* One-handed button bar rebalanced and given a draggable position knob
+* Phone-portrait bottom-bar alignment settings; the floating switch button is now split by orientation
+* Metadata-driven dual-wheel playback speed picker
+* Media library: folder quick-adds for the audio source list and the virtual-media merge editor
+* Scenario playback re-resolves after definitions are edited from Manage / Browse
+* Screenshot and frame-step fixes: reject unwritable folders, probe the picked directory, prefer the longest storage base, localise failure messages, clamp the panel on resize
+* Keep the minimal progress bar on the foreground while sub-audio control is active, and clamp the sub-audio seek buffer to the slider bounds
+
+### 更新日志
+
+* 副音源管理器分阶段接入播放队列：内置规则保护、确认后失效源池、空闲状态提示更明确
+* 单手按钮栏重新配平，并新增可拖拽的位置旋钮
+* 手机竖屏底栏对齐设置；悬浮开关按钮按横竖屏拆分显示
+* 元数据驱动的双轮播放速度选择器
+* 媒体库：音频源列表与虚拟媒体合并编辑器支持文件夹快捷添加
+* 场景播放：从管理/浏览页修改定义后重新解析播放
+* 截图与逐帧修复：拒绝不可写目录、探测所选文件夹、优先取最长存储根、失败提示本地化、缩放时面板限位
+* 副音控制期间前台保留极简进度条，副音 seek 缓冲限制在滑块范围内
+
 ## v2.0.0
 
 ### Changelog

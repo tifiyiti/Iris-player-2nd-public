@@ -201,4 +201,118 @@ void main() {
     final center = tester.getCenter(panelCard());
     expect(center.dx, closeTo(stackWidth / 2, 1));
   });
+
+  testWidgets(
+      'REGRESSION: panel mounted hidden then shown is still centered',
+      (tester) async {
+    // Production mounts the panel while hidden (store default false); the
+    // old effect measured the zero-size hidden placeholder on mount and then
+    // never re-measured, so the first reveal landed off-center.
+    usePlaybackToolsStore().hideFrameTools();
+    final key = UniqueKey();
+    Widget tree() => providerScope(
+          Provider<MediaPlayer>.value(
+            value: player,
+            child: MaterialApp(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Stack(children: [FrameToolsFloatPanel(key: key)]),
+            ),
+          ),
+        );
+
+    await tester.pumpWidget(tree());
+    await tester.pumpAndSettle();
+    expect(panelCard(), findsNothing);
+
+    usePlaybackToolsStore().showFrameTools();
+    // Same key → same element: this rebuild reads the new visible state.
+    await tester.pumpWidget(tree());
+    await tester.pumpAndSettle();
+
+    expect(panelCard(), findsOneWidget);
+    final stackWidth = tester.getSize(find.byType(Stack)).width;
+    final center = tester.getCenter(panelCard());
+    expect(center.dx, closeTo(stackWidth / 2, 1));
+  });
+
+  testWidgets('dragging the card cannot push it outside the hosting stack',
+      (tester) async {
+    await pumpPanel(tester);
+
+    await tester.drag(panelCard(), const Offset(5000, 5000));
+    await tester.pump();
+
+    final pos = tester.widget<Positioned>(
+      find.ancestor(of: panelCard(), matching: find.byType(Positioned)).first,
+    );
+    final stack = tester.getSize(find.byType(Stack));
+    final card = tester.getSize(panelCard());
+    expect(pos.left! + card.width, lessThanOrEqualTo(stack.width + 0.5));
+    expect(pos.top! + card.height, lessThanOrEqualTo(stack.height + 0.5));
+  });
+
+  /// Shrinks the hosting viewport, mirroring a rotation / window resize.
+  void shrinkViewport(WidgetTester tester, Size size) {
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+  }
+
+  testWidgets('shrinking the host re-clamps the panel inside the new bounds',
+      (tester) async {
+    await pumpPanel(tester);
+    // Park at the bottom-right of the ORIGINAL (larger) bounds.
+    await tester.drag(panelCard(), const Offset(5000, 5000));
+    await tester.pump();
+
+    shrinkViewport(tester, const Size(400, 600));
+    await tester.pumpAndSettle();
+
+    final pos = tester.widget<Positioned>(
+      find.ancestor(of: panelCard(), matching: find.byType(Positioned)).first,
+    );
+    final stack = tester.getSize(find.byType(Stack));
+    final card = tester.getSize(panelCard());
+    // A stale host size would leave the card parked outside the shrunk stack.
+    expect(pos.left! + card.width, lessThanOrEqualTo(stack.width + 0.5));
+    expect(pos.top! + card.height, lessThanOrEqualTo(stack.height + 0.5));
+  });
+
+  testWidgets('a drag after a resize clamps to the NEW host bounds',
+      (tester) async {
+    await pumpPanel(tester);
+    shrinkViewport(tester, const Size(400, 600));
+    await tester.pumpAndSettle();
+
+    await tester.drag(panelCard(), const Offset(5000, 5000));
+    await tester.pump();
+
+    final pos = tester.widget<Positioned>(
+      find.ancestor(of: panelCard(), matching: find.byType(Positioned)).first,
+    );
+    final stack = tester.getSize(find.byType(Stack));
+    final card = tester.getSize(panelCard());
+    expect(pos.left! + card.width, lessThanOrEqualTo(stack.width + 0.5));
+    expect(pos.top! + card.height, lessThanOrEqualTo(stack.height + 0.5));
+  });
+
+  testWidgets('long-press repeats the frame step until release',
+      (tester) async {
+    await pumpPanel(tester);
+
+    final gesture =
+        await tester.startGesture(tester.getCenter(find.byTooltip('Next frame')));
+    await tester.pump(const Duration(milliseconds: 600)); // long-press threshold
+    await tester.pump(const Duration(milliseconds: 140));
+    await tester.pump(const Duration(milliseconds: 140));
+    await gesture.up();
+    await tester.pump();
+
+    expect(steps.where((s) => s == 1).length, greaterThanOrEqualTo(3));
+  });
 }

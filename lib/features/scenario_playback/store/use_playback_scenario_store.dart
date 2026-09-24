@@ -322,12 +322,18 @@ class PlaybackScenarioStore
 
   /// Index-backed total (`totalItems` = base file count) for the active
   /// scenario, or null when the index is unavailable.
+  ///
+  /// Ensures the derived index is current FIRST (same as [_resolveTotal]): the
+  /// in-memory `_queueIndexBuilds` entry is only refreshed by [ensureQueueIndex],
+  /// so reading it directly would serve the PRE-edit count whenever a caller
+  /// resolves right after a definition change and before any other read
+  /// refreshed the index — the player chrome then lagged one change behind.
   Future<int?> indexedTotalCount() async {
     final id = state.activeScenarioId;
     if (id == null) return null;
-    final build = _queueIndexBuilds[id];
-    if (build == null || build.buildId <= 0) return null;
-    return _resolver.indexedTotalCount(build.buildId);
+    final buildId = await ensureQueueIndex(id);
+    if (buildId <= 0) return null;
+    return _resolver.indexedTotalCount(buildId);
   }
 
   /// In-memory monotonic revision of the SystemPlaying workspace's DEFINITION
@@ -655,6 +661,23 @@ class PlaybackScenarioStore
   /// media revision would needlessly rebuild every OTHER scenario too.
   Future<void> notifyQueueRefetch() async {
     set(state.copyWith(sourceScanRevision: state.sourceScanRevision + 1));
+  }
+
+  /// Signals that the ACTIVE scenario's definition changed so EVERY playback
+  /// surface re-resolves: the player chrome (prev/next visibility, bar title)
+  /// off [bumpPlaybackVersion], and open queue lists off [notifyQueueRefetch].
+  ///
+  /// Definition edits made from surfaces OTHER than the queue (the Sources /
+  /// Manage "Remove", the Browse add/exclude actions) used to bump neither
+  /// signal, so the player chrome kept a stale prev/next visibility while an
+  /// open/re-opened queue list moved on — until a full rebuild (rotation).
+  ///
+  /// Batch callers must invoke this ONCE after their loop, never per item.
+  /// Callers that may have removed the current item additionally re-validate it
+  /// (the store cannot: `ScenarioPlaybackProvider` depends on this store).
+  Future<void> notifyDefinitionChanged() async {
+    await bumpPlaybackVersion();
+    await notifyQueueRefetch();
   }
 
   /// Mirrors the active scenario's shuffle/repeat flags into the in-memory

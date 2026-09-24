@@ -4,6 +4,7 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/l10n/app_localizations.dart';
 import 'package:iris/models/store/app_state.dart';
 import 'package:iris/store/use_app_store.dart';
+import 'package:iris/widgets/controls/normalized_slider_control.dart';
 import 'package:iris/widgets/dialogs/show_slider_type_dialog.dart';
 
 Widget _harness() {
@@ -82,6 +83,23 @@ void main() {
     await tester.tap(find.text('拨环'));
     await tester.pumpAndSettle();
     expect(store.state.phoneOneHandedScrubberKind, PhoneSideScrubberKind.dial);
+
+    // ── Bottom button-bar position: one shared knob (dial AND circle) bound
+    // to the store, living in the common panel section ──
+    final Finder barPosSlider = find.ancestor(
+      of: find.text('按钮条位置（靠屏幕中心）'),
+      matching: find.byType(NormalizedSliderControl),
+    );
+    expect(barPosSlider, findsOneWidget,
+        reason: 'the shared bar-position knob must be present');
+    expect(store.state.sidewayBarPos, 0.0);
+    await tester.drag(
+      find.descendant(of: barPosSlider, matching: find.byType(Slider)),
+      const Offset(80, 0),
+    );
+    await tester.pumpAndSettle();
+    expect(store.state.sidewayBarPos, greaterThan(0.0),
+        reason: 'dragging the knob must move the block position');
 
     // ── Picking Normal resets side fields and grays group 2 ──
     await _pickDropdown(

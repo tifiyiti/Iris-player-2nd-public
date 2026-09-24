@@ -98,6 +98,12 @@ const String kWarningVmMergeConcept = 'vmMergeConcept';
 /// Restorable from Settings → About → "IRIS feature guide".
 const String kWarningAppOverview = 'appOverview';
 
+/// Explains, on first use of the play-queue's 副音 source manager, that edits
+/// are STAGED — nothing takes effect until the bottom ✓ is pressed. Recoverable
+/// — the manager stays usable either way and the notice is restorable from
+/// Settings → Warning dialogs.
+const String kWarningBgSourceManage = 'bgSourceManage';
+
 /// Every id the settings panel offers a toggle for, in display order.
 const List<String> kSuppressibleWarningIds = <String>[
   kWarningPhysicalDeleteRecycle,
@@ -122,6 +128,7 @@ const List<String> kSuppressibleWarningIds = <String>[
   kWarningTagCommandGrammar,
   kWarningVmMergeConcept,
   kWarningAppOverview,
+  kWarningBgSourceManage,
 ];
 
 bool shouldShowWarning(List<String> suppressedWarnings, String id) =>

@@ -49,13 +49,20 @@ const double kVmEditorSheetBreakpoint = 600.0;
 /// Centered-dialog shell for wide screens (desktop / tablet landscape).
 class VmRuleEditorV2Dialog extends StatefulWidget {
   const VmRuleEditorV2Dialog(
-      {super.key, this.initial, this.defaultName, this.defaultDescription});
+      {super.key,
+      this.initial,
+      this.defaultName,
+      this.defaultDescription,
+      this.defaultMatchMode,
+      this.defaultPaths});
 
   final VirtualMediaRule? initial;
 
   /// Prefill for NEW drafts only (null when editing); see [VmRuleEditorFormV2].
   final String? defaultName;
   final String? defaultDescription;
+  final VmMatchMode? defaultMatchMode;
+  final List<String>? defaultPaths;
 
   @override
   State<VmRuleEditorV2Dialog> createState() => _VmV2DialogState();
@@ -65,7 +72,9 @@ class _VmV2DialogState extends State<VmRuleEditorV2Dialog> {
   late final Widget _form = VmRuleEditorFormV2(
       initial: widget.initial,
       defaultName: widget.defaultName,
-      defaultDescription: widget.defaultDescription);
+      defaultDescription: widget.defaultDescription,
+      defaultMatchMode: widget.defaultMatchMode,
+      defaultPaths: widget.defaultPaths);
 
   @override
   Widget build(BuildContext context) {
@@ -91,13 +100,20 @@ class _VmV2DialogState extends State<VmRuleEditorV2Dialog> {
 /// re-resolves extent + rebuilds content on every keyboard frame).
 class VmRuleEditorV2Sheet extends StatefulWidget {
   const VmRuleEditorV2Sheet(
-      {super.key, this.initial, this.defaultName, this.defaultDescription});
+      {super.key,
+      this.initial,
+      this.defaultName,
+      this.defaultDescription,
+      this.defaultMatchMode,
+      this.defaultPaths});
 
   final VirtualMediaRule? initial;
 
   /// Prefill for NEW drafts only (null when editing); see [VmRuleEditorFormV2].
   final String? defaultName;
   final String? defaultDescription;
+  final VmMatchMode? defaultMatchMode;
+  final List<String>? defaultPaths;
 
   @override
   State<VmRuleEditorV2Sheet> createState() => _VmV2SheetState();
@@ -108,6 +124,8 @@ class _VmV2SheetState extends State<VmRuleEditorV2Sheet> {
       initial: widget.initial,
       defaultName: widget.defaultName,
       defaultDescription: widget.defaultDescription,
+      defaultMatchMode: widget.defaultMatchMode,
+      defaultPaths: widget.defaultPaths,
       fillViewport: true);
 
   @override
@@ -132,6 +150,8 @@ class VmRuleEditorFormV2 extends HookWidget {
     this.initial,
     this.defaultName,
     this.defaultDescription,
+    this.defaultMatchMode,
+    this.defaultPaths,
     this.fillViewport = false,
   });
 
@@ -141,6 +161,11 @@ class VmRuleEditorFormV2 extends HookWidget {
   /// (`initial == null`). Ignored when editing — stored values stay verbatim.
   final String? defaultName;
   final String? defaultDescription;
+
+  /// Prefill for the match mode / specified paths when creating a new rule
+  /// (`initial == null`). Ignored when editing.
+  final VmMatchMode? defaultMatchMode;
+  final List<String>? defaultPaths;
 
   /// True inside the bottom-sheet shell (fill the sheet); false inside the
   /// dialog shell (shrink to content).
@@ -159,9 +184,11 @@ class VmRuleEditorFormV2 extends HookWidget {
         useTextEditingController(text: r?.name ?? defaultName ?? '');
     final description = useTextEditingController(
         text: r?.description ?? defaultDescription ?? '');
-    final matchMode = useState(r?.matchMode ?? VmMatchMode.patternDir);
-    final paths = useState<List<String>>(
-        r != null && r.paths.isNotEmpty ? [...r.paths] : const []);
+    final matchMode = useState(
+        r?.matchMode ?? defaultMatchMode ?? VmMatchMode.patternDir);
+    final paths = useState<List<String>>(r != null
+        ? (r.paths.isNotEmpty ? [...r.paths] : const [])
+        : (defaultPaths == null ? const [] : [...defaultPaths!]));
     final patterns = useState<List<VmPatternEntry>>(
         r != null && r.patterns.isNotEmpty ? [...r.patterns] : const []);
     final sortField = useState(r?.sortField ?? VmSortField.fileName);

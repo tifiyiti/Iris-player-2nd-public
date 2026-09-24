@@ -145,7 +145,11 @@ Future<VirtualMediaRule> duplicateVmRule(VirtualMediaRule src) async {
 }
 
 Future<bool?> openVmRuleEditor(BuildContext context,
-    {VirtualMediaRule? initial, bool showConceptGuide = true}) async {
+    {VirtualMediaRule? initial,
+    bool showConceptGuide = true,
+    String? defaultName,
+    VmMatchMode? defaultMatchMode,
+    List<String>? defaultPaths}) async {
   // First-use explainer for a brand-new rule only — editing an existing rule
   // does not repeat it. Suppressible with the box ticked by default.
   if (initial == null && showConceptGuide) {
@@ -160,14 +164,20 @@ Future<bool?> openVmRuleEditor(BuildContext context,
     if (!context.mounted) return null;
   }
   // Prefill new-rule drafts only; edits keep their stored values verbatim.
-  String? defaultName;
-  String? defaultDescription;
+  // An explicit [defaultName] (folder quick-add) bypasses the naming strategy.
+  String? pfName;
+  String? pfDescription;
   if (initial == null) {
-    try {
-      final d = await newVmRuleDefaults();
-      defaultName = d.name;
-      defaultDescription = d.description;
-    } catch (_) {}
+    if (defaultName != null) {
+      pfName = defaultName;
+      pfDescription = formatVmTimestamp(DateTime.now());
+    } else {
+      try {
+        final d = await newVmRuleDefaults();
+        pfName = d.name;
+        pfDescription = d.description;
+      } catch (_) {}
+    }
   }
   if (!context.mounted) return null;
   final narrow =
@@ -184,15 +194,19 @@ Future<bool?> openVmRuleEditor(BuildContext context,
           ),
           builder: (_) => VmRuleEditorV2Sheet(
               initial: initial,
-              defaultName: defaultName,
-              defaultDescription: defaultDescription),
+              defaultName: pfName,
+              defaultDescription: pfDescription,
+              defaultMatchMode: defaultMatchMode,
+              defaultPaths: defaultPaths),
         )
       : await showDialog<bool>(
           context: context,
           builder: (_) => VmRuleEditorV2Dialog(
               initial: initial,
-              defaultName: defaultName,
-              defaultDescription: defaultDescription),
+              defaultName: pfName,
+              defaultDescription: pfDescription,
+              defaultMatchMode: defaultMatchMode,
+              defaultPaths: defaultPaths),
         );
   if (saved == true) {
     // Editor saves hit the repo directly; propagate the merge-layer change
@@ -200,6 +214,45 @@ Future<bool?> openVmRuleEditor(BuildContext context,
     await VirtualMediaService.instance.notifyRulesChanged();
   }
   return saved;
+}
+
+/// Default values for a folder-scoped NEW virtual-merge rule (the media-browser
+/// trailing quick-add). Pure so it can be unit-tested.
+({String name, VmMatchMode matchMode, List<String> paths}) folderVmRuleDefaults({
+  required String storageName,
+  required String folderName,
+  required String folderPath,
+}) {
+  final trimmed = folderName.trim();
+  return (
+    name: trimmed.isEmpty ? storageName : '$storageName - $trimmed',
+    matchMode: VmMatchMode.specifiedDirRecursive,
+    paths: <String>[folderPath],
+  );
+}
+
+/// Quick-add entry for the media browsers: opens the virtual-merge editor
+/// prefilled to merge [folderPath] (storage-relative, `''` = storage root)
+/// recursively. Returns true when a rule was saved.
+Future<bool?> openVmRuleEditorForFolder(
+  BuildContext context, {
+  required String storageName,
+  required String folderName,
+  required String folderPath,
+  bool showConceptGuide = true,
+}) {
+  final defaults = folderVmRuleDefaults(
+    storageName: storageName,
+    folderName: folderName,
+    folderPath: folderPath,
+  );
+  return openVmRuleEditor(
+    context,
+    showConceptGuide: showConceptGuide,
+    defaultName: defaults.name,
+    defaultMatchMode: defaults.matchMode,
+    defaultPaths: defaults.paths,
+  );
 }
 
 class ResolvedRules {

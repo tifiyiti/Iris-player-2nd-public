@@ -27,8 +27,25 @@ class BgSourceRuleRepository {
     return row == null ? null : rowToRule(row);
   }
 
-  Future<void> saveRule(BgSourceRule rule) =>
-      rulesDao.upsert(ruleToCompanion(rule));
+  /// Persists [rule].
+  ///
+  /// A built-in rule may be seeded once (the bootstrap is the only caller that
+  /// ever CREATES it) and thereafter only toggled/re-pinned: its identity and
+  /// definition fields must never be rewritten from an arbitrary caller — the
+  /// mirror of [deleteRule]'s built-in guard. This closes the asymmetry where a
+  /// staged manager could upsert a hand-edited built-in definition while delete
+  /// was already refused.
+  Future<void> saveRule(BgSourceRule rule) async {
+    if (rule.builtin) {
+      final existing = await rulesDao.getById(rule.id);
+      if (existing != null && existing.builtin) {
+        await rulesDao.setEnabled(rule.id, rule.enabled);
+        await rulesDao.setPinned(rule.id, rule.pinned);
+        return;
+      }
+    }
+    await rulesDao.upsert(ruleToCompanion(rule));
+  }
 
   Future<void> setRuleEnabled(String id, bool enabled) =>
       rulesDao.setEnabled(id, enabled);

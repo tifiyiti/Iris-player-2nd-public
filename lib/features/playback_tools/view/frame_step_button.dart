@@ -9,8 +9,10 @@ import 'package:provider/provider.dart';
 /// Frame-step button shared by the phone frame-tools panel.
 ///
 /// Tap = single frame step (the player hook pauses first — PotPlayer parity,
-/// identical on desktop via D/F). Long-press = fast frame playback: the first
-/// step fires immediately, then a repeating timer keeps stepping until release.
+/// identical on desktop via D/F). Long-press = fast frame playback: once the
+/// long-press threshold is reached the first step fires, then a repeating
+/// timer keeps stepping until release. The timer skips a tick while the
+/// previous step is still in flight so a slow backend cannot pile up commands.
 class FrameStepButton extends HookWidget {
   const FrameStepButton({
     super.key,
@@ -28,13 +30,22 @@ class FrameStepButton extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final timer = useRef<Timer?>(null);
+    // Guards the repeating timer against overlapping steps: a tick is dropped
+    // when the previous `stepOnce` has not resolved yet.
+    final stepping = useRef(false);
 
     Future<void> stepOnce() async {
-      final player = context.read<MediaPlayer>();
-      if (forward) {
-        await player.stepForward();
-      } else {
-        await player.stepBackward();
+      if (stepping.value) return;
+      stepping.value = true;
+      try {
+        final player = context.read<MediaPlayer>();
+        if (forward) {
+          await player.stepForward();
+        } else {
+          await player.stepBackward();
+        }
+      } finally {
+        stepping.value = false;
       }
     }
 
@@ -53,10 +64,12 @@ class FrameStepButton extends HookWidget {
     useEffect(() => stop, const []);
 
     // AXTree stability (#182444): tap-only tooltip while a UIA client is
-    // attached, so the OverlayPortal never grafts mid-playback.
+    // attached, so the OverlayPortal never grafts mid-playback. The long-press
+    // trigger is disabled here so it cannot compete with fast frame playback.
     return a11yTooltip(
       context: context,
       message: tooltip,
+      longPressPassthrough: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: stepOnce,

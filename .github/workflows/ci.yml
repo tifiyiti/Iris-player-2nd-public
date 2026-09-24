@@ -88,6 +88,18 @@ jobs:
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
+      - name: Free disk space
+        # Three split APKs plus the universal APK need far more room than the
+        # stock runner has (the native-libs merge used to die with
+        # "No space left on device"); drop preinstalled toolchains we never use.
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost \
+                      /usr/local/.ghcup /usr/share/swift || true
+          sudo rm -rf /usr/local/lib/android/sdk/system-images || true
+          sudo rm -rf "${AGENT_TOOLSDIRECTORY:-/opt/hostedtoolcache}" || true
+          sudo apt-get clean || true
+          df -h /
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -109,6 +121,24 @@ jobs:
         with:
           distribution: zulu
           java-version: 21
+      - name: Install Android NDK
+        # The runner image does not ship ndk;27.0.12077973, which this project
+        # requires, and Gradle's on-the-fly download is occasionally truncated
+        # ("Error on ZipFile unknown archive"). Install it up front with retries.
+        run: |
+          SDK="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          SDKMANAGER="$(ls -d "$SDK"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | tail -n1)"
+          echo "sdkmanager: $SDKMANAGER"
+          for attempt in 1 2 3; do
+            if "$SDKMANAGER" --install "ndk;27.0.12077973"; then
+              echo "NDK 27.0.12077973 installed"
+              exit 0
+            fi
+            echo "::warning::NDK install attempt $attempt failed; retrying"
+            sleep 15
+          done
+          echo "::error::could not install ndk;27.0.12077973"
+          exit 1
       - name: Decode and save keystore
         run: |
           echo "${{ secrets.KEYSTORE }}" | base64 --decode > android/app/keystore.jks

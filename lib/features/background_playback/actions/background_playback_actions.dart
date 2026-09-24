@@ -358,14 +358,39 @@ abstract final class BackgroundPlaybackActions {
     await _startFromCandidates(navigator, replace: false);
   }
 
-  /// Float-panel refresh: re-resolves candidates while playing, keeping the
-  /// current file by key when it still exists.
+  /// Drops the session 副音 candidate pool so the next read re-resolves.
+  ///
+  /// NOTE: the pool also re-resolves BY ITSELF whenever the rule fingerprint
+  /// changes (id/enabled/kind/pinned/paths/...), so this is a safety net, not a
+  /// requirement for the staged manager's edits — it matters for the rare edit
+  /// the fingerprint does not cover (name/description only) and for callers
+  /// that want to force a rebuild regardless. Never touches a running session.
+  static void invalidateSourceRules() {
+    if (!BackgroundPlaybackGate.enabled) return;
+    BackgroundCandidateCache.shared.invalidate();
+  }
+
+  /// Float-panel / manager refresh: re-resolves candidates while playing,
+  /// keeping the current file by key when it still exists.
+  ///
+  /// The pool is ALWAYS dropped so the next start resolves the latest rules;
+  /// only a RUNNING session can be re-resolved for playback right now. When 副音
+  /// is idle the press used to return silently (a dead button) — it now says so.
   static Future<void> refresh(BuildContext context) async {
     if (!BackgroundPlaybackGate.enabled) return;
     final store = useBackgroundPlaybackStore();
-    if (!store.state.enabled) return;
     final navigator = Navigator.of(context, rootNavigator: true);
-    BackgroundCandidateCache.shared.invalidate();
+    invalidateSourceRules();
+    if (!store.state.enabled) {
+      final t = getLocalizations(context);
+      await showMessageDialog(
+        navigator,
+        title: t.menu_background_playback,
+        message: t.bg_src_refresh_idle_body,
+        type: MessageDialogType.info,
+      );
+      return;
+    }
     await _startFromCandidates(navigator, replace: true);
   }
 

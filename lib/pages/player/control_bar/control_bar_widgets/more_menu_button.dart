@@ -7,10 +7,9 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/features/background_playback/actions/background_playback_actions.dart';
 import 'package:iris/features/background_playback/background_playback_gate.dart';
 import 'package:iris/features/background_playback/store/use_background_playback_store.dart';
-import 'package:iris/features/control_group/store/use_control_group_store.dart';
 import 'package:iris/features/phone/one_handed_scrubber/controller/phone_scrubber_slot.dart';
 import 'package:iris/features/meta_settings/meta_settings_module.dart';
-import 'package:iris/features/playback_tools/services/screenshot_service.dart';
+import 'package:iris/features/playback_tools/view/screenshot_capture_flow.dart';
 import 'package:iris/features/playback_tools/store/playback_tools_store.dart';
 import 'package:iris/features/playback_tools/view/screenshot_feedback.dart';
 import 'package:iris/features/scenario_playback/actions/scenario_playback_common.dart';
@@ -41,6 +40,7 @@ import 'package:iris/widgets/bottom_sheets/show_open_link_bottom_sheet.dart';
 import 'package:iris/widgets/controls/circle_slider_panel_width_control.dart';
 import 'package:iris/widgets/controls/circle_slider_scale_control.dart';
 import 'package:iris/widgets/dialogs/show_open_link_dialog.dart';
+import 'package:iris/widgets/dialogs/show_control_group_floating_dialog.dart';
 import 'package:iris/widgets/dialogs/show_slider_type_dialog.dart';
 import 'package:iris/widgets/dialogs/show_rate_dialog.dart';
 import 'package:iris/widgets/dialogs/show_snake_fine_window_dialog.dart';
@@ -130,8 +130,6 @@ class MoreMenuButton extends HookWidget {
     // (phones, desktop phone-mode). State read in build — see note above.
     final bool cgPhoneMode = useAppStore()
         .select(context, (s) => isMobilePlatform || s.desktopCenterZonePhoneMode);
-    final bool cgFloatingEnabled =
-        useControlGroupStore().select(context, (s) => s.floatingButtonEnabled);
 
     // 副音 float-panel visibility toggle (shown only while 副音 runs).
     final bgStore = useBackgroundPlaybackStore();
@@ -235,7 +233,7 @@ class MoreMenuButton extends HookWidget {
           _screenshotItem(context, t),
         ],
         // Floating bottom-group switch button (phone / desktop phone-mode).
-        if (cgPhoneMode) _controlGroupItem(context, t, cgFloatingEnabled),
+        if (cgPhoneMode) _controlGroupItem(context, t),
         // Subtitle & audio tracks — moved from control bar (now seek step) to More.
         // Industry standard grouping: playback tracks sit directly above History
         // (before system entries Settings/Exit), so they remain discoverable
@@ -441,7 +439,7 @@ class MoreMenuButton extends HookWidget {
         leading: const Icon(Icons.speed_rounded, size: kMenuTileIconSize),
         title: Text('${t.playback_speed}: ${rate}X'),
       ),
-      onTap: () => showControlForHover(showRateDialog(context)),
+      onTap: () => showControlForHover(showRatePickerDialog(context)),
     );
   }
 
@@ -715,29 +713,29 @@ class MoreMenuButton extends HookWidget {
         // Navigator captured BEFORE the await so the feedback dialog shows
         // even after the popup menu unmounts.
         final navigator = Navigator.of(context, rootNavigator: true);
-        final result = await captureCurrentFrame(context.read<MediaPlayer>());
+        final t = getLocalizations(context);
+        final result = await runScreenshotCapture(
+          navigator: navigator,
+          player: context.read<MediaPlayer>(),
+          savingLabel: t.shot_saving,
+        );
         await showScreenshotFeedback(navigator, result);
       },
     );
   }
 
-  /// Floating bottom-group switch button toggle (phone / desktop phone-mode).
-  PopupMenuItem _controlGroupItem(BuildContext context, t, bool active) {
+  /// Floating bottom-group switch button visibility (phone / desktop
+  /// phone-mode). Opens the per-orientation editor dialog.
+  PopupMenuItem _controlGroupItem(BuildContext context, t) {
     return PopupMenuItem(
       child: ListTile(
         mouseCursor: SystemMouseCursors.click,
         leading: const Icon(Icons.swap_horiz_rounded,
             size: kMenuTileIconSize),
         title: Text(t.control_group_floating_button),
-        trailing: active
-            ? Icon(Icons.check_rounded, size: kMenuTileIconSize)
-            : null,
+        subtitle: Text(t.control_group_floating_desc),
       ),
-      onTap: () {
-        showControl();
-        // ignore: discarded_futures
-        useControlGroupStore().toggleFloatingButton();
-      },
+      onTap: () => showControlForHover(showControlGroupFloatingDialog(context)),
     );
   }
 }

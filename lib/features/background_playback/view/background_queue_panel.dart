@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/features/background_playback/store/use_background_playback_store.dart';
+import 'package:iris/features/background_playback/view/bg_source_manage_page.dart';
 import 'package:iris/features/background_playback/view/control_target_indicator.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/utils/get_localizations.dart';
@@ -51,10 +52,21 @@ class BackgroundQueuePanel extends HookWidget {
           width: 320,
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Text(
-              t.bg_queue_empty,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  t.bg_queue_empty,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: () => showBgSourceManage(context),
+                  icon: const Icon(Icons.tune_rounded, size: 18),
+                  label: Text(t.bg_source_manage_open),
+                ),
+              ],
             ),
           ),
         ),
@@ -176,6 +188,18 @@ class _HeaderRow extends StatelessWidget {
             style: textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
+          ),
+          const SizedBox(width: 4),
+          IconButton(
+            tooltip: getLocalizations(context).bg_source_manage_open,
+            style: IconButton.styleFrom(
+              minimumSize: const Size(28, 28),
+              padding: EdgeInsets.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            iconSize: 18,
+            icon: const Icon(Icons.tune_rounded),
+            onPressed: () => showBgSourceManage(context),
           ),
         ],
       ),

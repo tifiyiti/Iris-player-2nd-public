@@ -61,6 +61,7 @@ Widget a11yTooltip({
   required BuildContext context,
   required String message,
   required Widget child,
+  bool longPressPassthrough = false,
 }) {
   _ensureGateHooked();
   return ValueListenableBuilder<bool>(
@@ -69,7 +70,12 @@ Widget a11yTooltip({
       container: true,
       child: Tooltip(
         message: message,
-        triggerMode: a11yActive ? TooltipTriggerMode.tap : null,
+        // `longPressPassthrough` keeps the a11y label but stops the Tooltip
+        // from claiming the long-press gesture, so a child long-press (e.g.
+        // the frame-step fast-repeat) always wins on touch platforms.
+        triggerMode: a11yActive
+            ? TooltipTriggerMode.tap
+            : (longPressPassthrough ? TooltipTriggerMode.manual : null),
         child: child,
       ),
     ),

@@ -6,13 +6,15 @@ void main() {
   String join(String a, String b) => p.join(a, b);
   final now = DateTime(2026, 8, 25, 9, 7, 33);
   String two(int n) => n.toString().padLeft(2, '0');
-  final stamp = '${two(now.hour)}${two(now.minute)}${two(now.second)}';
+  String three(int n) => n.toString().padLeft(3, '0');
+  final stamp = '${now.year}${two(now.month)}${two(now.day)}'
+      '_${two(now.hour)}${two(now.minute)}${two(now.second)}'
+      '_${three(now.millisecond)}';
 
   group('resolveScreenshotTargetPath', () {
     test('custom dir wins; local stem kept, no beside-video write', () {
       final path = resolveScreenshotTargetPath(
         localVideoPath: join('movies', 'Big Buck Bunny.mp4'),
-        documentsDirPath: join('docs', ''),
         customDirPath: join('custom', 'shots'),
         defaultDirPath: join('default', 'shots'),
         now: now,
@@ -26,7 +28,6 @@ void main() {
     test('blank custom dir falls back to the platform default', () {
       final path = resolveScreenshotTargetPath(
         localVideoPath: null,
-        documentsDirPath: join('docs', ''),
         customDirPath: '  ',
         defaultDirPath: join('default', 'shots'),
         now: now,
@@ -40,7 +41,6 @@ void main() {
     test('local video no longer saves beside itself', () {
       final path = resolveScreenshotTargetPath(
         localVideoPath: join('movies', 'BBB.mp4'),
-        documentsDirPath: join('docs', ''),
         customDirPath: '',
         defaultDirPath: join('default', 'shots'),
         now: now,
@@ -54,7 +54,6 @@ void main() {
     test('name without extension keeps the full base', () {
       final path = resolveScreenshotTargetPath(
         localVideoPath: join('movies', 'rawfootage'),
-        documentsDirPath: join('docs', ''),
         customDirPath: '',
         defaultDirPath: join('default', 'shots'),
         now: now,
@@ -63,6 +62,22 @@ void main() {
         path,
         join(join('default', 'shots'), 'rawfootage_$stamp.png'),
       );
+    });
+
+    test('date + millisecond stamp prevents cross-day overwrite', () {
+      final a = resolveScreenshotTargetPath(
+        localVideoPath: join('movies', 'BBB.mp4'),
+        customDirPath: '',
+        defaultDirPath: join('default', 'shots'),
+        now: DateTime(2026, 8, 25, 9, 7, 33, 1),
+      );
+      final b = resolveScreenshotTargetPath(
+        localVideoPath: join('movies', 'BBB.mp4'),
+        customDirPath: '',
+        defaultDirPath: join('default', 'shots'),
+        now: DateTime(2026, 8, 26, 9, 7, 33, 1),
+      );
+      expect(a, isNot(b));
     });
   });
 }

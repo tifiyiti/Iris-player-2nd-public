@@ -47,6 +47,7 @@ abstract final class SettingIcons {
     'legacy_compat': Icons.history_rounded,
     'identity_entries': Icons.alternate_email_rounded,
     'speed_gesture_mode': Icons.speed_rounded,
+    'speed_rate_mode': Icons.tune_rounded,
     'virtual_media': Icons.video_collection_rounded,
     'center_zone_inward': Icons.center_focus_weak_rounded,
     'center_zone_outward': Icons.zoom_out_map_rounded,

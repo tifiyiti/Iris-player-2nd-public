@@ -52,6 +52,9 @@ void main() {
         // the dial-ring/circle style tile — both power the sideway panel on
         // desktop too.
         'app.phoneLandscapeSliderType',
+        // Speed-picker shape (more menu / control-bar RATE) — dual-wheel vs
+        // the legacy flat 0.1 list; same gestures block as speed.gestureMode.
+        'speed.rateMode',
         'virtualmedia.managerEntry',
         'virtualmedia.crossDragStrategy',
         'virtualmedia.markTickColor',
@@ -190,6 +193,10 @@ void main() {
         'playback.videoCachePreset',
         'app.phoneLandscapeSliderType',
         'speed.gestureMode',
+        'speed.rateMode',
+        // Phone-PORTRAIT bottom-bar alignment (one composite tile: playback
+        // group + 副音 group), android-only.
+        'app.portraitPlaybackAlign',
         'app.preferredOrientation',
         'app.reuseLastOrientation',
         'gesture.unifiedEntry',

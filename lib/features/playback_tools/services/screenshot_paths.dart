@@ -54,15 +54,54 @@ String resolveScreenshotDirName({
 
 /// Human-intuitive rendering of a stored screenshots directory.
 ///
-/// - `''` (restore-default) renders the default label, never an empty row.
+/// - `''` (restore-default) renders [defaultLabel], never an empty row.
 /// - `content://` tree URIs render their readable tail (`Download/Movies`);
-///   a malformed URI degrades to a generic label instead of a raw dump.
+///   a malformed URI degrades to [safFallbackLabel] instead of a raw dump.
 /// - Plain paths render verbatim (the row itself ellipsizes).
-String displayScreenshotDir(String stored) {
+///
+/// Labels are passed in so this helper stays free of the localization layer.
+String displayScreenshotDir(
+  String stored, {
+  required String defaultLabel,
+  required String safFallbackLabel,
+}) {
   final String s = stored.trim();
-  if (s.isEmpty) return '默认目录';
-  if (isSafPath(s)) return safReadableRelative(s) ?? '已选系统目录';
+  if (s.isEmpty) return defaultLabel;
+  if (isSafPath(s)) return safReadableRelative(s) ?? safFallbackLabel;
   return s;
+}
+
+/// Best-effort mapping of an Android SAF tree URI to a real filesystem path.
+///
+/// The screenshot writer uses plain `File` IO, so a picked SAF directory is
+/// only usable once mapped to its filesystem location. With All-files access
+/// granted this lets the custom dir work without native SAF writing. Returns
+/// null when the volume cannot be mapped (cloud providers, unknown shapes) —
+/// callers then keep the SAF URI and fall back to the default dir.
+String? safTreeUriToPlainPath(String uri, {required String? primaryRoot}) {
+  if (!isSafPath(uri)) return null;
+  final Uri? parsed = Uri.tryParse(uri);
+  if (parsed == null) return null;
+  final List<String> segs = parsed.pathSegments;
+  final int idx = segs.indexOf('tree');
+  if (idx < 0 || idx + 1 >= segs.length) return null;
+  // The tree document id is a single (percent-decoded) segment, e.g.
+  // `primary:Download/Movies` or `1234-5678:Movies`.
+  final String docId = segs[idx + 1];
+  final int colon = docId.indexOf(':');
+  if (colon <= 0) return null;
+  final String volume = docId.substring(0, colon);
+  final String rel = docId.substring(colon + 1);
+  // `relative` docs are `/`-separated regardless of host; join segments so
+  // the result uses the host separator.
+  List<String> relSegs() =>
+      rel.split('/').where((e) => e.isNotEmpty).toList();
+  if (volume == 'primary') {
+    if (primaryRoot == null || primaryRoot.isEmpty) return null;
+    return p.joinAll([primaryRoot, ...relSegs()]);
+  }
+  // Non-primary volume (typically an SD card).
+  return p.joinAll(['/storage', volume, ...relSegs()]);
 }
 
 /// Validates pasted/typed input into a storable directory string.

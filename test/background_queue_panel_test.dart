@@ -60,12 +60,12 @@ void main() {
 
       await tester.pumpWidget(_harness(const BackgroundQueuePanel()));
       await tester.pumpAndSettle();
-      // Empty state shows a message Text (this is a widget-layout test; the
-      // exact localized wording is covered by the l10n golden elsewhere).
+      // Empty state shows the explanatory message plus the source-manage entry.
       expect(find.descendant(
         of: find.byKey(const ValueKey('background_queue_panel_material')),
         matching: find.byType(Text),
-      ), findsOneWidget);
+      ), findsWidgets);
+      expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pump(const Duration(milliseconds: 100));
     });
@@ -92,6 +92,8 @@ void main() {
       // 'b' is current: appears both in the header row and in the list row.
       expect(find.text('b'), findsNWidgets(2));
       expect(find.text('c'), findsOneWidget);
+      // The self-owned source-manage button lives in the header.
+      expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pump(const Duration(milliseconds: 100));
     });

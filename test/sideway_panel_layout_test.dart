@@ -172,4 +172,36 @@ void main() {
           MainAxisAlignment.center);
     });
   });
+
+  group('sidewayBarX — block position, side-relative 0..1', () {
+    test('right-docked: 0 hugs the left (centre-facing) edge, 1 the right', () {
+      expect(sidewayBarX(anchor: Alignment.bottomRight, pos: 0, free: 200), 0);
+      expect(sidewayBarX(anchor: Alignment.bottomRight, pos: 1, free: 200), 200);
+      expect(sidewayBarX(anchor: Alignment.bottomRight, pos: 0.5, free: 200),
+          100);
+    });
+
+    test('left-docked mirrors: 0 hugs the right (centre-facing) edge', () {
+      expect(sidewayBarX(anchor: Alignment.bottomLeft, pos: 0, free: 200), 200);
+      expect(sidewayBarX(anchor: Alignment.bottomLeft, pos: 1, free: 200), 0);
+      expect(sidewayBarX(anchor: Alignment.bottomLeft, pos: 0.5, free: 200),
+          100);
+    });
+
+    test('centre anchor keeps the historical centred block (knob is a no-op)',
+        () {
+      expect(sidewayBarX(anchor: Alignment.bottomCenter, pos: 0, free: 200),
+          100);
+      expect(sidewayBarX(anchor: Alignment.bottomCenter, pos: 1, free: 200),
+          100);
+    });
+
+    test('no free space (or out-of-range pos) never yields a negative offset',
+        () {
+      expect(sidewayBarX(anchor: Alignment.bottomRight, pos: 0, free: 0), 0);
+      expect(sidewayBarX(anchor: Alignment.bottomRight, pos: 0, free: -40), 0);
+      expect(sidewayBarX(anchor: Alignment.bottomRight, pos: 2, free: 200), 200);
+      expect(sidewayBarX(anchor: Alignment.bottomRight, pos: -1, free: 200), 0);
+    });
+  });
 }

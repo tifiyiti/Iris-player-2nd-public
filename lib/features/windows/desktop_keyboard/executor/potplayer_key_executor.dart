@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/features/scenario_playback/playback/playback_provider_registry.dart';
 import 'package:iris/features/playback_tools/services/screenshot_service.dart';
+import 'package:iris/features/playback_tools/view/screenshot_capture_flow.dart';
 import 'package:iris/features/playback_tools/view/screenshot_feedback.dart';
 import 'package:iris/models/store/app_state.dart';
 import 'package:iris/features/background_playback/store/use_background_playback_store.dart';
@@ -380,17 +381,21 @@ class PotPlayerKeyExecutor {
 
   Future<void> _captureFrame() async {
     final t = getLocalizations(context);
-    final result = await captureCurrentFrame(player);
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final result = await runScreenshotCapture(
+      navigator: navigator,
+      player: player,
+      savingLabel: t.shot_saving,
+    );
     switch (result) {
       case ScreenshotSuccess(:final path):
         _showOsd(OsdTexts.screenshot(path, t));
-      case ScreenshotFailure(:final reason):
-        _log.w('screenshot failed: $reason');
+      case ScreenshotFailure(:final kind, :final detail):
+        _log.w('screenshot failed: $kind ${detail ?? ''}');
         _showOsd(OsdTexts.screenshotFailed(t));
       case ScreenshotUnsupported():
         // Desktop keeps OSD for outcomes, but a backend that can NEVER
         // capture deserves an actionable dialog, not a toast.
-        final navigator = Navigator.of(context, rootNavigator: true);
         await showScreenshotFeedback(navigator, result);
     }
   }

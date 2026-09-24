@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/features/meta_settings/view/setting_texts.dart';
 import 'package:iris/features/playback_tools/services/screenshot_paths.dart';
+import 'package:iris/features/playback_tools/services/screenshot_service.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/platform.dart' show isAndroid;
@@ -102,7 +103,10 @@ class _ScreenshotDirSheetState extends State<_ScreenshotDirSheet> {
 Future<String?> pickScreenshotDirectory() async {
   try {
     if (isAndroid) {
-      final dir = await SafUtil().pickDirectory(persistablePermission: true);
+      // Write permission is required: the picker otherwise grants read-only,
+      // so a chosen dir could never receive a screenshot.
+      final dir = await SafUtil().pickDirectory(
+          writePermission: true, persistablePermission: true);
       return dir?.uri;
     }
     return await FilePicker.platform.getDirectoryPath();
@@ -110,6 +114,15 @@ Future<String?> pickScreenshotDirectory() async {
     _log.warning('screenshot dir pick failed: $e');
     return null;
   }
+}
+
+/// Platform pick + SAF resolution for the pick button; extracted so the test
+/// seam ([ScreenshotDirForm.debugPickResolved]) can replace the pair without
+/// duplicating either implementation. Null on cancel/failure.
+Future<ResolvedPick?> _pickAndResolve() async {
+  final raw = await pickScreenshotDirectory();
+  if (raw == null) return null;
+  return resolvePickedScreenshotDir(raw);
 }
 
 /// Shared editor form (sticky header / scrollable fields / sticky footer).
@@ -128,6 +141,10 @@ class ScreenshotDirForm extends HookWidget {
   /// Test seam: counts form rebuilds to prove keyboard frames don't re-run
   /// the form. Null in prod.
   static void Function()? debugOnFormBuild;
+
+  /// Test seam: overrides the platform picker + SAF resolution for the pick
+  /// button. Null in prod (the real picker + [resolvePickedScreenshotDir] run).
+  static Future<ResolvedPick?> Function()? debugPickResolved;
 
   @override
   Widget build(BuildContext context) {
@@ -194,10 +211,20 @@ class ScreenshotDirForm extends HookWidget {
     }
 
     Future<void> pickUp() async {
-      final raw = await pickScreenshotDirectory();
-      if (raw == null) return;
+      final resolved =
+          await (ScreenshotDirForm.debugPickResolved ?? _pickAndResolve)();
+      if (resolved == null) return;
+      // A pick that resolved to an unwritable directory is REJECTED outright:
+      // nothing is stored, the previously effective save folder stays in force,
+      // and the user is told why (never a silent revert). The write chain would
+      // otherwise burn a doomed attempt at capture time.
+      if (resolved.skipped) {
+        if (!context.mounted) return;
+        await error(getLocalizations(context).shot_pick_unwritable);
+        return;
+      }
       final normalized =
-          normalizeScreenshotInput(raw, isAndroid: isAndroid);
+          normalizeScreenshotInput(resolved.path, isAndroid: isAndroid);
       if (normalized == null) {
         if (!context.mounted) return;
         final t = getLocalizations(context);
@@ -252,7 +279,13 @@ class ScreenshotDirForm extends HookWidget {
             child: LayoutBuilder(builder: (context, constraints) {
               final narrow = constraints.maxWidth < 420;
               Widget currentDirRow() {
-                final label = displayScreenshotDir(stored);
+                final label = displayScreenshotDir(
+                  stored,
+                  defaultLabel: isMobile
+                      ? t.ed_shot_default_mobile
+                      : t.ed_shot_default_desktop,
+                  safFallbackLabel: t.shot_saf_dir_fallback,
+                );
                 return Row(
                   children: [
                     Expanded(

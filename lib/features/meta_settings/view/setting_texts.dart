@@ -19,6 +19,7 @@ abstract final class SettingTexts {
         'always_play_from_beginning' => t.always_play_from_beginning,
         'screen_orientation' => t.screen_orientation,
         'slider_type' => t.set_slider_type,
+        'set_portrait_bar_align' => t.set_portrait_bar_align,
         'reuse_last_orientation' => t.reuse_last_orientation,
         'show_controls_on_play_to_pause' => t.show_controls_on_play_to_pause,
         'language' => t.language,
@@ -51,6 +52,7 @@ abstract final class SettingTexts {
         'keybind_editor' => t.set_keybind_editor,
         'legacy_compat' => t.set_legacy_compat,
         'speed_gesture_mode' => t.set_speed_gesture_mode,
+        'speed_rate_mode' => t.set_speed_rate_mode,
         'virtual_media_cross_drag' => t.set_virtual_media_cross_drag,
         'vm_mark_tick_color' => t.set_vm_mark_tick_color,
         'vm_naming_strategy' => t.set_vm_naming_strategy,
@@ -160,8 +162,10 @@ abstract final class SettingTexts {
         'keybind_editor_desc' => t.set_keybind_editor_desc,
         'window_keep_in_bounds_desc' => t.set_window_keep_in_bounds_desc,
         'speed_gesture_mode_desc' => t.set_speed_gesture_mode_desc,
+        'speed_rate_mode_desc' => t.set_speed_rate_mode_desc,
         'legacy_compat_desc' => t.set_legacy_compat_desc,
         'slider_type_desc' => t.set_slider_type_desc,
+        'set_portrait_bar_align_desc' => t.set_portrait_bar_align_desc,
         'screen_orientation_desc' => t.set_screen_orientation_desc,
         'gesture_profile_desc' => t.set_gesture_profile_desc,
         'controls_title_settings_desc' => t.configure_controls_title,
@@ -304,6 +308,11 @@ abstract final class SettingTexts {
         'speed.gestureMode' => switch (name) {
             'singleAxis' => t.set_speed_single_axis,
             'dualAxis' => t.set_speed_dual_axis,
+            _ => name,
+          },
+        'speed.rateMode' => switch (name) {
+            'dualWheel' => t.set_rate_mode_dual_wheel,
+            'list' => t.set_rate_mode_list,
             _ => name,
           },
         'virtualmedia.crossDragStrategy' => switch (name) {

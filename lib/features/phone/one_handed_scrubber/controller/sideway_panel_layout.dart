@@ -447,6 +447,29 @@ MainAxisAlignment sidewayButtonRowAlignForAnchor(Alignment anchor) =>
             ? MainAxisAlignment.end
             : MainAxisAlignment.center;
 
+/// Horizontal offset of the sideway panel's bottom button BLOCK inside the
+/// panel, as a fraction of the free space (`panelWidth - blockWidth`).
+///
+/// [pos] is side-relative 0..1: 0 = the block hugs the edge that faces the
+/// screen centre (right-docked → left edge, left-docked → right edge), 1 = the
+/// outer window edge. A centre anchor has no centre-facing edge, so it keeps
+/// the historical centred block (the knob is a no-op there).
+///
+/// [free] is guaranteed non-negative by the caller: the button block is
+/// measured and can never be wider than the panel, so `free * pos` stays in
+/// `[0, free]` and the block can never overflow the panel.
+double sidewayBarX({
+  required Alignment anchor,
+  required double pos,
+  required double free,
+}) {
+  if (free <= 0) return 0;
+  final double p = pos.clamp(0.0, 1.0);
+  if (anchor.x > 0) return free * p; // right-docked: inner edge is the left
+  if (anchor.x < 0) return free * (1 - p); // left-docked: inner edge is right
+  return free / 2;
+}
+
 /// Produces the visible ring centers for the current anchor (Windows rings
 /// mode). Each resizable edge gets ONE ring; opposite edges share the same
 /// inset value (e.g. top+bottom both use insetH → they move together).

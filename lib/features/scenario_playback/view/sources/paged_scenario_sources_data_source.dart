@@ -21,6 +21,7 @@ import 'package:iris/features/scenario_playback/model/enum/scenario_manage_sort_
 import 'package:iris/features/scenario_playback/model/enum/scenario_sort_field.dart';
 import 'package:iris/features/scenario_playback/model/enum/scenario_source_kind.dart';
 import 'package:iris/features/scenario_playback/actions/scenario_playback_actions.dart';
+import 'package:iris/features/scenario_playback/playback/scenario_playback_provider.dart';
 import 'package:iris/features/scenario_playback/scan/commands/scenario_source_scan_command.dart';
 import 'package:iris/features/scenario_playback/store/playback_scenario_store_state.dart';
 import 'package:iris/features/scenario_playback/store/use_playback_scenario_store.dart';
@@ -798,7 +799,7 @@ class PagedScenarioSourcesDataSource
         label: 'Remove',
         icon: const Icon(Icons.remove_circle_outline, size: 16),
         onPressed: (ctx, i) {
-          _remove(i as ScenarioManageItem);
+          removeItem(i as ScenarioManageItem);
         },
       ),
     ];
@@ -834,9 +835,7 @@ class PagedScenarioSourcesDataSource
         icon: const Icon(Icons.remove_circle_outline, size: 18),
         label: 'Remove selected',
         onPressed: (ctx, selected) async {
-          for (final item in selected) {
-            _remove(item);
-          }
+          await removeAll(selected);
           return true;
         },
       ),
@@ -913,7 +912,36 @@ class PagedScenarioSourcesDataSource
           await _store.removeExplicitInclude(item.includeId!);
         }
     }
+  }
+
+  /// Removes [item] (source / exclude / include) and tells the playback layer
+  /// the scenario's effective queue changed. Public + await-able so the
+  /// single-item path is directly testable; the trailing action routes here.
+  Future<void> removeItem(ScenarioManageItem item) async {
+    await _remove(item);
+    await _signalDefinitionChanged();
     await load();
+  }
+
+  /// Batch variant of [removeItem]: ONE notification for the whole selection,
+  /// never one per item (a per-item bump would re-fetch an open queue N times).
+  Future<void> removeAll(Iterable<ScenarioManageItem> items) async {
+    for (final item in items) {
+      await _remove(item);
+    }
+    await _signalDefinitionChanged();
+    await load();
+  }
+
+  /// A definition edit changes the effective queue: re-validate the current
+  /// item so playback never hangs on a just-removed entry (only when the edited
+  /// scenario IS the active one), then re-resolve the player chrome and re-fetch
+  /// any open queue list.
+  Future<void> _signalDefinitionChanged() async {
+    if (scenarioId == _store.state.activeScenarioId) {
+      await ScenarioPlaybackProvider(store: _store).revalidateCurrent();
+    }
+    await _store.notifyDefinitionChanged();
   }
 }
 

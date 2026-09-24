@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/l10n/app_localizations.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/features/background_playback/background_playback_gate.dart';
+import 'package:iris/features/background_playback/view/bg_source_rule_editor.dart';
 import 'package:iris/features/media_library/model/enum/basic_enum.dart';
 import 'package:iris/features/media_library/model/enum/media_node.dart';
 import 'package:iris/features/media_library/model/enum/media_lib_sources.dart';
@@ -32,6 +34,8 @@ import 'package:iris/features/scenario_playback/actions/scenario_playback_action
 import 'package:iris/features/meta_settings/engine/browse_scope_snapshot.dart'
     show currentBrowseScopeMediaTypes;
 import 'package:iris/features/scenario_playback/store/use_playback_scenario_store.dart';
+import 'package:iris/features/virtual_media/commands/vm_actions.dart';
+import 'package:iris/features/virtual_media/vm_gate.dart';
 import 'package:iris/models/db/app_database.dart';
 import 'package:iris/models/db/db_module.dart';
 import 'package:iris/models/db/storage_scope.dart';
@@ -1776,6 +1780,46 @@ class LibContentDataSource extends PaginatedBrowserDataSource<LibContentItem> {
         icon: const Icon(Icons.library_add, size: 16),
         onPressed: (ctx, i) => _addAsSourceToLibrary(ctx, [i]),
       ),
+      // Folder quick-adds: a DB directory node becomes a 副音 source rule / a
+      // virtual-merge rule, prefilled with storage+folder defaults.
+      if (item is NodeLibContentItem && item.node.isDir) ...[
+        if (BackgroundPlaybackGate.enabled)
+          GenericItemAction(
+            label: getLocalizations(context).lib_add_as_bg_source,
+            icon: const Icon(Icons.queue_music, size: 16),
+            onPressed: (ctx, i) {
+              final node = (i as NodeLibContentItem).node;
+              final storage = _lookupStorage(node.storageId);
+              openBgSourceRuleEditorForFolder(
+                ctx,
+                storageName: storage?.name ?? node.storageId,
+                folderName: node.name,
+                folderPath: relativeToStoragePath(
+                  node.path.join('/'),
+                  [storage?.basePath.join('/') ?? ''],
+                ),
+              );
+            },
+          ),
+        if (VirtualMediaGate.enabled)
+          GenericItemAction(
+            label: getLocalizations(context).lib_add_as_vm_merge,
+            icon: const Icon(Icons.merge_type, size: 16),
+            onPressed: (ctx, i) {
+              final node = (i as NodeLibContentItem).node;
+              final storage = _lookupStorage(node.storageId);
+              openVmRuleEditorForFolder(
+                ctx,
+                storageName: storage?.name ?? node.storageId,
+                folderName: node.name,
+                folderPath: relativeToStoragePath(
+                  node.path.join('/'),
+                  [storage?.basePath.join('/') ?? ''],
+                ),
+              );
+            },
+          ),
+      ],
       GenericItemAction(
         label: getLocalizations(context).lib_info_action,
         icon: const Icon(Icons.info_outline, size: 16),

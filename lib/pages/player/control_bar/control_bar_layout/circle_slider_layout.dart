@@ -16,6 +16,7 @@ import 'package:iris/models/store/phone_landscape_slider_type_helper.dart';
 import 'package:iris/pages/player/control_bar/control_bar_layout/control_bar_controls.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/platform.dart';
+import 'package:iris/widgets/controls/balanced_button_wrap.dart';
 
 /// Sideway one-handed panel: dial + wrapping button bar, anchored by the
 /// meta 9-grid position (`resolveSidePanelAlignment`).
@@ -207,6 +208,8 @@ class CircleSliderLayout extends HookWidget {
                 totalW: totalW,
                 ringDialHeightPct: app.ringDialHeightPct,
                 classicScale: app.circleSliderScale,
+                anchor: panelAnchor,
+                barPos: app.sidewayBarPos,
               ),
               children: [
                 LayoutId(
@@ -270,8 +273,9 @@ class CircleSliderLayout extends HookWidget {
                             color: controls.color,
                             overlayColor: controls.overlayColor,
                           )
-                        : Wrap(
+                        : BalancedButtonWrap(
                             alignment: sidewayButtonAlignForAnchor(panelAnchor),
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             spacing: 8,
                             runSpacing: 6,
                             children: [
@@ -709,6 +713,8 @@ class _PanelDelegate extends MultiChildLayoutDelegate {
     required this.totalW,
     required this.ringDialHeightPct,
     required this.classicScale,
+    required this.anchor,
+    required this.barPos,
   });
 
   final double totalH;
@@ -720,9 +726,24 @@ class _PanelDelegate extends MultiChildLayoutDelegate {
   final double ringDialHeightPct;
   final double classicScale;
 
+  /// Screen anchor of the panel: decides which panel edge the button block
+  /// hugs, and (with [barPos]) where the block sits horizontally.
+  final Alignment anchor;
+
+  /// Side-relative 0..1 block position (0 = screen-centre-facing edge).
+  final double barPos;
+
+  /// Horizontal offset of the button block inside the panel. The block is
+  /// measured first, so `free` is never negative and the block cannot overflow.
+  double _buttonsX(double panelWidth, double buttonsWidth) => sidewayBarX(
+        anchor: anchor,
+        pos: barPos,
+        free: panelWidth - buttonsWidth,
+      );
+
   @override
   void performLayout(Size size) {
-    // Buttons first: Wrap with maxWidth = size.width (synchronous, no postFrame stale)
+    // Buttons first: measured with maxWidth = size.width (synchronous, no postFrame stale)
     final Size buttonsSize = layoutChild(
       _PanelSlot.buttons,
       BoxConstraints(maxWidth: size.width),
@@ -746,6 +767,10 @@ class _PanelDelegate extends MultiChildLayoutDelegate {
         : dialPxRaw;
     final double shownDialH = dialPxActual.clamp(0.0, availH);
     final double dialW = shownDialH;
+    // The button block hugs the panel edge facing the screen centre by default
+    // (barPos 0); the position knob can slide it toward the outer edge. The
+    // block is measured, so this can never leave the panel (no overflow).
+    final double buttonsX = _buttonsX(size.width, buttonsSize.width);
     if (isDial) {
       // Dial corridor needs the full panel width (ring + axis strip walk
       // inside box.width == panelW). Slot covers the whole leftover span
@@ -757,7 +782,7 @@ class _PanelDelegate extends MultiChildLayoutDelegate {
         BoxConstraints.tightFor(width: size.width, height: availH),
       );
       positionChild(_PanelSlot.buttons,
-          Offset((size.width - buttonsSize.width) / 2, size.height - buttonsSize.height));
+          Offset(buttonsX, size.height - buttonsSize.height));
       positionChild(_PanelSlot.dial, const Offset(0, 0));
     } else {
       layoutChild(
@@ -765,7 +790,8 @@ class _PanelDelegate extends MultiChildLayoutDelegate {
         BoxConstraints.tightFor(width: dialW, height: shownDialH),
       );
       // Position buttons at bottom
-      positionChild(_PanelSlot.buttons, Offset((size.width - buttonsSize.width) / 2, size.height - buttonsSize.height));
+      positionChild(_PanelSlot.buttons,
+          Offset(buttonsX, size.height - buttonsSize.height));
       // Position dial in leftover slot
       final double dialY = (availH - shownDialH) * circlePosY.clamp(0.0, 1.0);
       final double dialX = (size.width - dialW) * circlePosX.clamp(0.0, 1.0);
@@ -782,5 +808,7 @@ class _PanelDelegate extends MultiChildLayoutDelegate {
       oldDelegate.circlePosY != circlePosY ||
       oldDelegate.totalW != totalW ||
       oldDelegate.ringDialHeightPct != ringDialHeightPct ||
-      oldDelegate.classicScale != classicScale;
+      oldDelegate.classicScale != classicScale ||
+      oldDelegate.anchor != anchor ||
+      oldDelegate.barPos != barPos;
 }

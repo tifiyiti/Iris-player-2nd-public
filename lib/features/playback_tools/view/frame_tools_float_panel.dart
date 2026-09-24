@@ -1,13 +1,11 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
-import 'package:iris/features/playback_tools/services/screenshot_service.dart';
 import 'package:iris/features/playback_tools/store/playback_tools_store.dart';
-import 'package:iris/features/playback_tools/view/screenshot_feedback.dart';
 import 'package:iris/features/playback_tools/view/frame_step_button.dart';
+import 'package:iris/features/playback_tools/view/screenshot_capture_flow.dart';
+import 'package:iris/features/playback_tools/view/screenshot_feedback.dart';
 import 'package:iris/models/player.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/widgets/a11y_tooltip.dart';
@@ -30,30 +28,79 @@ class FrameToolsFloatPanel extends HookWidget {
     final visible =
         usePlaybackToolsStore().select(context, (s) => s.frameToolsVisible);
     // null = not yet placed; first placement is horizontally centered
-    // (measured post-frame), afterwards drags move it for the whole session.
+    // (measured post-frame while VISIBLE — the panel mounts hidden, so
+    // measuring on mount would read the zero-size hidden placeholder),
+    // afterwards drags move it for the whole session.
     final offset = useState<Offset?>(null);
     final shutterFlash = useState(false);
+    // Rebuild (and re-clamp) whenever the viewport changes — rotation, window
+    // resize, fullscreen toggle.
+    final viewport = MediaQuery.sizeOf(context);
+
+    /// Live size of the HOSTING STACK (walks up past the panel's own
+    /// Positioned): the player Stack ≈ video area and is the container drags
+    /// are clamped against. Measured on demand so a resize can never leave the
+    /// clamp bound to a stale size.
+    Size? hostStackSize() {
+      final box = context.findRenderObject();
+      if (box is! RenderBox || !box.hasSize) return null;
+      RenderBox? node =
+          box.parent is RenderBox ? box.parent as RenderBox : null;
+      while (node != null && node is! RenderStack) {
+        node = node.parent is RenderBox ? node.parent as RenderBox : null;
+      }
+      return node?.size;
+    }
+
+    Size panelSize() {
+      final box = context.findRenderObject();
+      return box is RenderBox && box.hasSize ? box.size : Size.zero;
+    }
+
+    /// Clamps the current [offset] into [host]; returns the clamped value (or
+    /// the current one when nothing has been placed yet).
+    Offset clampToHost(Size host) {
+      final panel = panelSize();
+      final maxX =
+          (host.width - panel.width).clamp(0.0, double.maxFinite).toDouble();
+      final maxY =
+          (host.height - panel.height).clamp(0.0, double.maxFinite).toDouble();
+      final current = offset.value ?? Offset.zero;
+      return Offset(
+        current.dx.clamp(0.0, maxX).toDouble(),
+        current.dy.clamp(0.0, maxY).toDouble(),
+      );
+    }
 
     useEffect(() {
+      if (!visible || offset.value != null) return null;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (offset.value != null) return;
         final box = context.findRenderObject();
-        if (box is! RenderBox || !box.hasSize) return;
-        // Center within the HOSTING STACK (walks up past the panel's own
-        // Positioned), not the screen: the player Stack ≈ video area and is
-        // the container drags are clamped against.
-        RenderBox? node = box.parent is RenderBox ? box.parent as RenderBox : null;
-        while (node != null && node is! RenderStack) {
-          node = node.parent is RenderBox ? node.parent as RenderBox : null;
-        }
-        final hostWidth = node?.size.width ?? MediaQuery.of(context).size.width;
+        if (box is! RenderBox || !box.hasSize || box.size.isEmpty) return;
+        final size = hostStackSize() ?? MediaQuery.of(context).size;
         offset.value = Offset(
-          (hostWidth - box.size.width) / 2,
+          ((size.width - box.size.width) / 2)
+              .clamp(0.0, double.maxFinite)
+              .toDouble(),
           120.0,
         );
       });
       return null;
-    }, const []);
+    }, [visible]);
+
+    // A resize/rotation shrinks the hosting Stack under a parked panel; pull it
+    // back inside the NEW bounds so it can never strand off-screen.
+    useEffect(() {
+      if (!visible || offset.value == null) return null;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final host = hostStackSize();
+        if (host == null || offset.value == null) return;
+        final clamped = clampToHost(host);
+        if (clamped != offset.value) offset.value = clamped;
+      });
+      return null;
+    }, [viewport, visible]);
 
     if (!visible) {
       // Hidden state must remain a POSITIONED child of the hosting Stack.
@@ -78,55 +125,12 @@ class FrameToolsFloatPanel extends HookWidget {
       final navigator = Navigator.of(context, rootNavigator: true);
       final t = getLocalizations(context);
       final player = context.read<MediaPlayer>();
-      shutterFlash.value = true;
-      // Immediate progress + hard timeout: the first-ever capture stacks
-      // permission dialogs, public-dir mkdir and a cold mpv frame grab.
-      // Without feedback the shutter looks frozen (no dialog appears until
-      // the whole chain finishes); without a timeout a stuck grab hangs
-      // forever. Both now degrade to the normal feedback dialog.
-      BuildContext? progressContext;
-      var progressOpen = false;
-      var captureDone = false;
-      unawaited(
-        Future<void>.delayed(const Duration(milliseconds: 400), () {
-          if (captureDone) return;
-          if (!navigator.mounted || !shutterFlash.value) return;
-          progressOpen = true;
-          showDialog<void>(
-            context: navigator.context,
-            barrierDismissible: false,
-            builder: (context) {
-              progressContext = context;
-              return AlertDialog(
-                content: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const CircularProgressIndicator(),
-                    const SizedBox(width: 16),
-                    Text(getLocalizations(context).shot_saving),
-                  ],
-                ),
-              );
-            },
-          ).then((_) => progressOpen = false);
-        }),
+      final result = await runScreenshotCapture(
+        navigator: navigator,
+        player: player,
+        savingLabel: t.shot_saving,
+        onBusyChanged: (busy) => shutterFlash.value = busy,
       );
-      ScreenshotResult result;
-      try {
-        result = await captureCurrentFrame(
-          player,
-        ).timeout(const Duration(seconds: 15));
-      } on TimeoutException {
-        result = ScreenshotFailure(t.shot_timeout);
-      } finally {
-        captureDone = true;
-        shutterFlash.value = false;
-        if (progressOpen &&
-            progressContext != null &&
-            progressContext!.mounted) {
-          Navigator.pop(progressContext!);
-        }
-      }
       await showScreenshotFeedback(navigator, result);
     }
 
@@ -137,9 +141,17 @@ class FrameToolsFloatPanel extends HookWidget {
         onPanUpdate: (details) {
           final base = offset.value;
           if (base == null) return;
+          // Live host size: a drag after a resize must clamp to the NEW bounds.
+          final host = hostStackSize() ?? MediaQuery.of(context).size;
+          final panel = panelSize();
+          final double maxX =
+              (host.width - panel.width).clamp(0.0, double.maxFinite).toDouble();
+          final double maxY = (host.height - panel.height)
+              .clamp(0.0, double.maxFinite)
+              .toDouble();
           offset.value = Offset(
-            (base.dx + details.delta.dx).clamp(0, double.maxFinite),
-            (base.dy + details.delta.dy).clamp(0, double.maxFinite),
+            (base.dx + details.delta.dx).clamp(0.0, maxX).toDouble(),
+            (base.dy + details.delta.dy).clamp(0.0, maxY).toDouble(),
           );
         },
         child: Material(

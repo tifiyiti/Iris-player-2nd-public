@@ -273,6 +273,25 @@ abstract final class AppSettingsContribution {
       platforms: ['android', 'windows', 'linux', 'macos'],
       sortOrder: 40,
     ),
+    // Phone-PORTRAIT bottom-bar alignment of the two groups (MobileControlLayout).
+    // PORTRAIT-only and Android-only: the one-handed side panel's block position
+    // is the `slider.barPos` knob inside the slider-type dialog, and the
+    // standalone desktop 副音 row follows `background_playback.quickBarAlign`.
+    // One composite tile opens a two-row dialog (playback group / 副音 group);
+    // `defaultValue` mirrors the AppState @Default (center) for the parity guard.
+    SettingDef(
+      key: 'app.portraitPlaybackAlign',
+      section: SettingsSection.play,
+      valueType: SettingValueType.enumeration,
+      defaultValue: 'center',
+      enumValues: ['left', 'center', 'right'],
+      widgetKind: SettingWidgetKind.custom,
+      editorKey: 'portrait_bar_align',
+      titleKey: 'set_portrait_bar_align',
+      subtitleKey: 'set_portrait_bar_align_desc',
+      platforms: ['android'],
+      sortOrder: 44,
+    ),
     // Unified side-panel composite now hosts dial-ring + circle tuning + center
     // action inline (see show_slider_type_dialog.dart). The former standalone
     // `dialring.compositeEntry` and `circleSliderCenterAction` rows are retired

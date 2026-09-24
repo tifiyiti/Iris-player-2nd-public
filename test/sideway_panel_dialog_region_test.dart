@@ -160,5 +160,33 @@ void main() {
       expect(raw.containsKey('slider.handleInsetH'), isTrue);
       expect(raw.containsKey('slider.handleInsetV'), isTrue);
     });
+
+    test('bottom button-bar position is memory-only mid-drag, commits once',
+        () async {
+      final store = AppStore();
+      await store.setMetadataGate(true);
+
+      for (int i = 0; i < 10; i++) {
+        await store.updateSidewayBarPos(i / 10, persist: false);
+      }
+      var raw = await MetaSettingsModule.repo.loadRawValues();
+      expect(raw.containsKey('slider.barPos'), isFalse,
+          reason: 'nothing may land mid-drag');
+      expect(store.state.sidewayBarPos, closeTo(0.9, 1e-9),
+          reason: 'memory still reflects the live drag');
+
+      await store.updateSidewayBarPos(0.35);
+      raw = await MetaSettingsModule.repo.loadRawValues();
+      expect(double.parse(raw['slider.barPos']!), closeTo(0.35, 1e-9));
+    });
+
+    test('bottom button-bar position clamps to 0..1', () async {
+      final store = AppStore();
+      await store.setMetadataGate(true);
+      await store.updateSidewayBarPos(2.5, persist: false);
+      expect(store.state.sidewayBarPos, 1.0);
+      await store.updateSidewayBarPos(-1, persist: false);
+      expect(store.state.sidewayBarPos, 0.0);
+    });
   });
 }

@@ -7,26 +7,21 @@ import 'package:iris/store/kv/kv_keys.dart';
 import 'package:iris/store/kv/use_kv_store.dart';
 import 'package:iris/store/persistent_store.dart';
 import 'package:iris/utils/logger.dart';
-import 'package:iris/utils/platform.dart';
 
 final _log = AreaKeyLog(LogKeys.legacyStore);
 
 /// State holder of the one-handed bottom control-group switch.
 ///
 /// Persisted through the KV backend so the remembered group, the floating
-/// button's visibility and its position survive app restarts. The store holds
-/// no player/engine reference — the control bar reads [ControlGroupState.group]
-/// directly and the toggle entry points call [cycleGroup].
+/// button's per-orientation visibility and its position survive app restarts.
+/// The store holds no player/engine reference — the control bar reads
+/// [ControlGroupState.group] directly and the toggle entry points call
+/// [cycleGroup].
 ///
-/// Factory default of the floating button differs by platform: phones ship it
-/// OFF (the switch is opt-in there), desktop keeps the old ON default — it is
-/// only reachable through the `desktopCenterZonePhoneMode` opt-in anyway.
-/// A stored value always wins, so an explicit user choice is never overridden.
+/// Visibility defaults to portrait ON / landscape OFF for every platform; a
+/// stored value always wins, so an explicit user choice is never overridden.
 class ControlGroupStore extends PersistentStore<ControlGroupState> {
-  ControlGroupStore()
-      : super(isMobilePlatform
-            ? const ControlGroupState(floatingButtonEnabled: false)
-            : const ControlGroupState());
+  ControlGroupStore() : super(const ControlGroupState());
 
   static const String _key = KvKeys.controlGroupState;
 
@@ -40,14 +35,24 @@ class ControlGroupStore extends PersistentStore<ControlGroupState> {
   /// Advances to the next group in declaration order and persists it.
   Future<void> cycleGroup() => setGroup(nextPlayerControlGroup(state.group));
 
-  Future<void> setFloatingButtonEnabled(bool enabled) async {
-    if (state.floatingButtonEnabled == enabled) return;
-    set(state.copyWith(floatingButtonEnabled: enabled));
+  /// Whether the floating switch should be present for [isLandscape].
+  bool isFloatingButtonVisible({required bool isLandscape}) => isLandscape
+      ? state.floatingButtonLandscape
+      : state.floatingButtonPortrait;
+
+  /// Writes the floating switch visibility for ONE orientation, leaving the
+  /// other untouched (the two are independent settings).
+  Future<void> setFloatingButtonVisible({
+    required bool isLandscape,
+    required bool visible,
+  }) async {
+    final ControlGroupState next = isLandscape
+        ? state.copyWith(floatingButtonLandscape: visible)
+        : state.copyWith(floatingButtonPortrait: visible);
+    if (next == state) return;
+    set(next);
     await save(state);
   }
-
-  Future<void> toggleFloatingButton() =>
-      setFloatingButtonEnabled(!state.floatingButtonEnabled);
 
   /// Commits the floating button position once, at the end of a drag.
   /// Fractions are clamped to the host box; drag frames stay memory-only.
@@ -64,9 +69,20 @@ class ControlGroupStore extends PersistentStore<ControlGroupState> {
     try {
       final String? raw = await getKvStore().read(key: _key);
       if (raw == null || raw.isEmpty) return null;
-      return ControlGroupState.fromJson(
-        json.decode(raw) as Map<String, dynamic>,
-      );
+      final Map<String, dynamic> map = json.decode(raw) as Map<String, dynamic>;
+      // Upgrade JSON written before the orientation split. The legacy single
+      // toggle only ever governed the PHONE portrait floater — it carried no
+      // landscape concept — and its persisted value may be the OLD platform
+      // default rather than an explicit choice, so it cannot be trusted to turn
+      // landscape ON. Honor it in PORTRAIT only; landscape keeps the new,
+      // deliberate default (OFF). A never-written key falls through untouched.
+      if (map.containsKey('floatingButtonEnabled') &&
+          !map.containsKey('floatingButtonPortrait') &&
+          !map.containsKey('floatingButtonLandscape')) {
+        final bool legacy = map['floatingButtonEnabled'] as bool? ?? false;
+        map['floatingButtonPortrait'] = legacy;
+      }
+      return ControlGroupState.fromJson(map);
     } catch (e) {
       _log.e('Error loading ControlGroupState: $e');
       // A decode failure is a load failure: rethrow so PersistentStore keeps

@@ -83,11 +83,14 @@ import 'package:iris/widgets/dialogs/show_message_dialog.dart';
 import 'package:iris/utils/platform.dart' show isDesktop, isMobilePlatform;
 import 'package:iris/widgets/dialogs/show_enum_radio_dialog.dart';
 import 'package:iris/features/speed/model/enum/speed_gesture_mode.dart';
+import 'package:iris/features/speed/model/enum/speed_rate_picker_mode.dart';
 import 'package:iris/features/speed/model/speed_gesture_resolver.dart';
+import 'package:iris/features/speed/model/speed_rate_picker_resolver.dart';
 import 'package:iris/widgets/dialogs/show_unified_gesture_profile_dialog.dart';
 import 'package:iris/widgets/dialogs/show_language_dialog.dart';
 import 'package:iris/widgets/dialogs/show_legacy_compat_dialog.dart';
 import 'package:iris/widgets/dialogs/show_orientation_dialog.dart';
+import 'package:iris/widgets/dialogs/show_portrait_bar_align_dialog.dart';
 import 'package:iris/widgets/adaptive/keyboard_form_shell.dart';
 import 'package:iris/widgets/dialogs/show_slider_type_dialog.dart';
 import 'package:iris/widgets/dialogs/warning_prefs_editor.dart'
@@ -160,6 +163,17 @@ abstract final class EditorBindings {
         },
         open: showSliderTypeDialog,
       ),
+      // Phone-PORTRAIT bottom-bar alignment (MobileControlLayout): one tile,
+      // two independent rows in the dialog. Subtitle summarises both groups.
+      'portrait_bar_align': _tile(
+        icon: Icons.align_horizontal_center_rounded,
+        titleKey: 'set_portrait_bar_align',
+        subtitle: (s, t) => t.set_portrait_bar_align_summary(
+          _portraitAlignLabel(s.portraitPlaybackAlign, t),
+          _portraitAlignLabel(s.portraitSubAudioAlign, t),
+        ),
+        open: showPortraitBarAlignDialog,
+      ),
       'speed_gesture_mode': _tile(
         icon: Icons.speed_rounded,
         titleKey: 'speed_gesture_mode',
@@ -172,6 +186,21 @@ abstract final class EditorBindings {
               : t.ed_speed_single;
         },
         open: _openSpeedGestureModeDialog,
+      ),
+      // Playback-speed picker shape (more menu / control-bar RATE): dual-wheel
+      // vs the legacy flat list. Value lives in the `speed.rateMode` AUX row.
+      'speed_rate_mode': _tile(
+        icon: Icons.tune_rounded,
+        titleKey: 'speed_rate_mode',
+        subtitle: (s, t) {
+          final mode = resolveSpeedRatePickerMode(s,
+              metadataEnabled:
+                  s.useMetadataSettings && MetaSettingsModule.ready);
+          return mode == SpeedRatePickerMode.dualWheel
+              ? t.set_rate_mode_dual_wheel
+              : t.set_rate_mode_list;
+        },
+        open: _openSpeedRateModeDialog,
       ),
       'gesture_unified': _tile(
         icon: Icons.touch_app_rounded,
@@ -910,10 +939,13 @@ abstract final class EditorBindings {
   /// human-readable form, or the platform default label when unset.
   static String _screenshotDirSubtitle(String stored,
       {required bool isMobile, required AppLocalizations t}) {
-    if (stored.trim().isEmpty) {
-      return isMobile ? t.ed_shot_default_mobile : t.ed_shot_default_desktop;
-    }
-    return displayScreenshotDir(stored);
+    final String defaultLabel =
+        isMobile ? t.ed_shot_default_mobile : t.ed_shot_default_desktop;
+    return displayScreenshotDir(
+      stored,
+      defaultLabel: defaultLabel,
+      safFallbackLabel: t.shot_saf_dir_fallback,
+    );
   }
 
   /// Rule-name prefix editor: single text field with a non-empty guard.
@@ -965,6 +997,22 @@ abstract final class EditorBindings {
       currentValue: current,
       labelOf: (m) => SettingTexts.enumLabel('speed.gestureMode', m.name, t),
       onSelected: (m) => unawaited(store.updateSpeedGestureMode(m)),
+    );
+  }
+
+  static void _openSpeedRateModeDialog(BuildContext context) {
+    final t = getLocalizations(context);
+    final store = useAppStore();
+    final current = resolveSpeedRatePickerMode(store.state,
+        metadataEnabled:
+            store.state.useMetadataSettings && MetaSettingsModule.ready);
+    showEnumRadioDialog<SpeedRatePickerMode>(
+      context: context,
+      title: SettingTexts.title('speed_rate_mode', t),
+      values: SpeedRatePickerMode.values,
+      currentValue: current,
+      labelOf: (m) => SettingTexts.enumLabel('speed.rateMode', m.name, t),
+      onSelected: (m) => unawaited(store.updateSpeedRatePickerMode(m)),
     );
   }
 
@@ -1157,6 +1205,15 @@ abstract final class EditorBindings {
         BrowseMediaScope.all => t.set_browse_scope_all,
         BrowseMediaScope.videoOnly => t.set_browse_scope_video,
         BrowseMediaScope.audioOnly => t.set_browse_scope_audio,
+      };
+
+  /// Align value → localized 左/中/右, shared by the row subtitle and its dialog
+  /// so the two never disagree.
+  static String _portraitAlignLabel(PortraitBarAlign v, AppLocalizations t) =>
+      switch (v) {
+        PortraitBarAlign.left => t.ed_pos_left,
+        PortraitBarAlign.center => t.ed_pos_center,
+        PortraitBarAlign.right => t.ed_pos_right,
       };
 
   static String _osdVisibilityLabel(OsdVisibilityMode v, AppLocalizations t) =>

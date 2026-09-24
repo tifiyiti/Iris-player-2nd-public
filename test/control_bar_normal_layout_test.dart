@@ -133,7 +133,7 @@ void main() {
       expect(find.byType(SubtitleButton), findsOneWidget);
     });
 
-    testWidgets('MobileControlLayout packs its rows to the LEFT edge',
+    testWidgets('MobileControlLayout defaults to the spread (center) layout',
         (tester) async {
       _setSurface(tester, const Size(400, 800));
       await tester.pumpWidget(_harness(
@@ -142,14 +142,18 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      // The row hugs the left edge: the shuffle button starts at 0 instead of
-      // being spread across the bar. (Prev/Next self-hide without a queue, so
-      // the row is a few 48px buttons wide, not the full 400.)
+      // Default PortraitBarAlign.center reproduces the pre-238d47c2 look: the
+      // playback rows SPREAD with spaceEvenly, so neither edge is packed and
+      // the two end gaps stay symmetric. (Prev/Next self-hide without a queue,
+      // so the row is shuffle … repeat.)
       final double left = tester.getTopLeft(find.byType(ShuffleButton)).dx;
       final double right = tester.getTopRight(find.byType(RepeatButton)).dx;
-      expect(left, lessThanOrEqualTo(1.0));
-      expect(right, lessThan(300.0),
-          reason: 'packed left, not spread over the whole bar');
+      expect(left, greaterThan(1.0),
+          reason: 'center: not packed to the left edge');
+      expect(right, lessThan(399.0),
+          reason: 'center: not packed to the right edge');
+      expect((left - (400.0 - right)).abs(), lessThan(2.0),
+          reason: 'spaceEvenly keeps the two end gaps symmetric');
     });
 
     testWidgets('TabletControlLayout shows subtitle and the 副音 menu', (tester) async {

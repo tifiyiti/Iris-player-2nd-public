@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +10,9 @@ import 'package:iris/features/control_group/view/control_group_floating_button.d
 import 'package:iris/l10n/app_localizations.dart';
 import 'package:iris/models/file.dart';
 import 'package:iris/models/store/app_state.dart';
+import 'package:iris/store/kv/kv_keys.dart';
+import 'package:iris/store/kv/secure_kv.dart';
+import 'package:iris/store/kv/use_kv_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/store/use_player_ui_store.dart';
 import 'package:iris/utils/platform.dart';
@@ -144,25 +149,76 @@ void main() {
     });
   });
 
-  group('floating button default', () {
-    test('ships OFF on phones', () async {
-      debugIsMobilePlatformOverride = true;
-      addTearDown(() => debugIsMobilePlatformOverride = null);
+  group('legacy floating toggle upgrade', () {
+    /// Seeds a pre-orientation-split KV blob under the control-group key.
+    void seedLegacy(Map<String, dynamic> json) {
+      final kv = MemoryKvStore();
+      kv.values[KvKeys.controlGroupState] = jsonEncode(json);
+      setKvStoreForTest(kv);
+      addTearDown(resetKvStoreForTest);
+    }
+
+    test('an ON legacy toggle upgrades into PORTRAIT only', () async {
+      seedLegacy({'floatingButtonEnabled': true, 'floatingX': 0.3});
 
       final store = useControlGroupStore();
       await store.initialized;
 
-      expect(store.state.floatingButtonEnabled, isFalse);
+      expect(store.state.floatingButtonPortrait, isTrue);
+      expect(store.state.floatingButtonLandscape, isFalse,
+          reason: 'the legacy value carries no landscape meaning, and '
+              'landscape deliberately ships OFF');
+      expect(store.state.floatingX, 0.3, reason: 'unrelated fields survive');
     });
 
-    test('ships ON elsewhere (desktop phone-mode opt-in keeps it)', () async {
-      debugIsMobilePlatformOverride = false;
-      addTearDown(() => debugIsMobilePlatformOverride = null);
+    test('an OFF legacy toggle stays OFF in portrait', () async {
+      seedLegacy({'floatingButtonEnabled': false});
 
       final store = useControlGroupStore();
       await store.initialized;
 
-      expect(store.state.floatingButtonEnabled, isTrue);
+      expect(store.state.floatingButtonPortrait, isFalse);
+      expect(store.state.floatingButtonLandscape, isFalse);
+    });
+
+    test('JSON already carrying the new keys is left untouched', () async {
+      seedLegacy({
+        'floatingButtonEnabled': true,
+        'floatingButtonPortrait': false,
+        'floatingButtonLandscape': true,
+      });
+
+      final store = useControlGroupStore();
+      await store.initialized;
+
+      expect(store.state.floatingButtonPortrait, isFalse);
+      expect(store.state.floatingButtonLandscape, isTrue);
+    });
+  });
+
+  group('floating button default', () {
+    test('ships portrait ON and landscape OFF on every platform', () async {
+      final store = useControlGroupStore();
+      await store.initialized;
+
+      expect(store.state.floatingButtonPortrait, isTrue);
+      expect(store.state.floatingButtonLandscape, isFalse);
+    });
+
+    test('the two orientation flags are independent', () async {
+      final store = useControlGroupStore();
+      await store.initialized;
+
+      expect(store.isFloatingButtonVisible(isLandscape: false), isTrue);
+      expect(store.isFloatingButtonVisible(isLandscape: true), isFalse);
+
+      await store.setFloatingButtonVisible(isLandscape: true, visible: true);
+      await store.setFloatingButtonVisible(isLandscape: false, visible: false);
+
+      expect(store.isFloatingButtonVisible(isLandscape: true), isTrue);
+      expect(store.isFloatingButtonVisible(isLandscape: false), isFalse);
+      expect(store.state.floatingButtonLandscape, isTrue);
+      expect(store.state.floatingButtonPortrait, isFalse);
     });
   });
 
@@ -170,12 +226,27 @@ void main() {
     setUp(() => debugIsMobilePlatformOverride = true);
     tearDown(() => debugIsMobilePlatformOverride = null);
 
-    testWidgets('tap cycles the bottom control group', (tester) async {
+    void usePortrait(WidgetTester tester) {
+      tester.view.physicalSize = const Size(600, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+    }
+
+    void useLandscape(WidgetTester tester) {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+    }
+
+    testWidgets('tap cycles the bottom control group (portrait default on)',
+        (tester) async {
+      usePortrait(tester);
       final store = useControlGroupStore();
       await store.initialized;
       store.set(store.state.copyWith(
         group: PlayerControlGroup.playback,
-        floatingButtonEnabled: true,
+        floatingButtonPortrait: true,
+        floatingButtonLandscape: false,
       ));
 
       await tester.pumpWidget(_harness(const ControlGroupFloatingButton()));
@@ -191,10 +262,15 @@ void main() {
       expect(store.state.group, PlayerControlGroup.background);
     });
 
-    testWidgets('hidden when the toggle is off', (tester) async {
+    testWidgets('hidden in landscape when only portrait is enabled',
+        (tester) async {
+      useLandscape(tester);
       final store = useControlGroupStore();
       await store.initialized;
-      store.set(store.state.copyWith(floatingButtonEnabled: false));
+      store.set(store.state.copyWith(
+        floatingButtonPortrait: true,
+        floatingButtonLandscape: false,
+      ));
 
       await tester.pumpWidget(_harness(const ControlGroupFloatingButton()));
       await tester.pumpAndSettle();
@@ -203,16 +279,31 @@ void main() {
           findsNothing);
     });
 
+    testWidgets('shown in landscape when the landscape flag is enabled',
+        (tester) async {
+      useLandscape(tester);
+      final store = useControlGroupStore();
+      await store.initialized;
+      store.set(store.state.copyWith(
+        floatingButtonPortrait: false,
+        floatingButtonLandscape: true,
+      ));
+
+      await tester.pumpWidget(_harness(const ControlGroupFloatingButton()));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey<String>('control_group_floating_button')),
+          findsOneWidget);
+    });
+
     testWidgets('drag tracks the finger across same-frame pan updates',
         (tester) async {
-      tester.view.physicalSize = const Size(800, 600);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
+      useLandscape(tester);
 
       final store = useControlGroupStore();
       await store.initialized;
       store.set(store.state.copyWith(
-        floatingButtonEnabled: true,
+        floatingButtonLandscape: true,
         floatingX: 0.5,
         floatingY: 0.5,
       ));
@@ -263,7 +354,7 @@ void main() {
       final store = useControlGroupStore();
       await store.initialized;
       store.set(store.state.copyWith(
-        floatingButtonEnabled: true,
+        floatingButtonLandscape: true,
         group: PlayerControlGroup.playback,
       ));
       await tester.pumpWidget(_harness(const ControlGroupFloatingButton()));

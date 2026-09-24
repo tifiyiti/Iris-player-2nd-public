@@ -160,4 +160,23 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(useAppStore().state.screenshotDesktopDir, isNotEmpty);
   });
+
+  testWidgets('an unwritable pick shows a notice and keeps the store',
+      (tester) async {
+    await useAppStore().updateScreenshotMobileDir('E:/keep');
+    ScreenshotDirForm.debugPickResolved =
+        () async => (path: '', skipped: true);
+    addTearDown(() => ScreenshotDirForm.debugPickResolved = null);
+
+    await pumpOpener(tester, isMobile: true);
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.byKey(const ValueKey('screenshotDirPickUp')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // The rejection is explained to the user...
+    expect(find.text('该文件夹不可写入，已保留当前保存目录。'), findsOneWidget);
+    // ...and the previously effective directory is NOT silently reset to ''.
+    expect(useAppStore().state.screenshotMobileDir, 'E:/keep');
+  });
 }

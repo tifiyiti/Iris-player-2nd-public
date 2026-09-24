@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 void main() {
   final sep = Platform.pathSeparator;
   final now = DateTime(2026, 8, 29, 10, 20, 30);
+  final stamp = '20260829_102030_000';
   // Real PNG bytes: the capture core guarantees PNG content before writing,
   // so the fallback-chain tests below must feed it decodable frames.
   final bytes = Uint8List.fromList(
@@ -57,27 +58,31 @@ void main() {
       expect((result as ScreenshotUnsupported).backend, 'fvp');
     });
 
-    test('null frame → failure', () async {
+    test('null frame → failure (emptyFrame)', () async {
       final result = await capture(frame: () => null, write: (_, __) async {});
 
       expect(result, isA<ScreenshotFailure>());
+      expect((result as ScreenshotFailure).kind, ScreenshotFailureKind.emptyFrame);
     });
 
-    test('empty frame → failure', () async {
+    test('empty frame → failure (emptyFrame)', () async {
       final result =
           await capture(frame: () => Uint8List(0), write: (_, __) async {});
 
       expect(result, isA<ScreenshotFailure>());
+      expect((result as ScreenshotFailure).kind, ScreenshotFailureKind.emptyFrame);
     });
 
-    test('frame source throws → failure with reason', () async {
+    test('frame source throws → failure carries the error detail', () async {
       final result = await capture(
         frame: () => throw StateError('mpv boom'),
         write: (_, __) async {},
       );
 
       expect(result, isA<ScreenshotFailure>());
-      expect((result as ScreenshotFailure).reason, contains('mpv boom'));
+      final failure = result as ScreenshotFailure;
+      expect(failure.kind, ScreenshotFailureKind.frameGrab);
+      expect(failure.detail, contains('mpv boom'));
     });
 
     test('local video + write ok → success in the default dir', () async {
@@ -91,7 +96,7 @@ void main() {
       expect(result, isA<ScreenshotSuccess>());
       expect(
         (result as ScreenshotSuccess).path,
-        p.join(defDir, 'BBB_102030.png'),
+        p.join(defDir, 'BBB_$stamp.png'),
       );
       expect(written, hasLength(1));
     });
@@ -108,7 +113,7 @@ void main() {
       expect(result, isA<ScreenshotSuccess>());
       expect(
         (result as ScreenshotSuccess).path,
-        p.join(p.join('my', 'shots'), 'BBB_102030.png'),
+        p.join(p.join('my', 'shots'), 'BBB_$stamp.png'),
       );
       expect(written, hasLength(1));
     });
@@ -127,7 +132,7 @@ void main() {
       );
 
       expect(result, isA<ScreenshotSuccess>());
-      expect(successPath, p.join(defDir, 'iris_102030.png'));
+      expect(successPath, p.join(defDir, 'iris_$stamp.png'));
     });
 
     test('default write fails → documents fallback still succeeds', () async {
@@ -144,7 +149,7 @@ void main() {
       );
 
       expect(result, isA<ScreenshotSuccess>());
-      expect(fallbackPath, 'docs-root${sep}iris_102030.png');
+      expect(fallbackPath, 'docs-root${sep}iris_$stamp.png');
     });
 
     test('SAF custom dir is skipped, never passed to File', () async {
@@ -170,7 +175,42 @@ void main() {
       );
 
       expect(result, isA<ScreenshotFailure>());
-      expect((result as ScreenshotFailure).reason, contains('disk full'));
+      final failure = result as ScreenshotFailure;
+      expect(failure.kind, ScreenshotFailureKind.write);
+      expect(failure.detail, contains('disk full'));
+    });
+
+    test('customDirSkipped is carried onto a default-dir success', () async {
+      final written = <String>[];
+      final result = await captureFrameCore(
+        isMediaKit: true,
+        frameSource: () async => bytes,
+        resolveLocalVideoPath: () => null,
+        // '' custom dir == the pick was dropped (mapped but unwritable).
+        customDirPath: '',
+        defaultDirPath: defDir,
+        documentsDirPath: docs,
+        now: now,
+        writeBytes: (path, _) async => written.add(path),
+        ensureDir: (_) async {},
+        notifyGalleryVisible: (_) async {},
+        skipPermission: true,
+        customDirSkipped: true,
+      );
+
+      expect(result, isA<ScreenshotSuccess>());
+      expect((result as ScreenshotSuccess).customDirSkipped, isTrue);
+      expect(written.single, startsWith(defDir));
+    });
+
+    test('customDirSkipped defaults to false', () async {
+      final result = await capture(
+        frame: () => bytes,
+        write: (_, __) async {},
+      );
+
+      expect(result, isA<ScreenshotSuccess>());
+      expect((result as ScreenshotSuccess).customDirSkipped, isFalse);
     });
   });
 }

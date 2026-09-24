@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/features/background_playback/actions/background_playback_actions.dart';
-import 'package:iris/features/background_playback/model/enum/bg_source_rule_kind.dart';
 import 'package:iris/features/background_playback/model/source/bg_source_rule.dart';
 import 'package:iris/features/background_playback/store/bg_source_prefs.dart';
+import 'package:iris/features/background_playback/view/bg_source_labels.dart';
 import 'package:iris/features/background_playback/view/bg_source_rule_editor.dart';
 import 'package:iris/features/background_playback/view/widgets/bg_source_banner.dart';
 import 'package:iris/features/tag_play/model/domain/tag_play_tag.dart';
-import 'package:iris/l10n/app_localizations.dart';
 import 'package:iris/models/db/db_module.dart';
-import 'package:iris/utils/dir_match.dart';
 import 'package:iris/utils/get_localizations.dart';
 
 /// 副音 candidate-source manager: an ordered, pinnable, toggleable rule list
@@ -79,7 +77,7 @@ class _SourcesBody extends HookWidget {
 
     Future<void> duplicate(BgSourceRule rule) async {
       final order = await DbModule.bgSourceRuleRepo.nextSortOrder();
-      final base = _ruleLabel(rule, t);
+      final base = bgSourceRuleLabel(rule, t);
       await DbModule.bgSourceRuleRepo.saveRule(rule.copyWith(
         id: 'bgsrc_${DateTime.now().microsecondsSinceEpoch}',
         name: t.bg_src_copy_name(base),
@@ -95,7 +93,7 @@ class _SourcesBody extends HookWidget {
         context: context,
         builder: (dialogContext) => AlertDialog(
           title: Text(t.bg_src_delete_title),
-          content: Text(t.bg_src_delete_body(_ruleLabel(rule, t))),
+          content: Text(t.bg_src_delete_body(bgSourceRuleLabel(rule, t))),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -175,8 +173,8 @@ class _SourcesBody extends HookWidget {
                       separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (context, i) => _RuleRow(
                         rule: rules[i],
-                        label: _ruleLabel(rules[i], t),
-                        summary: _summary(rules[i], t, tagName),
+                        label: bgSourceRuleLabel(rules[i], t),
+                        summary: bgSourceRuleSummary(rules[i], t, tagName),
                         onEdit: () => openEditor(rules[i]),
                         onDuplicate: () => duplicate(rules[i]),
                         onDelete: () => remove(rules[i]),
@@ -234,7 +232,7 @@ class _RuleRow extends StatelessWidget {
     return ListTile(
       dense: true,
       contentPadding: EdgeInsets.zero,
-      leading: Icon(_kindIcon(rule.kind), size: 20),
+      leading: Icon(bgSourceKindIcon(rule.kind), size: 20),
       title: Text(
         label,
         maxLines: 1,
@@ -295,59 +293,3 @@ class _RuleRow extends StatelessWidget {
   }
 }
 
-IconData _kindIcon(BgSourceRuleKind kind) => switch (kind) {
-      BgSourceRuleKind.tag => Icons.sell_outlined,
-      BgSourceRuleKind.directory => Icons.folder_outlined,
-      BgSourceRuleKind.file => Icons.insert_drive_file_outlined,
-    };
-
-String _ruleLabel(BgSourceRule rule, AppLocalizations t) {
-  if (rule.builtin) return t.bg_src_builtin_name;
-  if (rule.name.isNotEmpty) return rule.name;
-  return switch (rule.kind) {
-    BgSourceRuleKind.tag => t.bg_src_kind_tag,
-    BgSourceRuleKind.directory => t.bg_src_kind_directory,
-    BgSourceRuleKind.file => t.bg_src_kind_file,
-  };
-}
-
-String _summary(
-  BgSourceRule rule,
-  AppLocalizations t,
-  Map<int, String> tagName,
-) {
-  switch (rule.kind) {
-    case BgSourceRuleKind.tag:
-      final label = rule.tagId == null
-          ? t.bg_src_builtin_name
-          : (tagName[rule.tagId!] ?? '#${rule.tagId}');
-      return t.bg_src_summary_tag(label);
-    case BgSourceRuleKind.directory:
-      final mode = _modeLabel(rule.matchMode, t);
-      final scope = rule.paths.isNotEmpty
-          ? (rule.paths.length == 1
-              ? rule.paths.first
-              : t.bg_src_dir_count(rule.paths.length))
-          : t.bg_src_pattern_count(
-              rule.patterns.where((p) => p.activated).length,
-            );
-      if (rule.tagFilterEnabled) {
-        final label = rule.filterTagId == null
-            ? ''
-            : (tagName[rule.filterTagId!] ?? '#${rule.filterTagId}');
-        return t.bg_src_summary_dir_tag(mode, scope, label);
-      }
-      return t.bg_src_summary_dir(mode, scope);
-    case BgSourceRuleKind.file:
-      final path = rule.filePath ?? '';
-      return t.bg_src_summary_file(path);
-  }
-}
-
-String _modeLabel(DirMatchMode mode, AppLocalizations t) => switch (mode) {
-      DirMatchMode.specifiedDir => t.vm_editor_match_specified,
-      DirMatchMode.specifiedDirRecursive =>
-        t.vm_editor_match_specified_recursive,
-      DirMatchMode.patternDir => t.vm_editor_match_pattern,
-      DirMatchMode.patternDirRecursive => t.vm_editor_match_pattern_recursive,
-    };

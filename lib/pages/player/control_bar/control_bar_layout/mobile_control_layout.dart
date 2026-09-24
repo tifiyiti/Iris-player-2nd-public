@@ -6,16 +6,19 @@ import 'package:iris/features/control_group/model/enum/player_control_group.dart
 import 'package:iris/features/control_group/store/use_control_group_store.dart';
 import 'package:iris/models/store/app_state.dart';
 import 'package:iris/pages/player/control_bar/control_bar_layout/control_bar_controls.dart';
+import 'package:iris/pages/player/control_bar/control_bar_layout/portrait_bar_align.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/platform.dart';
 
 /// Phone-portrait / narrow bottom bar: seek slider + two button rows.
 ///
-/// The rows are packed to the LEFT rather than spread across the full width.
-/// The bar exists for one thumb, and most users hold the phone in the right
-/// hand — a left-packed group keeps every button inside the thumb's reach and
-/// leaves the right half free of controls, so the natural rest position does
-/// not sit on top of a button.
+/// The two groups carry INDEPENDENT horizontal alignment (see
+/// [PortraitBarAlign]): the normal playback rows spread/pack via
+/// [portraitPlaybackRowAlign], while the group-2 副音 block is positioned by an
+/// outer `Align` ([portraitSubAudioBlockAlign]) because a shrink-wrapped
+/// `BalancedButtonWrap` would otherwise be centred by the `Column`. The default
+/// is [PortraitBarAlign.center] — the pre-238d47c2 look. This is PORTRAIT-only:
+/// the side panel and the standalone desktop 副音 row keep their own knobs.
 class MobileControlLayout extends HookWidget {
   const MobileControlLayout({super.key, required this.controls});
 
@@ -37,23 +40,32 @@ class MobileControlLayout extends HookWidget {
     final bool showStandaloneQuickBar =
         !isMobilePlatform && !showingBackgroundGroup;
 
+    final MainAxisAlignment playbackAlign =
+        portraitPlaybackRowAlign(app.portraitPlaybackAlign);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         controls.slider,
         if (showStandaloneQuickBar) controls.backgroundQuickBar,
         if (showingBackgroundGroup)
-          BackgroundQuickBar(
-            axis: Axis.horizontal,
-            // Same left-packed rule as the playback rows below.
-            alignment: MainAxisAlignment.start,
-            forceVisible: true,
-            color: controls.color,
-            overlayColor: controls.overlayColor,
+          // The 副音 bar shrink-wraps, so its BLOCK position is owned by this
+          // Align (a bare Column child would be centred regardless of the
+          // wrap's own alignment). heightFactor keeps it from eating the column.
+          Align(
+            alignment: portraitSubAudioBlockAlign(app.portraitSubAudioAlign),
+            heightFactor: 1,
+            child: BackgroundQuickBar(
+              axis: Axis.horizontal,
+              alignment: portraitSubAudioWrapAlign(app.portraitSubAudioAlign),
+              forceVisible: true,
+              color: controls.color,
+              overlayColor: controls.overlayColor,
+            ),
           )
         else ...[
           Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: playbackAlign,
             children: [
               controls.shuffle,
               controls.prev,
@@ -64,7 +76,7 @@ class MobileControlLayout extends HookWidget {
             ],
           ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: playbackAlign,
             children: [
               if (controls.showFit) controls.fit,
               controls.rotateOrVolume,

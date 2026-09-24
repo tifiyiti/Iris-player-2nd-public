@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:iris/features/speed/model/enum/speed_gesture_mode.dart'
     show SpeedGestureMode;
+import 'package:iris/features/speed/model/enum/speed_rate_picker_mode.dart'
+    show SpeedRatePickerMode;
 import 'package:iris/features/virtual_media/model/enum/vm_enums.dart'
     show VmCrossSegmentDragStrategy, VmDualTimeSyncMode;
 import 'package:iris/features/virtual_media/rule/vm_tick_color.dart'
@@ -174,6 +176,18 @@ enum CircleSliderCenterAction {
 /// One of the four center-sector directions of the circular playback slider /
 /// ring dial. [inward] faces the screen centre, [outward] the screen edge.
 enum CenterZone { inward, outward, top, bottom }
+
+/// Horizontal alignment of the two phone-PORTRAIT bottom-bar groups
+/// (`MobileControlLayout`): the normal playback rows and the group-2 副音 quick
+/// bar. PORTRAIT-only — the one-handed side panel keeps its own anchor-driven
+/// block position (`sidewayBarPos`) and the standalone desktop 副音 row keeps
+/// `background_playback.quickBarAlign`; neither reads these.
+///
+/// - [left]/[right] pack the group to that edge.
+/// - [center] reproduces the pre-238d47c2 look per group: the playback rows
+///   spread with `spaceEvenly`, while the 副音 block is centred as a whole
+///   (a shrink-wrapped `BalancedButtonWrap`, which cannot spread).
+enum PortraitBarAlign { left, center, right }
 
 enum GestureMode {
   /// Original hard-coded gesture behavior
@@ -383,6 +397,16 @@ abstract class AppState with _$AppState {
     @Default(PhoneSideScrubberKind.classic)
     PhoneSideScrubberKind phoneOneHandedScrubberKind,
 
+    /// Phone-PORTRAIT bottom-bar alignment of the two groups (see
+    /// [PortraitBarAlign] / `MobileControlLayout`). Persisted as the
+    /// `app.portraitPlaybackAlign` / `app.portraitSubAudioAlign` snapshot rows.
+    /// Defaults reproduce the pre-238d47c2 look; the one-handed side panel and
+    /// the standalone desktop 副音 row are NOT governed by these.
+    @Default(PortraitBarAlign.center)
+    PortraitBarAlign portraitPlaybackAlign,
+    @Default(PortraitBarAlign.center)
+    PortraitBarAlign portraitSubAudioAlign,
+
     // --- Sideway panel anchor (metadata era) ---
     //
     // Same AUX contract as the ring-dial block below: JsonKey exclusions keep
@@ -475,6 +499,13 @@ abstract class AppState with _$AppState {
     @Default(0.5)
     @JsonKey(includeToJson: false, includeFromJson: false)
     double circlePosY,
+    // Side panel bottom button-block position, side-relative 0..1: 0 = the
+    // block hugs the screen-centre-facing edge (right-docked → left, left-docked
+    // → right), 1 = the outer window edge. Mirrors ringDialRingSlotT for the
+    // button bar; persisted as the `slider.barPos` AUX row (meta-only).
+    @Default(0.0)
+    @JsonKey(includeToJson: false, includeFromJson: false)
+    double sidewayBarPos,
 
     // --- Ring dial (one-handed scrubber) styling ---
     //
@@ -767,6 +798,15 @@ abstract class AppState with _$AppState {
     @Default(SpeedGestureMode.dualAxis)
     @JsonKey(includeToJson: false, includeFromJson: false)
     SpeedGestureMode speedGestureMode,
+
+    /// Playback-speed picker shape (metadata era, AUX row `speed.rateMode`).
+    ///
+    /// `dualWheel` = alarm-clock two-wheel picker (default); `list` = the
+    /// legacy flat 0.1 list. Gate OFF ignores this field entirely (see
+    /// resolveSpeedRatePickerMode) so the frozen legacy UI is untouched.
+    @Default(SpeedRatePickerMode.dualWheel)
+    @JsonKey(includeToJson: false, includeFromJson: false)
+    SpeedRatePickerMode speedRatePickerMode,
 
     // ── Virtual media (metadata era, AUX rows `virtualmedia.`) ──────────────
     //

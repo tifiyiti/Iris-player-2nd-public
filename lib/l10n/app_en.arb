@@ -590,6 +590,7 @@
   "keybind_act_exit_app": "Exit app",
   "shot_invalid_dir_title": "Invalid directory",
   "shot_pick_error_android": "That directory cannot be used; pick an accessible folder.",
+  "shot_pick_unwritable": "That folder is not writable; the current save folder is unchanged.",
   "shot_pick_error_desktop": "Desktop does not accept content:// directories; pick a local folder path.",
   "shot_path_error": "Invalid path: must not contain .. to escape the parent{desktopNote}.",
   "@shot_path_error": {
@@ -606,6 +607,12 @@
   "shot_current_dir": "Effective directory",
   "shot_reset": "Reset to default",
   "shot_saved_title": "Screenshot saved",
+  "shot_custom_dir_skipped": "{path}\n\nThe selected folder is not writable, so the screenshot was saved to the default folder.",
+  "@shot_custom_dir_skipped": {
+    "placeholders": {
+      "path": {"type": "String"}
+    }
+  },
   "shot_unsupported_title": "Current backend cannot screenshot",
   "shot_unsupported_body": "Backend {backend} cannot grab video frames. Switch to the MediaKit backend and retry.",
   "@shot_unsupported_body": {
@@ -614,6 +621,28 @@
     }
   },
   "shot_failed_title": "Screenshot failed",
+  "shot_failed_generic": "Screenshot failed (unexpected error)",
+  "shot_fail_frame_grab": "Could not grab the frame: {detail}",
+  "@shot_fail_frame_grab": {
+    "placeholders": {
+      "detail": {"type": "String"}
+    }
+  },
+  "shot_fail_empty_frame": "The backend returned no frame data.",
+  "shot_fail_undecodable": "The frame data could not be decoded as an image.",
+  "shot_fail_write": "Could not write the file: {detail}",
+  "@shot_fail_write": {
+    "placeholders": {
+      "detail": {"type": "String"}
+    }
+  },
+  "shot_fail_no_dir": "Could not locate the save folder: {detail}",
+  "@shot_fail_no_dir": {
+    "placeholders": {
+      "detail": {"type": "String"}
+    }
+  },
+  "shot_saf_dir_fallback": "Selected system folder",
   "shot_timeout": "Screenshot timed out (15s), please retry",
   "shot_saving": "Saving screenshot…",
   "shot_frame_prev": "Previous frame",
@@ -769,6 +798,12 @@
   "set_keybind_editor": "Customize keyboard shortcuts",
   "set_legacy_compat": "Legacy compatibility",
   "set_speed_gesture_mode": "Speed gesture mode",
+  "set_speed_rate_mode": "Playback speed picker",
+  "set_rate_mode_dual_wheel": "Dual wheel",
+  "set_rate_mode_list": "Flat list (0.1)",
+  "rate_wheel_int_label": "Integer",
+  "rate_wheel_dec_label": "Decimal",
+  "rate_wheel_hint": "The decimal wheel adapts to the integer part: no 0 at 0, only 0 at 10",
   "set_virtual_media_cross_drag": "Cross-segment drag strategy",
   "set_vm_dual_time_sync": "Dual-time second sync",
   "set_vm_hide_chunk_when_single_segment": "Hide chunk ring for single segments",
@@ -841,8 +876,20 @@
   "set_keybind_editor_desc": "Only the PotPlayer scheme is editable: up to 4 bindings per action, can clear to unbind; bold blue means customized",
   "set_window_keep_in_bounds_desc": "When playing next video/audio, pull the window back into view if it moved off-screen (desktop only; skipped in fullscreen/maximized)",
   "set_speed_gesture_mode_desc": "Takes effect only after long-press horizontal swipe; horizontal 0.1 fine + vertical 1.0 coarse (dual) / horizontal 0.1 only (single)",
+  "set_speed_rate_mode_desc": "Dual wheel (alarm-clock style, integer + tenths) or the legacy flat 0.1 list",
   "set_legacy_compat_desc": "Non-developers do not touch — legacy compatibility switches left over from development; toggling them may crash the app or lose data",
   "set_slider_type_desc": "Normal / Circle / Sideway; Sideway shares the total panel size, legacy falls back to Normal",
+  "set_portrait_bar_align": "Portrait bar alignment",
+  "set_portrait_bar_align_desc": "Bottom-bar button alignment in phone portrait; the playback group and the sub-audio quick group are set separately",
+  "set_portrait_bar_align_playback": "Playback group",
+  "set_portrait_bar_align_sub_audio": "Sub-audio quick controls",
+  "set_portrait_bar_align_summary": "Playback: {playback} · Sub-audio: {subAudio}",
+  "@set_portrait_bar_align_summary": {
+    "placeholders": {
+      "playback": {"type": "String"},
+      "subAudio": {"type": "String"}
+    }
+  },
   "set_circle_slider_center_action_desc": "Tap center: no action / hide control bar / play-pause (circle mode only)",
   "set_screen_orientation_desc": "Follow system / force landscape-portrait; auto falls back when 'remember last orientation' is on",
   "set_gesture_profile_desc": "Unified gesture scheme: Classic / Region left-right; portrait fixed to Region normal",
@@ -1462,6 +1509,8 @@
   "lib_open_with": "Open with another app",
   "lib_play_append": "Play Append",
   "lib_add_as_source": "Add as Source",
+  "lib_add_as_bg_source": "Add as audio source",
+  "lib_add_as_vm_merge": "Add as virtual merge",
   "lib_create_library": "Create Library",
   "lib_batch_create": "Batch Create Libraries",
   "lib_load_error": "Load error",
@@ -1614,6 +1663,7 @@
   "sld_corner_diagonal": "Diagonal",
   "sld_panel_width": "Total panel width",
   "sld_panel_height": "Total panel height",
+  "sld_bar_position": "Button bar position (toward screen centre)",
   "sld_size_pct": "{label}  {pct}%  ·  ~{px} px",
   "@sld_size_pct": {
     "placeholders": {
@@ -1657,6 +1707,9 @@
   "desktop_center_zone_phone_mode": "Use phone center-zone layout",
   "desktop_center_zone_phone_mode_desc": "When on, desktop uses the same four center-tap sectors as phones (including switching the bottom control group). Off keeps the legacy behavior: all four sectors toggle the control bar.",
   "control_group_floating_button": "Floating group switch button",
+  "control_group_floating_desc": "Show the floating bottom-group switch button separately in each orientation.",
+  "control_group_floating_show_landscape": "Show in landscape",
+  "control_group_floating_show_portrait": "Show in portrait",
   "control_group_button_tip": "Switch bottom control group",
   "control_group_playback": "Playback controls",
   "control_group_background": "Sub-audio controls",
@@ -2608,6 +2661,8 @@
   "bg_continuation_omitted": "… (earlier items omitted)",
   "dlg_warn_bg_continuation_title": "Sub Audio cross-file continuation",
   "dlg_warn_bg_continuation_desc": "Explains, when a Sub Audio file ends before the video, how the Sub Audio list was walked and where playback continues",
+  "dlg_warn_bg_source_manage_title": "Staged source editing",
+  "dlg_warn_bg_source_manage_desc": "Edits to Sub Audio sources here are staged: nothing is saved until you press the ✓ button, and discarding leaves the current sources untouched",
   "bg_sources_storage_id_hint": "Storage ID",
   "bg_step_swap_only": "Next/Prev: swap Sub Audio only (the video stays put)",
   "bg_step_follow_link": "Next/Prev: also move the video (follows the link)",
@@ -2776,6 +2831,7 @@
   "bg_src_auto_dedupe": "Auto-dedupe",
   "bg_src_auto_dedupe_desc": "Emit a file once even when several sources match it (off by default — duplicates are yours to resolve)",
   "bg_src_refresh_now": "Update now",
+  "bg_src_refresh_idle_body": "Sub Audio is not playing, so there is nothing to update now. Source changes apply the next time it starts.",
   "bg_src_banner_fallback_title": "No active source",
   "bg_src_banner_fallback_body": "Every source rule is off, so the built-in \"Library tag-only source\" is used instead.",
   "bg_src_banner_refresh_body": "Source changes apply only after \"Update now\" or closing and reopening Sub Audio.",
@@ -2854,6 +2910,13 @@
       "path": {"type": "String"}
     }
   },
+  "bg_source_manage_open": "Manage sources",
+  "bg_source_manage_title": "Sub Audio source manager",
+  "bg_source_manage_staged_hint": "Edits are staged — press ✓ to apply, or discard to leave the current sources unchanged",
+  "bg_source_manage_load_failed": "Could not load Sub Audio sources.",
+  "bg_source_manage_save_failed": "Some changes could not be saved; the source list may be only partially updated.",
+  "bg_source_manage_confirm": "Apply",
+  "bg_source_manage_discard": "Discard",
   "set_bg_fallback_banner": "Show the no-active-source hint",
   "set_bg_fallback_banner_desc": "Shows a closable banner in Sub Audio sources when no rule is active and the built-in source takes over",
   "bg_mapping_missing_title": "Mapped file unavailable",

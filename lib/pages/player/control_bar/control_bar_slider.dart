@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
+import 'package:iris/features/background_playback/services/bg_seek_window.dart';
 import 'package:iris/features/background_playback/services/bg_vm_visibility.dart';
 import 'package:iris/features/background_playback/store/use_background_playback_store.dart';
 import 'package:iris/features/virtual_media/interaction/controller/virtual_seek_handler.dart';
@@ -58,9 +59,16 @@ class ControlBarSlider extends HookWidget {
     // While the controls target 副音 the scrubber drives a REAL single file
     // (bg is never virtual-merged), so the foreground's VM session is
     // suppressed here — its boundaries/blocks must not decorate the bg track.
+    //
+    // `disabled` (the bottom minimal overlay) is a passive foreground readout
+    // with no control ability, so it must ignore the control target entirely:
+    // the bg seek window (floor/ceiling) lives on the bg file's local axis and
+    // would be clamped against the FOREGROUND duration here, breaking the
+    // slider's range assertions (red-text bug). Treat it as foreground always.
     final vmItemRaw = useVmPlaybackStore().select(context, (s) => s.item);
-    final bgIsControl = useBackgroundPlaybackStore()
+    final bgRaw = useBackgroundPlaybackStore()
         .select(context, (s) => s.bgOwnsControls);
+    final bgIsControl = !disabled && bgRaw;
     final vmItem = vmItemForControlTarget(vmItemRaw, bgIsControl: bgIsControl);
     final vmMarks = useMemoized(() => computeVmScrubberMarks(vmItem), [vmItem]);
     // Vertical boundary ticks, user-tinted via `virtualmedia.markTickColor`
@@ -115,31 +123,36 @@ class ControlBarSlider extends HookWidget {
         showVmPreview ? vmSeekHandler.preview(dragTickMs.value!.toInt()) : null;
 
     final double max = progress.duration.inMilliseconds.toDouble();
-    // 副音 control target + published window (仅当前 + 高同步): the axis must
-    // not offer positions past the fg file 100% (ceiling) or before the fg 00:00
-    // mapping (floor) — dragging outside is what used to roll/skip the
-    // foreground. The adapter clamps the commit too; this caps the visible
-    // track so both limits read as limit stops.
-    final bgWindow = bgIsControl
+    // 副音 control target + published window (仅当前 + 高同步): resolve through
+    // the SAME helper as the circle slider / ring dial so the axis and the
+    // buffer agree, and an empty/inverted window can never invert the Slider's
+    // bounds. The adapter clamps the commit too; this caps the visible track so
+    // both limits read as limit stops.
+    final bgBounds = bgIsControl
         ? useBackgroundPlaybackStore().select(
             context, (s) => (s.bgSeekFloorLocalMs, s.bgSeekCeilingLocalMs))
         : null;
-    final int? bgCeilingMs = bgWindow?.$2;
-    final int? bgFloorMs = bgWindow?.$1;
-    double sliderMax = max > 0 ? max : 1.0;
-    double sliderMin = 0.0;
-    if (bgFloorMs != null && max > 0) {
-      final floorD = bgFloorMs.toDouble().clamp(0.0, max);
-      if (floorD > sliderMin) sliderMin = floorD;
-    }
-    if (bgCeilingMs != null && max > 0) {
-      final capped = bgCeilingMs.toDouble().clamp(sliderMin + 1.0, max);
-      if (capped < sliderMax) sliderMax = capped;
-    }
+    final BgSeekWindow? bgWindow = bgBounds == null
+        ? null
+        : resolveBgSeekWindow(
+            duration: progress.duration,
+            floorMs: bgBounds.$1,
+            ceilingMs: bgBounds.$2,
+          );
+    double sliderMin = bgWindow?.loMs.toDouble() ?? 0.0;
+    double sliderMax = (bgWindow != null && bgWindow.durationMs > 0)
+        ? bgWindow.hiMs.toDouble()
+        : (max > 0 ? max : 1.0);
+    // Slider requires min < max; keep a hair of span for an empty window.
+    if (sliderMax <= sliderMin) sliderMax = sliderMin + 1.0;
     final double positionValue =
         progress.position.inMilliseconds.toDouble().clamp(sliderMin, sliderMax);
+    // The 副音 view reports buffer == duration (no secondary buffer tracking)
+    // and the window ceiling can sit BELOW the file duration, so the buffer
+    // MUST be clamped to the slider's own max — otherwise Slider asserts
+    // `secondaryTrackValue` is out of [min, max] (the red-screen crash).
     final double bufferValue =
-        progress.buffer.inMilliseconds.toDouble().clamp(0.0, max);
+        progress.buffer.inMilliseconds.toDouble().clamp(sliderMin, sliderMax);
 
     // B-scheme dual time (virtual-merged only): left column shows
     // totalPos/subPos, right column totalDur/subDur. The axis and all seeks

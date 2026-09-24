@@ -16,6 +16,7 @@ import 'package:iris/features/background_playback/view/media_ratio_dialog.dart';
 import 'package:iris/pages/player/control_bar/control_bar_widgets/control_bar_constants.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/widgets/a11y_tooltip.dart';
+import 'package:iris/widgets/controls/balanced_button_wrap.dart';
 
 /// 副音 quick-control surface.
 ///
@@ -306,16 +307,19 @@ class BackgroundQuickBar extends HookWidget {
         ),
       );
     }
-    // Wrap (not Row) for the horizontal case: on a narrow phone seven buttons
-    // can exceed the bar width, and a Row would overflow where a Wrap simply
-    // flows onto a second line — the same pattern the side panel's button area
-    // uses. Spacing mirrors that playback Wrap so the two groups read as one
-    // grid whichever one the switch selects.
-    return Wrap(
+    // Balanced (not greedy) wrapping: on a narrow phone seven buttons can
+    // exceed the bar width, and the side panel wants the block balanced with
+    // the extra buttons on the bottom rows — the same rule the playback group
+    // uses, so the two groups read as one grid whichever one the switch
+    // selects. Spacing mirrors that playback group too.
+    return BalancedButtonWrap(
       key: const ValueKey('bg_quick_bar'),
-      alignment: alignment == MainAxisAlignment.start
-          ? WrapAlignment.start
-          : WrapAlignment.end,
+      alignment: switch (alignment) {
+        MainAxisAlignment.start => WrapAlignment.start,
+        MainAxisAlignment.end => WrapAlignment.end,
+        MainAxisAlignment.center => WrapAlignment.center,
+        _ => WrapAlignment.start,
+      },
       spacing: 8,
       runSpacing: 6,
       crossAxisAlignment: WrapCrossAlignment.center,

@@ -109,6 +109,10 @@ class WarningDialogPrefsEditorDialog extends HookWidget {
           t.dlg_warn_app_overview_title,
           t.dlg_warn_app_overview_desc,
         ),
+        kWarningBgSourceManage: (
+          t.dlg_warn_bg_source_manage_title,
+          t.dlg_warn_bg_source_manage_desc,
+        ),
       };
 
   @override
