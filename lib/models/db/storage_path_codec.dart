@@ -63,4 +63,41 @@ abstract final class StoragePathCodec {
     }
     return [...base, ...segments].join('/');
   }
+
+  /// True when [storedCanonical] names a directory ABOVE the storage base
+  /// (a strict ancestor prefix of it), e.g. stored `F:/dl` with base
+  /// `F:/dl/ar`.
+  ///
+  /// Such rows are phantoms: pre-fix scans built directory nodes from
+  /// absolute segments, so the base itself and everything above it leaked
+  /// into the DB. The topmost phantom carries a NULL parent, which every
+  /// root-level read mistakes for a real root child.
+  static bool isAboveBase(String storageId, String storedCanonical) {
+    final base = _baseSegments(storageId);
+    if (base == null || storedCanonical.isEmpty) return false;
+    final b = base.join('/');
+    return b != storedCanonical && b.startsWith('$storedCanonical/');
+  }
+
+  /// True when [storedCanonical] is the storage base itself in ABSOLUTE form
+  /// (e.g. stored `F:` with base `F:`, or stored `F:/dl/ar` with base
+  /// `F:/dl/ar`).
+  ///
+  /// Pre-fix scans built the storage-root self node from absolute segments,
+  /// so old databases may carry the root twice: this absolute row plus (after
+  /// a fixed scan) the relative `''` row. The absolute row is a phantom: it
+  /// can never be addressed through [relativize] (which maps it to `''`), and
+  /// with a NULL parent on a drive-root base it counts as an unscanned root
+  /// child forever, permanently blocking the root `scanDone` stamp.
+  /// [isAboveBase] does NOT match it (it is the base itself, not strictly
+  /// above it), hence the separate predicate. Remove it by EXACT stored-path
+  /// match only — never by prefix: its relativized form is `''`, and a prefix
+  /// delete on `''` would wipe the real root container instead.
+  static bool isStaleAbsoluteBase(String storageId, String storedCanonical) {
+    if (storedCanonical.isEmpty) return false;
+    final base = _baseSegments(storageId);
+    if (base == null) return false;
+    if (storedCanonical != base.join('/')) return false;
+    return relativize(storageId, storedCanonical).isEmpty;
+  }
 }

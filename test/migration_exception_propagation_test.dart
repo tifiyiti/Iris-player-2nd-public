@@ -146,7 +146,7 @@ void main() {
     final healed = AppDatabase(NativeDatabase(file));
     addTearDown(healed.close);
     final row = await healed.customSelect('PRAGMA user_version').getSingle();
-    expect(row.read<int>('user_version'), 45);
+    expect(row.read<int>('user_version'), 46);
   });
 
   group('migration catch guard', () {

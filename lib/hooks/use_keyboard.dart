@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -22,6 +20,7 @@ import 'package:iris/features/scenario_playback/playback/playback_provider_regis
 import 'package:iris/models/store/app_state.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_player_ui_store.dart';
+import 'package:iris/utils/app_exit.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/platform.dart';
 import 'package:iris/widgets/bottom_sheets/show_open_link_bottom_sheet.dart';
@@ -33,7 +32,6 @@ import 'package:iris/widgets/popups/settings/settings.dart';
 import 'package:iris/widgets/popups/storages/storages.dart';
 import 'package:iris/widgets/popups/track/subtitle_and_audio_track.dart';
 import 'package:provider/provider.dart';
-import 'package:window_manager/window_manager.dart';
 
 typedef KeyboardEvent = void Function(KeyEvent event);
 
@@ -118,13 +116,7 @@ KeyboardEvent useKeyboard({
           // 退出
           case LogicalKeyboardKey.keyX:
             showControl();
-            await player.saveProgress();
-            if (isDesktop) {
-              windowManager.close();
-            } else {
-              SystemNavigator.pop();
-              exit(0);
-            }
+            await AppExit.run(player.saveProgress);
         }
         return;
       }

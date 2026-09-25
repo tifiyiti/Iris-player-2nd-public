@@ -25,7 +25,7 @@ class ScenarioSortSpec {
     this.order = PlaybackOrder.sequential,
     this.shuffleSeed,
     this.duplicatePolicy = DuplicatePolicy.allowDuplicate,
-    this.sourceInternalFirst = true,
+    this.sourceInternalFirst = false,
   });
 
   /// True when shuffled with a usable seed (resolution needs both).

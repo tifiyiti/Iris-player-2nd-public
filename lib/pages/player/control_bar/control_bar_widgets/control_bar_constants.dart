@@ -3,6 +3,16 @@
 // Layout
 const double kVolumeSliderWidth = 160.0;
 
+// Overflow model (see `control_bar_layout/resolve_control_bar_overflow.dart`).
+// Nominal footprint of one icon button in a linear bar row. `IconButton`'s
+// default padded tap target is 48px; a slightly generous estimate only ever
+// collapses a control EARLIER, so the bar can never clip.
+const double kControlBarIconButtonWidth = 48.0;
+
+// Minimum width the seek axis must keep for the bar to stay usable; the
+// overflow resolver never squeezes the slider below this.
+const double kControlBarSliderMinWidth = 120.0;
+
 // Icon sizes — legacy grades kept as-is (PlayPause is the primary
 // affordance). Only the docked-playlist toggle is unified to secondary.
 const double kIconSizePlayPause = 32.0;

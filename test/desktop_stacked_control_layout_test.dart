@@ -238,4 +238,63 @@ void main() {
     final ys = rects.map((r) => r.center.dy).toSet();
     expect(ys.length, 1, reason: 'buttons form a single row');
   });
+
+  /// Regression guard: the classic bar packs the transport group flush-left and
+  /// the secondary group flush-right with ONE large gap between them. A flat
+  /// `Wrap(spaceBetween)` over every button also puts the first/last button at
+  /// the edges — so the flush-left/flush-right assertions above stay green — but
+  /// it spreads ALL buttons evenly and destroys the grouping. Only the size of
+  /// the largest gap can tell the two apart.
+  List<Rect> sortedButtonRects(WidgetTester tester) => find
+      .byType(IconButton)
+      .evaluate()
+      .map((e) => tester.getRect(find.byWidget(e.widget)))
+      .toList()
+    ..sort((a, b) => a.left.compareTo(b.left));
+
+  void expectGroupedWithOneBigGap(List<Rect> rects) {
+    expect(rects.length, greaterThan(4), reason: 'need a multi-button row');
+    final gaps = <double>[
+      for (int i = 1; i < rects.length; i++) rects[i].left - rects[i - 1].right,
+    ];
+    final double maxGap = gaps.reduce((a, b) => a > b ? a : b);
+    final double minGap = gaps.reduce((a, b) => a < b ? a : b);
+    // Inside a group the buttons sit edge-to-edge (a `Row`), so the smallest
+    // gap stays ~0. A flat `Wrap(spaceBetween)` over every button instead
+    // injects slack between EVERY adjacent pair, which is what visually pulls
+    // the left group inward and the right group outward. Exactly ONE large gap
+    // may remain: the one between the two groups.
+    expect(
+      minGap,
+      lessThan(8),
+      reason: 'buttons inside a group must be packed edge-to-edge; a flat '
+          'spaceBetween spread injects slack between every pair',
+    );
+    expect(
+      maxGap,
+      greaterThan(100),
+      reason: 'the transport and secondary groups must stay separated by one '
+          'large gap',
+    );
+  }
+
+  testWidgets('stacked: left group and right group stay contiguous',
+      (tester) async {
+    _setDesktopSurface(tester);
+    await tester.pumpWidget(
+      _harness(DesktopStackedControlLayout(controls: _controls())),
+    );
+    await tester.pumpAndSettle();
+
+    expectGroupedWithOneBigGap(sortedButtonRects(tester));
+  });
+
+  testWidgets('single-line: left group and right group stay contiguous',
+      (tester) async {
+    _setDesktopSurface(tester);
+    await tester.pumpWidget(_harness(DesktopControlLayout(controls: _controls())));
+    await tester.pumpAndSettle();
+
+    expectGroupedWithOneBigGap(sortedButtonRects(tester));
+  });
 }

@@ -260,7 +260,9 @@ class ScenarioResolver {
   /// persisted generation (row encoding, group numbering, overlay semantics)
   /// rebuilds it even when no definition/media row changed.
   /// v2 = chunk numbers scoped per directory / per rule.
-  static const int indexFormatVersion = 2;
+  /// v3 = ORDER BY semantics (deterministic name/path tail, NULLs last on both
+  /// query paths, millisecond `modified_at`).
+  static const int indexFormatVersion = 3;
 
   /// The decoded shared index for [buildId], or null when it is absent,
   /// unreadable, or was built against a revision whose order is gone.
@@ -493,7 +495,7 @@ class ScenarioResolver {
     final exclusions = await repo.getExcludeRules(scenarioId);
 
     final sortField = scenario?.sortField ?? ScenarioSortField.name;
-    final sourceInternalFirst = scenario?.sourceInternalFirst ?? true;
+    final sourceInternalFirst = scenario?.sourceInternalFirst ?? false;
     final dedup =
         (scenario?.duplicatePolicy ?? DuplicatePolicy.deduplicate) ==
             DuplicatePolicy.deduplicate;
@@ -791,7 +793,7 @@ class ScenarioResolver {
     final effectiveSortDirection =
         sortDirection ?? scenario?.sortDirection ?? SortDirection.asc;
     final effectiveSourceInternalFirst =
-        sourceInternalFirst ?? scenario?.sourceInternalFirst ?? true;
+        sourceInternalFirst ?? scenario?.sourceInternalFirst ?? false;
     final effectiveOrder = order ?? scenario?.order ?? PlaybackOrder.sequential;
     final effectiveDedup =
         (duplicatePolicy ?? scenario?.duplicatePolicy) ==
@@ -1840,7 +1842,7 @@ class ScenarioResolver {
 
     final sortField = scenario?.sortField ?? ScenarioSortField.name;
     final sortDirection = scenario?.sortDirection ?? SortDirection.asc;
-    final sourceInternalFirst = scenario?.sourceInternalFirst ?? true;
+    final sourceInternalFirst = scenario?.sourceInternalFirst ?? false;
     final order = scenario?.order ?? PlaybackOrder.sequential;
     final dedup =
         (scenario?.duplicatePolicy ?? DuplicatePolicy.deduplicate) ==
@@ -2117,7 +2119,7 @@ class ScenarioResolver {
     final sortField = scenario?.sortField ?? ScenarioSortField.name;
     final effectiveDirection =
         sortDirection ?? scenario?.sortDirection ?? SortDirection.asc;
-    final sourceInternalFirst = scenario?.sourceInternalFirst ?? true;
+    final sourceInternalFirst = scenario?.sourceInternalFirst ?? false;
 
     // Keep the base segment order identical to [resolvePage] (asc when
     // shuffled) so occurrence recovery walks the same space.

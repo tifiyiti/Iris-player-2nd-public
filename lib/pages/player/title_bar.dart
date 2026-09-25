@@ -7,6 +7,7 @@ import 'package:iris/features/windows/desktop_keyboard/view/shortcut_hints.dart'
 import 'package:iris/info.dart';
 import 'package:iris/pages/player/title_prefix.dart' show kNoTagSuffix;
 import 'package:iris/store/use_player_ui_store.dart';
+import 'package:iris/utils/app_exit.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/widgets/a11y_tooltip.dart';
 import 'package:iris/utils/platform.dart';
@@ -232,10 +233,7 @@ class TitleBar extends HookWidget {
                     );
                   }),
                   IconButton(
-                    onPressed: () async {
-                      await saveProgress?.call();
-                      windowManager.close();
-                    },
+                    onPressed: () => AppExit.run(saveProgress),
                     icon: Icon(
                       Icons.close_rounded,
                       color: color,

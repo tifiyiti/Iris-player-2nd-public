@@ -1085,7 +1085,7 @@ FvpPlayer useFvpPlayer(BuildContext context) {
       );
       final sanePosition = Duration(milliseconds: posMs);
       areaKeyLog.i('Save progress: ${file.name}, position: $sanePosition, duration: ${controller.value.value.duration}');
-      persistPlaybackProgress(
+      await persistPlaybackProgress(
         file: file,
         position: sanePosition,
         durationMs: durMs,

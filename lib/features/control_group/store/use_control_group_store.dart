@@ -13,13 +13,15 @@ final _log = AreaKeyLog(LogKeys.legacyStore);
 /// State holder of the one-handed bottom control-group switch.
 ///
 /// Persisted through the KV backend so the remembered group, the floating
-/// button's per-orientation visibility and its position survive app restarts.
-/// The store holds no player/engine reference — the control bar reads
+/// button's visibility and its position survive app restarts. The store holds
+/// no player/engine reference — the control bar reads
 /// [ControlGroupState.group] directly and the toggle entry points call
 /// [cycleGroup].
 ///
-/// Visibility defaults to portrait ON / landscape OFF for every platform; a
-/// stored value always wins, so an explicit user choice is never overridden.
+/// Phones split the floater's visibility per orientation (portrait ON /
+/// landscape OFF by default); desktop is a single [floatingButtonDesktop] flag
+/// that ships ON. A stored value always wins, so an explicit user choice is
+/// never overridden.
 class ControlGroupStore extends PersistentStore<ControlGroupState> {
   ControlGroupStore() : super(const ControlGroupState());
 
@@ -36,6 +38,9 @@ class ControlGroupStore extends PersistentStore<ControlGroupState> {
   Future<void> cycleGroup() => setGroup(nextPlayerControlGroup(state.group));
 
   /// Whether the floating switch should be present for [isLandscape].
+  ///
+  /// PHONE-only: desktop uses [ControlGroupState.floatingButtonDesktop] and
+  /// ignores the orientation.
   bool isFloatingButtonVisible({required bool isLandscape}) => isLandscape
       ? state.floatingButtonLandscape
       : state.floatingButtonPortrait;
@@ -51,6 +56,13 @@ class ControlGroupStore extends PersistentStore<ControlGroupState> {
         : state.copyWith(floatingButtonPortrait: visible);
     if (next == state) return;
     set(next);
+    await save(state);
+  }
+
+  /// Writes the DESKTOP floating switch visibility (orientation-independent).
+  Future<void> setDesktopFloatingButtonVisible({required bool visible}) async {
+    if (state.floatingButtonDesktop == visible) return;
+    set(state.copyWith(floatingButtonDesktop: visible));
     await save(state);
   }
 

@@ -12,6 +12,7 @@ import 'package:iris/models/db/app_database.dart';
 import 'package:iris/models/db/db_module.dart';
 import 'package:iris/pages/player/control_bar/control_bar_widgets/rate_button.dart';
 import 'package:iris/store/use_app_store.dart';
+import 'package:iris/utils/platform.dart';
 import 'package:iris/widgets/dialogs/show_rate_dialog.dart';
 
 import 'helpers/sqlite3_loader.dart';
@@ -38,6 +39,13 @@ void main() {
   setUpAll(() async {
     final db = AppDatabase(NativeDatabase.memory());
     await DbModule.init(db);
+  });
+
+  setUp(() {
+    // Widget tests run on a DESKTOP host, and desktop is not offered the wheel
+    // at all — without this the default would resolve to the slider.
+    debugIsMobilePlatformOverride = true;
+    addTearDown(() => debugIsMobilePlatformOverride = null);
   });
 
   testWidgets('wheels render 0..10 + [0..9] and Save persists', (tester) async {

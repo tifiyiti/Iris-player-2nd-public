@@ -5,8 +5,11 @@ import 'package:iris/features/background_playback/view/background_quick_bar.dart
 import 'package:iris/features/control_group/model/enum/player_control_group.dart';
 import 'package:iris/features/control_group/store/use_control_group_store.dart';
 import 'package:iris/models/store/app_state.dart';
+import 'package:iris/pages/player/control_bar/control_bar_layout/control_bar_button_row.dart';
 import 'package:iris/pages/player/control_bar/control_bar_layout/control_bar_controls.dart';
+import 'package:iris/pages/player/control_bar/control_bar_layout/control_bar_layout_kind.dart';
 import 'package:iris/pages/player/control_bar/control_bar_layout/portrait_bar_align.dart';
+import 'package:iris/pages/player/control_bar/control_bar_layout/resolve_control_bar_overflow.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/platform.dart';
 
@@ -27,21 +30,34 @@ class MobileControlLayout extends HookWidget {
   @override
   Widget build(BuildContext context) {
     // Bottom control group: playback (two legacy rows) vs 副音 quick controls.
-    // The standalone 副音 row is gone on phones; group 2 owns it here. Desktop
-    // only honors the group after the phone-mode opt-in.
+    // The standalone 副音 row is gone on phones; group 2 owns it here. On
+    // desktop it survives only in legacy mode (no phone-mode, floating switch
+    // off); group-switch mode shows exactly one group.
     final PlayerControlGroup group =
         useControlGroupStore().select(context, (s) => s.group);
-    final AppState app = useAppStore().select(context, (s) => s);
-    final bool supported = isMobilePlatform || app.desktopCenterZonePhoneMode;
+    final bool desktopPhoneMode =
+        useAppStore().select(context, (s) => s.desktopCenterZonePhoneMode);
+    final bool floatingDesktop =
+        useControlGroupStore().select(context, (s) => s.floatingButtonDesktop);
+    final bool supported = resolveControlBarGroupSupport(
+      isMobile: isMobilePlatform,
+      desktopPhoneMode: desktopPhoneMode,
+      desktopFloatingEnabled: floatingDesktop,
+    );
     final bool showingBackgroundGroup =
         supported && group == PlayerControlGroup.background;
-    // Desktop keeps its standalone quick row unless group 2 replaced it; phones
-    // never show it.
-    final bool showStandaloneQuickBar =
-        !isMobilePlatform && !showingBackgroundGroup;
+    final bool showStandaloneQuickBar = showStandaloneQuickBarFor(
+      isMobile: isMobilePlatform,
+      groupSupported: supported,
+    );
 
+    final PortraitBarAlign portraitAlign =
+        useAppStore().select(context, (s) => s.portraitPlaybackAlign);
+    final PortraitBarAlign portraitSubAlign =
+        useAppStore().select(context, (s) => s.portraitSubAudioAlign);
     final MainAxisAlignment playbackAlign =
-        portraitPlaybackRowAlign(app.portraitPlaybackAlign);
+        portraitPlaybackRowAlign(portraitAlign);
+    final Set<ControlBarSlot> collapsed = controls.collapsed;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -53,38 +69,46 @@ class MobileControlLayout extends HookWidget {
           // Align (a bare Column child would be centred regardless of the
           // wrap's own alignment). heightFactor keeps it from eating the column.
           Align(
-            alignment: portraitSubAudioBlockAlign(app.portraitSubAudioAlign),
+            alignment: portraitSubAudioBlockAlign(portraitSubAlign),
             heightFactor: 1,
             child: BackgroundQuickBar(
               axis: Axis.horizontal,
-              alignment: portraitSubAudioWrapAlign(app.portraitSubAudioAlign),
+              alignment: portraitSubAudioWrapAlign(portraitSubAlign),
               forceVisible: true,
               color: controls.color,
               overlayColor: controls.overlayColor,
             ),
           )
         else ...[
-          Row(
-            mainAxisAlignment: playbackAlign,
+          ControlBarButtonRow(
+            alignment: wrapAlignmentFrom(playbackAlign),
             children: [
-              controls.shuffle,
-              controls.prev,
-              controls.playPause,
-              controls.stop,
-              controls.next,
-              controls.repeat,
+              if (!collapsed.contains(ControlBarSlot.shuffle)) controls.shuffle,
+              if (!collapsed.contains(ControlBarSlot.prev)) controls.prev,
+              if (!collapsed.contains(ControlBarSlot.playPause))
+                controls.playPause,
+              if (!collapsed.contains(ControlBarSlot.stop)) controls.stop,
+              if (!collapsed.contains(ControlBarSlot.next)) controls.next,
+              if (!collapsed.contains(ControlBarSlot.repeat)) controls.repeat,
             ],
           ),
-          Row(
-            mainAxisAlignment: playbackAlign,
+          ControlBarButtonRow(
+            alignment: wrapAlignmentFrom(playbackAlign),
             children: [
-              if (controls.showFit) controls.fit,
-              controls.rotateOrVolume,
-              controls.subtitle,
-              controls.backgroundPlaybackMenu,
-              controls.playQueue,
-              controls.storage,
-              if (isDesktop) controls.fullscreen,
+              if (controls.showFit && !collapsed.contains(ControlBarSlot.fit))
+                controls.fit,
+              if (!collapsed.contains(ControlBarSlot.volume))
+                controls.rotateOrVolume,
+              if (!collapsed.contains(ControlBarSlot.subtitle))
+                controls.subtitle,
+              if (!collapsed.contains(ControlBarSlot.backgroundMenu))
+                controls.backgroundPlaybackMenu,
+              if (!collapsed.contains(ControlBarSlot.playQueue))
+                controls.playQueue,
+              if (!collapsed.contains(ControlBarSlot.storage))
+                controls.storage,
+              if (isDesktop && !collapsed.contains(ControlBarSlot.fullscreen))
+                controls.fullscreen,
               controls.more,
             ],
           ),

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
@@ -51,6 +50,7 @@ import 'package:iris/pages/player/player_back_disposition.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/store/use_player_ui_store.dart';
 import 'package:iris/store/use_scrub_drag_store.dart';
+import 'package:iris/utils/app_exit.dart';
 import 'package:iris/utils/check_content_type.dart';
 import 'package:iris/utils/drag_window_lock.dart';
 import 'package:iris/utils/get_localizations.dart';
@@ -483,13 +483,7 @@ class Player extends HookWidget {
               case PlayerBackDisposition.leavePlayer:
                 break;
             }
-            await context.read<MediaPlayer>().saveProgress();
-            if (isDesktop) {
-              windowManager.close();
-            } else {
-              SystemNavigator.pop();
-              exit(0);
-            }
+            await AppExit.run(context.read<MediaPlayer>().saveProgress);
           }
         },
         child: LayoutBuilder(

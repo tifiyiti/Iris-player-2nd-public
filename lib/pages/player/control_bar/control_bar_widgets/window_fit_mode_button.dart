@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
-import 'package:iris/features/osd/engine/osd_texts.dart';
-import 'package:iris/features/osd/engine/show_player_osd.dart';
 import 'package:iris/features/windows/desktop_keyboard/view/shortcut_hints.dart';
 import 'package:iris/models/store/window_fit_mode.dart';
+import 'package:iris/pages/player/control_bar/control_bar_layout/control_bar_slot_actions.dart';
 import 'package:iris/pages/player/control_bar/control_bar_widgets/control_bar_constants.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/utils/get_localizations.dart';
@@ -51,11 +50,7 @@ class WindowFitModeButton extends HookWidget {
       ),
       onPressed: () async {
         showControl();
-        await useAppStore().toggleWindowFitMode();
-        // Transient centered feedback after the change (PotPlayer parity).
-        showPlayerOsd(OsdTexts.windowFitMode(t,
-          fitVideo: useAppStore().state.windowFitMode == WindowFitMode.fitVideo,
-        ));
+        await toggleWindowFitModeFromControlBar(context);
       },
       style: ButtonStyle(overlayColor: overlayColor),
     );

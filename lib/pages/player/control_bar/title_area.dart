@@ -7,6 +7,7 @@ import 'package:iris/pages/player/overlays/overlay_part/title_overlay.dart';
 import 'package:iris/pages/player/title_bar.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_player_ui_store.dart';
+import 'package:iris/utils/app_exit.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/platform.dart';
 import 'package:iris/widgets/a11y_tooltip.dart';
@@ -231,10 +232,7 @@ class DesktopWindowControls extends HookWidget {
           ),
         ),
         IconButton(
-          onPressed: () async {
-            await saveProgress?.call();
-            windowManager.close();
-          },
+          onPressed: () => AppExit.run(saveProgress),
           icon: Icon(Icons.close_rounded, color: color),
           style: ButtonStyle(
             overlayColor: WidgetStateProperty.resolveWith<Color?>(

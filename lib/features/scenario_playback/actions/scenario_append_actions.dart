@@ -82,9 +82,13 @@ class ScenarioAppendActions {
       if (!proceed) return;
     }
     final store = usePlaybackScenarioStore();
-    final before = await _effectiveQueueCount(store);
+    // Count on the SAME workspace the append targets: an active independent
+    // entry owns its own workspace, so reading SystemPlaying unconditionally
+    // produced a misleading 0→0 feedback for independent entries.
+    final ws = await ensurePlaybackWorkspace();
+    final before = await _effectiveQueueCount(store, ws.id);
     await appendToDefaultScenario(files, directories: directories);
-    final after = await _effectiveQueueCount(store);
+    final after = await _effectiveQueueCount(store, ws.id);
     if (!context.mounted) return;
     await showAppendFeedbackDialog(
       context,
@@ -99,12 +103,14 @@ class ScenarioAppendActions {
     );
   }
 
-  /// Effective resolved queue length of the SystemPlaying workspace (0 when it
-  /// has not been created yet).
-  static Future<int> _effectiveQueueCount(PlaybackScenarioStore store) async {
-    final sys = store.systemPlayingScenario;
-    if (sys == null) return 0;
-    final result = await store.resolvePageFor(sys.id, page: 0, pageSize: 1);
+  /// Effective resolved queue length of [scenarioId] (0 when it has not been
+  /// created yet). Must be the same workspace the append targets.
+  static Future<int> _effectiveQueueCount(
+    PlaybackScenarioStore store,
+    String scenarioId,
+  ) async {
+    final result =
+        await store.resolvePageFor(scenarioId, page: 0, pageSize: 1);
     return result.totalItems;
   }
 }

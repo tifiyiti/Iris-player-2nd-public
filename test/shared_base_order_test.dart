@@ -217,6 +217,9 @@ void main() {
       await seed();
       final r = resolver();
       final scenario = await repo.createScenario(name: 'S');
+      // [sharedBaseOrder] pins pathGroupFirst: true, so the scenario must group
+      // too — the app default is flat since v46.
+      await repo.updateScenario(scenario.copyWith(sourceInternalFirst: true));
       await repo.addSource(
           scenarioId: scenario.id,
           storageId: 'st1',
@@ -236,6 +239,9 @@ void main() {
       await seed();
       final r = resolver();
       final scenario = await repo.createScenario(name: 'S');
+      // [sharedBaseOrder] pins pathGroupFirst: true, so the scenario must group
+      // too — the app default is flat since v46.
+      await repo.updateScenario(scenario.copyWith(sourceInternalFirst: true));
       // Overlapping sources so cross-source duplication is exercised.
       await repo.addSource(
           scenarioId: scenario.id,
@@ -281,6 +287,9 @@ void main() {
       await seed();
       final r = resolver();
       final scenario = await repo.createScenario(name: 'S');
+      // [sharedBaseOrder] pins pathGroupFirst: true, so the scenario must group
+      // too — the app default is flat since v46.
+      await repo.updateScenario(scenario.copyWith(sourceInternalFirst: true));
       await repo.addSource(
           scenarioId: scenario.id,
           storageId: 'st1',

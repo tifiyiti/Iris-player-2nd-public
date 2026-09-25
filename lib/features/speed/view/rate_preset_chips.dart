@@ -96,37 +96,60 @@ class _PresetChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colors = Theme.of(context).colorScheme;
-    return ChoiceChip(
-      // Every cell is the same rectangle because `Expanded` pins the width and
-      // a SINGLE line pins the height — so the LABEL has to give, not the cell.
-      // `maxLines`/`softWrap` are what make that true: without them a long
-      // label ("0.25X" at a large system font scale) wraps, that one row grows
-      // taller, and the grid stops reading as a grid. `scaleDown` then shrinks
-      // the single line to fit instead of clipping it.
-      label: SizedBox(
-        height: kRateChipLabelHeight,
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            getLocalizations(context).rate_value(formatSpeedLabel(stop)),
-            maxLines: 1,
-            softWrap: false,
+    final String label =
+        getLocalizations(context).rate_value(formatSpeedLabel(stop));
+    // Deliberately NOT a `ChoiceChip`. `RawChip` wraps its content in
+    // `Center(widthFactor: 1.0, heightFactor: 1.0)` (see chip.dart), which lays
+    // the chip out at its LABEL's natural width and only centres it in the
+    // slot — so "0.25X" came out visibly longer than "1.0X" while the slots
+    // measured identical. Here the `Material` is the outermost box: under the
+    // tight width `Expanded` hands out it must fill the cell, so every preset
+    // is the same rectangle whatever its label measures.
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: Material(
+        key: ValueKey<String>('rate_preset_pill_${formatSpeedLabel(stop)}'),
+        color: selected ? colors.primaryContainer : colors.surfaceContainerHigh,
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: selected ? colors.primary : colors.outlineVariant,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => onSelected(stop),
+          child: Padding(
+            // Fixed vertical padding around a fixed label box: the pill height
+            // is a constant, never derived from how long the label is.
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+            child: SizedBox(
+              height: kRateChipLabelHeight,
+              child: Center(
+                // `scaleDown` shrinks a label that outgrows the cell (long
+                // label at a large system font scale) instead of clipping or
+                // wrapping it — the font gives, the cell does not.
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: TextStyle(
+                      color:
+                          selected ? colors.onPrimaryContainer : colors.onSurface,
+                      // No bold-when-selected: a heavier weight widens the
+                      // label, and a label that changes size is one more thing
+                      // that can make one cell look unlike its neighbours.
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),
-      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-      selected: selected,
-      showCheckmark: false,
-      selectedColor: colors.primaryContainer,
-      labelStyle: TextStyle(
-        color: selected ? colors.onPrimaryContainer : colors.onSurface,
-        fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-      ),
-      // A 3x3 grid of padded chips costs ~40px per row; the compact density
-      // and the wrapped-away tap padding bring that to ~34.
-      visualDensity: VisualDensity.compact,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      onSelected: (_) => onSelected(stop),
     );
   }
 }

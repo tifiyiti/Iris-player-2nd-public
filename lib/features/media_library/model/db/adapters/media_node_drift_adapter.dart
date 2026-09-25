@@ -82,6 +82,18 @@ extension MediaNodeDriftAdapter on MediaNode {
     return (canonical == null || canonical.isEmpty) ? null : canonical;
   }
 
+  /// Parent path in the canonical DB form, with the storage root normalised to
+  /// NULL. Must be applied AFTER [StoragePathCodec.relativize]: a parent that IS
+  /// the storage base relativizes to an EMPTY string, which every
+  /// `parent_path IS NULL` root read cannot see (the "root folder shows media
+  /// but resolves to no playable content" bug). See also [_canonicalParentOrNull],
+  /// which catches the raw `'/'` form before relativization.
+  static String? _relativizedParentOrNull(String storageId, String? parentRaw) {
+    if (parentRaw == null) return null;
+    final rel = StoragePathCodec.relativize(storageId, parentRaw);
+    return rel.isEmpty ? null : rel;
+  }
+
   MediaNodesTableCompanion toCompanion() {
     return map(
       directory: (dir) {
@@ -89,9 +101,7 @@ extension MediaNodeDriftAdapter on MediaNode {
             dir.storageId, canonicalDbPath(dir.path.join('/')));
         final parentRaw =
             _canonicalParentOrNull(dir.parentPath ?? _calcParentPath(dir.path));
-        final parent = parentRaw == null
-            ? null
-            : StoragePathCodec.relativize(dir.storageId, parentRaw);
+        final parent = _relativizedParentOrNull(dir.storageId, parentRaw);
         return MediaNodesTableCompanion.insert(
           // Canonical scope is the node identity: two linked entries always
           // report the same owner, so ids/keys (progress, history) stay stable
@@ -131,9 +141,7 @@ extension MediaNodeDriftAdapter on MediaNode {
             file.storageId, canonicalDbPath(file.path.join('/')));
         final parentRaw = _canonicalParentOrNull(
             file.parentPath ?? _calcParentPath(file.path));
-        final parent = parentRaw == null
-            ? null
-            : StoragePathCodec.relativize(file.storageId, parentRaw);
+        final parent = _relativizedParentOrNull(file.storageId, parentRaw);
         return MediaNodesTableCompanion.insert(
           // Canonical scope is the node identity (see directory branch).
           storageId: StorageScope.of(file.storageId),

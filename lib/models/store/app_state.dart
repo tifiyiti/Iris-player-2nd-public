@@ -394,7 +394,10 @@ abstract class AppState with _$AppState {
     PhoneLandscapeSliderType phoneLandscapeSliderType,
     @Default(PhoneLandscapeUseMode.normal)
     PhoneLandscapeUseMode phoneLandscapeUseMode,
-    @Default(PhoneSideScrubberKind.classic)
+    /// Side-panel scrubber design. The install default is the ring dial so a
+    /// fresh install ships with it; existing installs keep their persisted
+    /// value (no migration folds `classic` into `dial`).
+    @Default(PhoneSideScrubberKind.dial)
     PhoneSideScrubberKind phoneOneHandedScrubberKind,
 
     /// Phone-PORTRAIT bottom-bar alignment of the two groups (see

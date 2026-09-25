@@ -75,19 +75,24 @@ class ControlGroupFloatingButton extends HookWidget {
           desktopPhoneMode: s.desktopCenterZonePhoneMode,
           runtimeOrientation: s.runtimeOrientation,
         ));
-    // The switch only exists where a second group does: phones, or desktop in
-    // the phone-mode opt-in.
-    final bool supported = isMobilePlatform || app.desktopPhoneMode;
-    // Orientation decides WHICH visibility flag applies — the same single
-    // authority the control bar / overlay use.
+    // The switch exists wherever a second group does: phones, or desktop
+    // (classic desktop opts in through the button's own visibility flag; the
+    // phone-mode opt-in still applies).
+    final bool supported = isMobilePlatform || isDesktop || app.desktopPhoneMode;
+    // Orientation decides WHICH phone visibility flag applies — the same single
+    // authority the control bar / overlay use. Desktop is a separate,
+    // orientation-independent flag (a resized window has no stable rotation).
     final bool isLandscape = isLandscapeOrientation(
       runtimeOrientation: app.runtimeOrientation,
       realOrientation: MediaQuery.orientationOf(context),
     );
-    final bool enabled = store.select(
-      context,
-      (s) => isLandscape ? s.floatingButtonLandscape : s.floatingButtonPortrait,
-    );
+    final bool enabled = isMobilePlatform
+        ? store.select(
+            context,
+            (s) =>
+                isLandscape ? s.floatingButtonLandscape : s.floatingButtonPortrait,
+          )
+        : store.select(context, (s) => s.floatingButtonDesktop);
     // Same rule the control bar is gated with, so the two cannot drift.
     final List<PlayQueueItem> playQueue =
         usePlayQueueStore().select(context, (s) => s.playQueue);

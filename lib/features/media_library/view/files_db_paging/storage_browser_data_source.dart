@@ -26,6 +26,7 @@ import 'package:iris/features/playback_tools/services/open_with_service.dart';
 import 'package:iris/features/paginated_browser/data_source/paginated_browser_data_source.dart';
 import 'package:iris/features/paginated_browser/models/generic_browser_models.dart';
 import 'package:iris/features/paginated_browser/utils/breadcrumbs.dart';
+import 'package:iris/features/scenario_playback/actions/media_revision_actions.dart';
 import 'package:iris/features/scenario_playback/actions/scenario_playback_actions.dart';
 import 'package:iris/features/scenario_playback/store/use_playback_scenario_store.dart';
 import 'package:iris/features/virtual_media/commands/vm_actions.dart';
@@ -338,11 +339,12 @@ class StorageBrowserDataSource extends PaginatedBrowserDataSource<FileItem> {
   /// stays here.
   Future<void> _syncDbWithFilesystem(List<String> dirPath) async {
     try {
-      final dbRows = await MediaNodeSyncService().syncDirectory(
+      final sync = await MediaNodeSyncService().syncDirectory(
         storage: storage,
         items: _allItems,
         dirPath: dirPath,
       );
+      final dbRows = sync.preSyncChildren;
 
       // Capture durable progress from the media library (survives history
       // clears) for the current directory's playable files. Keyed canonically
@@ -352,6 +354,12 @@ class StorageBrowserDataSource extends PaginatedBrowserDataSource<FileItem> {
         if (file == null) continue;
         _durableProgress[canonicalProgressKey(file.storageId, file.path)] =
             (file.playbackPositionMs, file.durationMs);
+      }
+
+      // Only a sync that actually wrote rows may invalidate the scenario queue
+      // index; a no-op re-browse must not force a rebuild.
+      if (sync.changed) {
+        await MediaRevisionActions.mediaNodesChanged([storage.id]);
       }
     } catch (e) {
       areaKeyLog.e('StorageBrowserDataSource DB sync error: $e');
@@ -788,6 +796,10 @@ class StorageBrowserDataSource extends PaginatedBrowserDataSource<FileItem> {
           probeEnabled ? createMediaProbeService() : null,
     );
     await service.scanRecursively(rootPaths: [rootPath], context: context);
+    // The scan mutated `media_nodes`: announce the storage so the derived queue
+    // index / open queue view pick up the new content instead of serving a
+    // stale generation.
+    await MediaRevisionActions.mediaNodesChanged([storage.id]);
   }
 
   // ── Trailing actions ──

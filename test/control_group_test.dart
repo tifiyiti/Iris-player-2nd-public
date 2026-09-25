@@ -197,12 +197,13 @@ void main() {
   });
 
   group('floating button default', () {
-    test('ships portrait ON and landscape OFF on every platform', () async {
+    test('ships portrait ON, landscape OFF and desktop ON', () async {
       final store = useControlGroupStore();
       await store.initialized;
 
       expect(store.state.floatingButtonPortrait, isTrue);
       expect(store.state.floatingButtonLandscape, isFalse);
+      expect(store.state.floatingButtonDesktop, isTrue);
     });
 
     test('the two orientation flags are independent', () async {
@@ -329,6 +330,43 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(store.state.floatingX, greaterThan(0.5 + 50 / availW));
+    });
+  });
+
+  group('floating button (desktop)', () {
+    testWidgets('desktop uses its own flag, not the phone orientations',
+        (tester) async {
+      tester.view.physicalSize = const Size(1400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final store = useControlGroupStore();
+      await store.initialized;
+
+      // Phone flags off, desktop flag ON → shown: desktop ignores orientation.
+      store.set(store.state.copyWith(
+        floatingButtonPortrait: false,
+        floatingButtonLandscape: false,
+        floatingButtonDesktop: true,
+      ));
+      await tester.pumpWidget(_harness(const ControlGroupFloatingButton()));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey<String>('control_group_floating_button')),
+        findsOneWidget,
+      );
+
+      // Desktop flag OFF → hidden even with the phone portrait flag ON.
+      store.set(store.state.copyWith(
+        floatingButtonDesktop: false,
+        floatingButtonPortrait: true,
+      ));
+      await tester.pumpWidget(_harness(const ControlGroupFloatingButton()));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey<String>('control_group_floating_button')),
+        findsNothing,
+      );
     });
   });
 

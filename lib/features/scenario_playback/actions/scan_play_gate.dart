@@ -7,13 +7,16 @@ import 'package:iris/features/media_library/scan/service/recursive_scan_service.
 import 'package:iris/features/media_library/scan/model/recursive_scan_state.dart'
     show ScanPhase;
 import 'package:iris/features/media_library/scan/store/recursive_scan_store.dart';
+import 'package:iris/features/scenario_playback/actions/media_revision_actions.dart';
 import 'package:iris/features/scenario_playback/actions/pending_play_intent.dart';
 import 'package:iris/features/media_library/scan/view/scan_options_dialog.dart';
 import 'package:iris/features/scenario_playback/actions/scenario_playback_common.dart';
+import 'package:iris/features/scenario_playback/actions/scenario_playback_error.dart';
 import 'package:iris/l10n/app_localizations.dart';
 import 'package:iris/models/db/db_module.dart';
 import 'package:iris/store/use_storage_store.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/widgets/dialogs/show_copyable_error_dialog.dart';
 
 /// Per-directory scan gate status (decision output of [classifyDirScanStatus]).
 enum DirScanGateStatus { unscanned, scanning, done, error, stale }
@@ -66,6 +69,30 @@ String formatStaleness(Duration age, AppLocalizations t) {
   return t.gate_stale_m('$m');
 }
 
+/// Reclassifies a persisted `scanning` stamp that no live scan backs.
+///
+/// The stamp is cleared only when a scan completes successfully over that whole
+/// subtree, so a failed child listing, a stopped run or a run superseded by a
+/// newer one leaves it behind. Claiming "being scanned" for it is doubly wrong:
+/// nothing is running, and that dialog hides the rescan button — the directory
+/// then can never be repaired from the gate. Never-fully-scanned is the honest
+/// reading, and it offers the full rescan.
+DirScanGateStatus resolveLiveScanStatus(
+  DirScanGateStatus status, {
+  required bool scanLive,
+}) {
+  if (status != DirScanGateStatus.scanning || scanLive) return status;
+  return DirScanGateStatus.unscanned;
+}
+
+/// True while the shared scan store is actually scanning [storageId].
+bool _scanIsLiveFor(String storageId) {
+  final store = useRecursiveScanStore();
+  if (!store.isScanning) return false;
+  final running = store.state.storageId;
+  return running == null || running == storageId;
+}
+
 /// Playback gate: checks every recursive directory against its scan status.
 ///
 /// Returns true when playback may proceed; false when it was aborted (user
@@ -88,7 +115,10 @@ Future<bool> ensureDirsScanned(
 
   for (final dir in dirs) {
     if (!dir.recursive) continue; // non-recursive scopes need no full scan
-    final status = await _statusOf(dir, now, reminder);
+    final status = resolveLiveScanStatus(
+      await _statusOf(dir, now, reminder),
+      scanLive: _scanIsLiveFor(dir.storageId),
+    );
     if (status == DirScanGateStatus.done) continue;
     gated[dir] = status;
   }
@@ -107,8 +137,8 @@ Future<DirScanGateStatus> _statusOf(
   DateTime now,
   int reminderMinutes,
 ) async {
-  final row = await DbModule.mediaNodesDao
-      .dirScanStatus(dir.storageId, dir.path);
+  final row =
+      await DbModule.mediaNodesDao.dirScanStatus(dir.storageId, dir.path);
   return classifyDirScanStatus(
     state: row?.state,
     lastScanAt: row?.lastScanAt,
@@ -164,11 +194,13 @@ Future<bool> _showGateDialog(
       return true;
     case DirScanGateChoice.scanNow:
       if (context.mounted) {
-        await _startScanFor(context, dir);
-        // Recording the pending intent happens here — after the background
-        // scan actually started — so the resume path only exists when a scan
-        // genuinely took over and the original playback was interrupted.
-        onScanNow?.call();
+        final started = await _startScanFor(context, dir);
+        // Only record the pending intent when a scan ACTUALLY started. If the
+        // user cancelled the options dialog (or the storage could not be
+        // resolved), no scan took over, so arming a resume would silently drop
+        // this play and later pop a spurious resume dialog after an unrelated
+        // scan completes.
+        if (started) onScanNow?.call();
       }
       return false; // scan overlay takes over; playback aborted
     case DirScanGateChoice.cancel:
@@ -223,13 +255,15 @@ Future<Duration> _stalenessOf(ScenarioSourceSpec dir) async {
   return DateTime.now().difference(last);
 }
 
-Future<void> _startScanFor(BuildContext context, ScenarioSourceSpec dir) async {
+/// Starts a background recursive scan for [dir] and returns whether it actually
+/// started. False when the storage cannot be resolved or the user cancelled the
+/// scan-options dialog — callers must then NOT record a pending play intent.
+Future<bool> _startScanFor(BuildContext context, ScenarioSourceSpec dir) async {
   final storage = useStorageStore().findById(dir.storageId);
-  if (storage == null) return; // cannot scan without a storage → play aborted
+  if (storage == null) return false; // cannot scan without a storage
   // Same options dialog as manual scans, probe default ON (see dialog).
-  final probe =
-      await showScanOptionsDialog(context, storageType: storage.type);
-  if (probe == null || !context.mounted) return; // cancelled → abort play
+  final probe = await showScanOptionsDialog(context, storageType: storage.type);
+  if (probe == null || !context.mounted) return false; // cancelled → no scan
 
   final scanStore = useRecursiveScanStore();
   final service = RecursiveScanService(
@@ -239,13 +273,13 @@ Future<void> _startScanFor(BuildContext context, ScenarioSourceSpec dir) async {
     sourcesDao: DbModule.mediaLibSourcesDao,
     probeService: probe ? createMediaProbeService() : null,
   );
-  final rootPath = dir.path.isEmpty
-      ? storage.basePath.join('/')
-      : dir.path;
-  unawaited(service.scanRecursively(
-    rootPaths: [rootPath],
-    context: context,
-  ));
+  final rootPath = dir.path.isEmpty ? storage.basePath.join('/') : dir.path;
+  // The scan mutates `media_nodes`; announce the storage when it finishes so
+  // the derived queue index and any open queue view pick up the new content.
+  unawaited(service
+      .scanRecursively(rootPaths: [rootPath], context: context).then(
+          (_) => MediaRevisionActions.mediaNodesChanged([storage.id])));
+  return true;
 }
 
 String _dirLabel(ScenarioSourceSpec dir, AppLocalizations t) =>
@@ -298,74 +332,120 @@ Future<bool> ensureDirsScannedWithPendingPlay(
   return proceed;
 }
 
-/// Watches the shared scan store for the completion of the scan that took over
-/// this playback, then offers to resume the pending intent.
+/// Whether a scan-store phase change should offer the resume prompt.
 ///
-/// Listens for the transition `scanning → done/stopped/error`. Because the
-/// listener is global to the scan store (single scan at a time in the app),
-/// it re-checks [PendingPlayIntentHolder.pending] on each terminal transition
-/// instead of relying on a captured intent — so a pending intent created for a
-/// different root still gets its chance, and repeated completions don't double
-/// resume. A separate [armed] flag in [ensureDirsScannedWithPendingPlay] keeps
-/// this from stacking for one user action.
+/// Pure and `@visibleForTesting` so the once-only contract is unit-testable:
+/// exactly one offer per armed intent, on the first `scanning → terminal`
+/// transition. [offered] latches after the first terminal transition; further
+/// transitions (a multi-storage batch completes once per storage) are ignored.
+@visibleForTesting
+bool shouldOfferScanResume({
+  required ScanPhase? previousPhase,
+  required ScanPhase nextPhase,
+  required bool offered,
+}) {
+  if (offered) return false;
+  if (previousPhase != ScanPhase.scanning) return false;
+  return nextPhase == ScanPhase.done ||
+      nextPhase == ScanPhase.stopped ||
+      nextPhase == ScanPhase.error;
+}
+
+/// Watches the shared scan store for the completion of the scan that took over
+/// this playback, then offers to resume the pending intent ONCE.
+///
+/// Listens for the transition `scanning → done/stopped/error`. The pending
+/// intent is CONSUMED before the dialog is shown so a scan that reaches a
+/// terminal phase more than once (a multi-storage batch completes once per
+/// storage) can never stack duplicate dialogs. The subscription cancels itself
+/// after offering, so repeated gated plays cannot accumulate listeners that all
+/// fire on one completion. A separate [armed] flag in
+/// [ensureDirsScannedWithPendingPlay] keeps this from stacking for one user
+/// action.
 void _watchScanCompletionForResume({
   required PendingPlayIntentHolder holder,
   required BuildContext captureContext,
 }) {
-  // A debounce lets completeScan() (which fires the stream) finish applying
-  // its persisted state before we re-check; lookup is cheap and idempotent.
-  void offer() {
-    final intent = holder.pending;
-    if (intent == null) return;
-    if (!captureContext.mounted) {
-      // Caller already left the screen — drop the intent silently.
-      holder.clear();
-      return;
-    }
-    showDialog<void>(
-      context: captureContext,
-      builder: (dialogCtx) {
-        final t = getLocalizations(dialogCtx);
-        return AlertDialog(
-          title: Text(t.gate_resume_title),
-          content: Text(t.gate_resume_body),
-          actions: [
-            TextButton(
-              onPressed: () {
-                holder.clear();
-                Navigator.of(dialogCtx).pop();
-              },
-              child: Text(t.cancel),
-            ),
-            FilledButton(
-              onPressed: () async {
-                final pendingIntent = holder.pending;
-                holder.clear();
-                Navigator.of(dialogCtx).pop();
-                if (pendingIntent != null) {
-                  // Resume with the ORIGINAL captured parameters. The directory
-                  // is now scanned, so the gate passes and playback proceeds.
-                  await pendingIntent.resume();
-                }
-              },
-              child: Text(t.gate_resume_continue),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   final scanStore = useRecursiveScanStore();
   ScanPhase? prevPhase = scanStore.state.phase;
-  scanStore.stream.listen((state) {
-    final wasScanning = prevPhase == ScanPhase.scanning;
+  var offered = false;
+  StreamSubscription<dynamic>? sub;
+  sub = scanStore.stream.listen((state) {
+    final shouldOffer = shouldOfferScanResume(
+      previousPhase: prevPhase,
+      nextPhase: state.phase,
+      offered: offered,
+    );
     prevPhase = state.phase;
-    if (wasScanning &&
-        (state.phase == ScanPhase.done ||
-            state.phase == ScanPhase.stopped ||
-            state.phase == ScanPhase.error)) {
-      offer();
-    }
+    if (!shouldOffer) return;
+    final intent = holder.pending;
+    if (intent == null) return;
+    offered = true;
+    // Consume first: the dialog below must not be able to stack, and a
+    // subsequent terminal transition has nothing left to offer.
+    holder.clear();
+    unawaited(sub?.cancel() ?? Future<void>.value());
+    if (!captureContext.mounted) return;
+    _offerPendingResume(captureContext, intent);
   });
+}
+
+/// Shows the single "scan finished — continue playing?" prompt for [intent].
+///
+/// The intent was already consumed by the watcher; a Cancel here simply drops
+/// it (and never resumes).
+void _offerPendingResume(BuildContext context, PendingPlayIntent intent) {
+  if (!context.mounted) {
+    return; // caller already left the screen — drop silently
+  }
+  showDialog<void>(
+    context: context,
+    builder: (dialogCtx) {
+      final t = getLocalizations(dialogCtx);
+      return AlertDialog(
+        title: Text(t.gate_resume_title),
+        content: Text(t.gate_resume_body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(),
+            child: Text(t.cancel),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(dialogCtx).pop();
+              if (!context.mounted) return;
+              await _resumePending(context, intent);
+            },
+            child: Text(t.gate_resume_continue),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+/// Runs a pending intent, surfacing a failure as the uniform copyable error
+/// dialog instead of an unhandled async error.
+///
+/// A resume re-runs the ORIGINAL action with `force:false`, so it can
+/// legitimately throw [PlaybackUnavailableException] when the completed scan
+/// still leaves the scope empty (e.g. a folder with no in-scope media).
+Future<void> _resumePending(
+  BuildContext context,
+  PendingPlayIntent intent,
+) async {
+  try {
+    await intent.resume();
+  } catch (e) {
+    if (!context.mounted) return;
+    final t = getLocalizations(context);
+    final message = e is PlaybackUnavailableException
+        ? e.displayMessage(t)
+        : t.dlg_play_failed_prefix('$e');
+    await showCopyableErrorDialog(
+      context,
+      title: t.dlg_copy_error_title,
+      message: message,
+    );
+  }
 }

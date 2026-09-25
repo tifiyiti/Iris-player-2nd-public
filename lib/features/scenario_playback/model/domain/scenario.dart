@@ -50,8 +50,12 @@ abstract class Scenario with _$Scenario {
     /// When true the queue always groups by source (source-internal sort first)
     /// and orders each source by (parentPath, sortField, name) so files of the
     /// same directory stay contiguous. When false each source is sorted by
-    /// sortField only. Defaults to true (D5/D6).
-    @Default(true) bool sourceInternalFirst,
+    /// sortField only — a flat order, which is what a plain "sort by date"
+    /// comparison (e.g. PotPlayer) shows.
+    ///
+    /// Defaults to false (D5/D6): the directory grouping made the modified-time
+    /// sort read as folder blocks rather than a global time order.
+    @Default(false) bool sourceInternalFirst,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _Scenario;

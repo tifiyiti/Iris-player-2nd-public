@@ -30,7 +30,9 @@ class SharedMediaOrder {
 
   /// Stable key for one order. Every input that affects the row set or the
   /// ORDER BY is part of it, so two callers with the same key must get the same
-  /// sequence.
+  /// sequence. The `vN` prefix is the ORDER FORMAT version: bump it whenever the
+  /// ORDER BY semantics change, so an order persisted under the old rules is
+  /// rebuilt instead of reused.
   static String orderKey({
     required String storageId,
     required ScenarioSortField sortField,
@@ -38,8 +40,11 @@ class SharedMediaOrder {
     required bool pathGroupFirst,
     required List<MediaType> mediaTypes,
   }) {
+    // v2: the ORDER BY gained a deterministic name/path tail and NULLs-last on
+    // both query paths, and modified_at became milliseconds — so a v1 sequence
+    // is no longer the same order.
     final types = mediaTypes.map((e) => e.name).toList()..sort();
-    return 'v1|$storageId|${sortField.name}|${sortDirection.name}'
+    return 'v2|$storageId|${sortField.name}|${sortDirection.name}'
         '|${pathGroupFirst ? 'g' : 'f'}|${types.join(',')}';
   }
 

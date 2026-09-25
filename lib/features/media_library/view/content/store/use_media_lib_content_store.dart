@@ -28,6 +28,7 @@ import 'package:iris/features/media_library/view/content/store/media_lib_content
 import 'package:iris/features/media_library/view/tab/store/libs/enum/load_state.dart';
 import 'package:iris/features/meta_settings/engine/browse_scope_snapshot.dart'
     show currentBrowseScopeMediaTypes, currentPlayableScopeMediaTypes;
+import 'package:iris/features/scenario_playback/actions/media_revision_actions.dart';
 import 'package:iris/models/db/db_module.dart';
 import 'package:iris/store/persistent_store.dart';
 import 'package:iris/store/use_app_store.dart';
@@ -761,11 +762,16 @@ class MediaLibContentStore extends PersistentStore<MediaLibContentState> {
         return;
       }
       useStorageStore().markConnected(storageId);
-      await MediaNodeSyncService().syncDirectory(
+      final sync = await MediaNodeSyncService().syncDirectory(
         storage: storage,
         items: result.items,
         dirPath: segments,
       );
+      // Only announce storages whose content actually changed, so a no-op
+      // re-browse does not invalidate the derived scenario queue index.
+      if (sync.changed) {
+        await MediaRevisionActions.mediaNodesChanged([storageId]);
+      }
     } catch (e) {
       areaKeyLog.w(
           '[content] sync dir failed storage=$storageId path=$parentPath: $e');

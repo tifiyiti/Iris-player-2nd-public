@@ -70,6 +70,13 @@ class RecursiveScanService {
   /// the play gate. Run-scoped, so a later successful rescan can mark them done.
   final Set<String> _erroredDirs = {};
 
+  /// Directories this run actually walked, in the stored (base-relative) form.
+  ///
+  /// The settle pass ([_settleScanStates]) may only trust a root it reached —
+  /// a run that stopped beforehand knows nothing about that root's
+  /// completeness. Run-scoped by design.
+  final Set<String> _visitedDirs = {};
+
   RecursiveScanService({
     required this.storage,
     required this.scanStore,
@@ -91,6 +98,15 @@ class RecursiveScanService {
     required BuildContext context,
   }) async {
     final storageId = storage.id;
+    // An empty root means "the storage base": listing the empty path makes the
+    // platform answer an empty (non-error) listing, which the incremental sync
+    // then reads as "the root has no entries" and prunes the whole snapshot.
+    rootPaths = [
+      for (final p in rootPaths)
+        p.isEmpty ? storage.basePath.join('/') : p,
+    ];
+    // Roots stamped `scanning` by this run — settled in the `finally` below.
+    List<String>? stampedRoots;
     // Observability: whether this run even attempts duration probing is
     // the first branch of every "scanned but no durations" diagnosis.
     // WARNING level: the legacyDb channel silences INFO in all builds.
@@ -129,9 +145,20 @@ class RecursiveScanService {
 
       // Mark each scanned root as "scanning" in the DB before walking it, so
       // the play gate sees the in-progress state ("从选定目录起扫描就标记").
+      // Heal first: pre-fix scans leaked above-base phantoms (`F:`, `F:/dl`)
+      // whose NULL parent permanently blocks the root scanDone stamp.
+      // Ensure second: on a never-scanned root the stamp UPDATE would hit
+      // zero rows, leaving the settle pass nothing to converge.
+      try {
+        await nodesDao.deleteAboveBaseAncestors(storageId);
+      } catch (e) {
+        areaKeyLog.w('Phantom cleanup skipped: $e');
+      }
       for (final rootPath in activeRoots) {
+        await _ensureSelfDirNode(storageId, rootPath);
         await nodesDao.markDirScanning(storageId, rootPath);
       }
+      stampedRoots = activeRoots;
 
       for (final rootPath in activeRoots) {
         if (!scanStore.isScanning) return;
@@ -158,6 +185,63 @@ class RecursiveScanService {
           await nodesDao.markDirScanError(storageId, rootPath);
         } catch (_) {}
       }
+    } finally {
+      // Runs on every exit path — success, failure, stop, or a run superseded
+      // by a newer one. The successful completion pass only stamps `scanDone`
+      // for directories it can prove complete; anything else must not be left
+      // claiming "being scanned".
+      if (stampedRoots != null) {
+        await _settleScanStates(storageId, stampedRoots);
+      }
+    }
+  }
+
+  /// Converges the roots this run stamped `scanning`.
+  ///
+  /// The completion pass only stamps `scanDone` for a directory it can prove
+  /// complete: a failed child listing, a stopped run, or a run superseded by a
+  /// newer one leaves the root stamped `scanning` while the scan still reports
+  /// `done`. The play gate reads that stamp as LIVE state ("目录正在扫描中") and
+  /// hides the rescan button for it, so the directory could never be repaired
+  /// from the gate. Fully scanned roots become `scanDone`, everything else
+  /// `error` — the gate then offers a full rescan. (Descendants are never
+  /// stamped by a run, and the normal bottom-up pass owns them.)
+  Future<void> _settleScanStates(
+    String storageId,
+    List<String> rootPaths,
+  ) async {
+    try {
+      for (final rootPath in rootPaths) {
+        final status = await nodesDao.dirScanStatus(storageId, rootPath);
+        if (status?.state != 'scanning') continue;
+        final row = await nodesDao.getByPath(storageId, rootPath);
+        if (row == null) continue;
+        final dirPath = row.path;
+        final selfErrored = _erroredDirs
+            .contains(StoragePathCodec.absolutize(storageId, dirPath));
+        final children = await nodesDao.getChildDirs(storageId, dirPath);
+        final childErrored = children.any((c) => _erroredDirs
+            .contains(StoragePathCodec.absolutize(storageId, c.path)));
+        // The walk must actually have reached the root: a run that stopped
+        // before descending into it knows nothing about its completeness.
+        // Its children must have been reached too: a stale `scanDone` stamp
+        // from a previous successful run is not proof this run verified them
+        // (a run stopped inside the first child would otherwise converge the
+        // root to done on the strength of never-visited children).
+        if (_visitedDirs.contains(dirPath) &&
+            !selfErrored &&
+            !childErrored &&
+            children.every((c) => _visitedDirs.contains(c.path))) {
+          final allDone = await nodesDao.allChildDirsScanned(storageId, dirPath);
+          if (children.isEmpty || allDone) {
+            await nodesDao.markDirScanDone(storageId, dirPath);
+            continue;
+          }
+        }
+        await nodesDao.markDirScanError(storageId, dirPath);
+      }
+    } catch (e) {
+      areaKeyLog.e('Scan-state settle error: $e');
     }
   }
 
@@ -218,6 +302,8 @@ class RecursiveScanService {
     // Normalize dirPath: strip leading/trailing slashes so that all
     // parentPath values stored in the DB are consistent (no leading '/').
     dirPath = dirPath.replaceAll(RegExp(r'^/+|/+$'), '');
+    _visitedDirs
+        .add(StoragePathCodec.relativize(storageId, canonicalDbPath(dirPath)));
 
     // Update display.
     await scanStore.updateProgress(
@@ -227,10 +313,17 @@ class RecursiveScanService {
     // never shows a stale "probing x/y".
     scanStore.setProbeProgress(0, 0);
 
-    // Backfill ancestor directory nodes from storage root down to dirPath's
-    // parent.  Partial scans (rootPaths starting mid-tree) would otherwise
-    // leave the path above the scan root absent from the DB, breaking the
-    // path-tree browser.
+    // Backfill ancestor directory nodes from the storage root down to
+    // dirPath's parent.  Partial scans (rootPaths starting mid-tree) would
+    // otherwise leave the path above the scan root absent from the DB,
+    // breaking the path-tree browser.
+    //
+    // Ancestors are built from the STORAGE-RELATIVE form: building them from
+    // absolute segments once leaked the base and everything above it
+    // (`F:`, `F:/dl`) into the DB, and the topmost phantom's NULL parent
+    // permanently blocked the root scanDone stamp (hence "never scanned"
+    // right after a full scan). Above-base prefixes are simply dropped —
+    // the storage root itself needs no ancestor row.
     //
     // SAF storages are skipped here: their "ancestors above the tree root"
     // would be bogus `content:`/authority segments (the URI is not a real
@@ -246,7 +339,9 @@ class RecursiveScanService {
     // UNIQUE(storage_id, path) — existing ancestor nodes from a prior scan
     // have different auto-increment IDs, so we must delete them first.
     if (dirPath.isNotEmpty && !_isSafDir(dirPath)) {
-      final segments = _pathSegments(dirPath);
+      final rel =
+          StoragePathCodec.relativize(storageId, canonicalDbPath(dirPath));
+      final segments = rel.isEmpty ? const <String>[] : rel.split('/');
       final ancestors = <MediaNode>[];
       for (int i = 1; i < segments.length; i++) {
         final ancestorPath = segments.sublist(0, i).join('/');
@@ -582,9 +677,32 @@ class RecursiveScanService {
     if (canonical.isEmpty) return;
     final existing = await nodesDao.getByPath(storageId, canonical);
     if (existing != null) return;
+    // Build the node from the STORAGE-RELATIVE form. Constructing it from
+    // absolute segments once stored the base itself as an `F:/dl/ar`-style
+    // row with an above-base parent the adapter cannot relativize back —
+    // the phantom that permanently blocked the root scanDone stamp.
+    final saf = isSafPath(canonical);
+    final rel =
+        saf ? canonical : StoragePathCodec.relativize(storageId, canonical);
+    if (!saf && rel.isEmpty) {
+      // Storage-root self node: the `''` row the play gate reads.
+      await nodesDao.batchUpsert([
+        MediaNode.directory(
+          id: '$storageId:',
+          storageId: storageId,
+          path: const <String>[],
+          parentPath: null,
+          pathDepth: 0,
+          name: storage.basePath.isNotEmpty
+              ? storage.basePath.last
+              : storage.name,
+        ).toCompanion(),
+      ]);
+      return;
+    }
     // pathConv keeps a SAF `content://` tree prefix as one segment so the
     // root directory node is `[prefix]` (parent null), never `content:`...
-    final pathList = pathConv(canonical);
+    final pathList = saf ? pathConv(canonical) : rel.split('/');
     if (pathList.isEmpty) return;
     await nodesDao.batchUpsert([
       MediaNode.directory(

@@ -131,7 +131,7 @@ class About extends HookWidget {
             subtitle: Text(t.set_storage_info_sub),
             onTap: () => showDataStorageInfoDialog(context),
           ),
-          // Known-issues list (localized; entries are filtered per platform).
+          // Known-issues list (localized; every platform shows every entry).
           ListTile(
             leading: const Icon(Icons.bug_report_rounded),
             title: Text(t.known_issues_title),

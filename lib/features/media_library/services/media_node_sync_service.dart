@@ -27,8 +27,11 @@ class MediaNodeSyncService {
   /// [dirPath] is the canonical (slash-free) storage-relative directory whose
   /// DB `parent_path` will match the synced children. Returns the pre-sync
   /// direct children (used by the files-paged browser to capture durable
-  /// playback progress). Errors are swallowed and logged.
-  Future<List<MediaNode>> syncDirectory({
+  /// playback progress) plus [changed], which is true when the DB was actually
+  /// written (upsert or delete). Callers use [changed] to announce the storage
+  /// to the scenario playback layer — an unchanged sync must NOT invalidate the
+  /// derived queue index. Errors are swallowed and logged.
+  Future<({List<MediaNode> preSyncChildren, bool changed})> syncDirectory({
     required Storage storage,
     required List<FileItem> items,
     required List<String> dirPath,
@@ -57,6 +60,7 @@ class MediaNodeSyncService {
       // or files with a stale media type).
       final dirUpserts = <MediaNodesTableCompanion>[];
       final fileUpserts = <MediaNodesTableCompanion>[];
+      var changed = false;
       for (final f in items) {
         final fullPath = parentPath.isEmpty ? f.name : '$parentPath/${f.name}';
         // pathConv keeps a SAF `content://` tree prefix as one segment so
@@ -109,11 +113,18 @@ class MediaNodeSyncService {
           // Non-playable file (JSON, ...) — remove any stale DB row.
           if (existing != null) {
             await dao.deleteNode(storage.id, fullPath);
+            changed = true;
           }
         }
       }
-      if (dirUpserts.isNotEmpty) await dao.batchUpsert(dirUpserts);
-      if (fileUpserts.isNotEmpty) await dao.batchUpsert(fileUpserts);
+      if (dirUpserts.isNotEmpty) {
+        await dao.batchUpsert(dirUpserts);
+        changed = true;
+      }
+      if (fileUpserts.isNotEmpty) {
+        await dao.batchUpsert(fileUpserts);
+        changed = true;
+      }
 
       // Removed from fs but still in DB → delete (dir → whole subtree).
       for (final r in dbRows) {
@@ -124,6 +135,7 @@ class MediaNodeSyncService {
         } else {
           await dao.deleteNode(storage.id, fullPath);
         }
+        changed = true;
       }
 
       // D2a: back-recursive aggregate update (after both upserts and stale
@@ -135,10 +147,10 @@ class MediaNodeSyncService {
         startPath: parentPath,
       );
 
-      return dbRows;
+      return (preSyncChildren: dbRows, changed: changed);
     } catch (e) {
       areaKeyLog.e('MediaNodeSyncService sync error: $e');
-      return const [];
+      return (preSyncChildren: const <MediaNode>[], changed: false);
     }
   }
 

@@ -31,6 +31,82 @@ typedef SourcesQuerySource = ({
   int? scenarioSourceId,
 });
 
+/// Probe-able / optional sort columns: rows without a value must sort AFTER rows
+/// with one, regardless of direction (the scan-probe promise).
+///
+/// Shared by `getPagedNodes` and `getPagedNodesForSources` so the two query
+/// paths cannot disagree about NULL placement.
+bool _needsNullsLast(MediaSortField field) {
+  switch (field) {
+    case MediaSortField.durationMs:
+    case MediaSortField.sizeInBytes:
+    case MediaSortField.pixelCount:
+    case MediaSortField.modifiedAt:
+    case MediaSortField.createdAt:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/// Leading `IS NULL` term (always ascending): 0 = has value, 1 = NULL, so NULLs
+/// land last whichever way the sort column is ordered.
+List<OrderingTerm Function(MediaNodesTable)> _nullsLastTerms(
+  MediaSortField field,
+  Expression<Object> Function(MediaNodesTable) sortColumn,
+) =>
+    _needsNullsLast(field)
+        ? <OrderingTerm Function(MediaNodesTable)>[
+            (t) => OrderingTerm(
+                expression: sortColumn(t).isNull(), mode: OrderingMode.asc),
+          ]
+        : const <OrderingTerm Function(MediaNodesTable)>[];
+
+/// Ascending tail that turns the sort column into a total order.
+///
+/// A sort column alone is not total (equal timestamps, sizes, durations, or a
+/// NULL bucket), and SQLite may return ties in any order — which also makes
+/// windowed paging unstable. `path` is unique per (data_scope_id, path) within a
+/// single-storage query, so it closes the order. Kept ascending in both
+/// directions, like the name tie-break.
+List<OrderingTerm Function(MediaNodesTable)> _orderTailTerms(
+  MediaSortField field,
+) =>
+    <OrderingTerm Function(MediaNodesTable)>[
+      // Redundant when the sort column already IS normalized_name.
+      if (field != MediaSortField.name)
+        (t) =>
+            OrderingTerm(expression: t.normalizedName, mode: OrderingMode.asc),
+      (t) => OrderingTerm(expression: t.path, mode: OrderingMode.asc),
+    ];
+
+/// Root-level predicate for a storage's top level.
+///
+/// The canonical parent form of a storage-root child is NULL, but rows produced
+/// before the scanner normalization fix (an absolute scan root relativized to
+/// an EMPTY string) stored `''`. Both must match everywhere the root level is
+/// queried, or root-scope playback reports "no playable content" for rows that
+/// are plainly visible.
+Expression<bool> _rootParent(MediaNodesTable t) =>
+    t.parentPath.isNull() | t.parentPath.equals('');
+
+/// The storage root's DIRECT CHILDREN.
+///
+/// Unlike [_rootParent], this excludes the storage-root container row itself
+/// (`path == ''`, parent NULL): a node is never its own child. Matching it
+/// as a child poisoned `allChildDirsScanned` (the root counted itself as an
+/// unscanned child, so the root `scanDone` stamp could never land — the play
+/// gate then reported "never fully scanned" right after a full scan) and
+/// inflated every root aggregate and root listing.
+Expression<bool> _rootChildren(MediaNodesTable t) =>
+    (t.parentPath.isNull() | t.parentPath.equals('')) &
+        t.path.equals('').not();
+
+/// Parent predicate for an already-relativized [canonical] parent: an empty
+/// parent is the storage root (see [_rootParent]); otherwise an exact match.
+Expression<bool> _parentMatches(MediaNodesTable t, String canonical) =>
+    canonical.isEmpty ? _rootChildren(t) : t.parentPath.equals(canonical);
+
 @DriftAccessor(tables: [MediaNodesTable])
 class MediaNodesDao extends DatabaseAccessor<AppDatabase> with _$MediaNodesDaoMixin {
   MediaNodesDao(super.db);
@@ -153,12 +229,13 @@ class MediaNodesDao extends DatabaseAccessor<AppDatabase> with _$MediaNodesDaoMi
   }
 
   /// Deletes all nodes whose path starts with [pathPrefix] under [storageId].
-  /// If [pathPrefix] is empty, deletes all root-level children (parentPath IS NULL).
+  /// If [pathPrefix] is empty, deletes all root-level children (parentPath NULL
+  /// or its legacy empty form).
   Future<void> deleteByPathPrefix(String storageId, String pathPrefix) async {
     if (pathPrefix.isEmpty) {
       await (delete(mediaNodesTable)
             ..where((t) =>
-                t.dataScopeId.equals(StorageScope.of(storageId)) & t.parentPath.isNull()))
+                t.dataScopeId.equals(StorageScope.of(storageId)) & _rootParent(t)))
           .go();
     } else {
       final canonical = StoragePathCodec.relativize(storageId, canonicalDbPath(pathPrefix));
@@ -170,6 +247,69 @@ class MediaNodesDao extends DatabaseAccessor<AppDatabase> with _$MediaNodesDaoMi
                     t.path.equals(canonical))))
           .go();
     }
+  }
+
+  /// Deletes the single row stored under the exact [storedPath] (NO path
+  /// conversion is applied).
+  ///
+  /// For stale absolute-form rows (see
+  /// [StoragePathCodec.isStaleAbsoluteBase]): their relativized form is `''`,
+  /// so [deleteNode] / [deleteByPathPrefix] would target the real root
+  /// container instead of the phantom.
+  Future<void> deleteByExactStoredPath(
+      String storageId, String storedPath) async {
+    await (delete(mediaNodesTable)
+          ..where((t) =>
+              t.dataScopeId.equals(StorageScope.of(storageId)) &
+              t.path.equals(storedPath)))
+        .go();
+  }
+
+  /// Deletes phantom above-base ancestor rows for [storageId] (see
+  /// [StoragePathCodec.isAboveBase]) plus their subtrees, as well as the
+  /// stale absolute-form root self node (see
+  /// [StoragePathCodec.isStaleAbsoluteBase]).
+  ///
+  /// Pre-fix scans built directory nodes from absolute segments, leaking the
+  /// base and everything above it (`F:`, `F:/dl`) into the DB. The topmost
+  /// phantom carries a NULL parent, so `allChildDirsScanned` counts it as an
+  /// unscanned root child and the root `scanDone` stamp can never land — the
+  /// play gate then reports "never fully scanned" right after a full scan.
+  /// Runs best-effort at scan entry; relative rows can never match the
+  /// prefix, so legitimate content is untouched. Returns the number of
+  /// phantom subtrees removed.
+  Future<int> deleteAboveBaseAncestors(String storageId) async {
+    var deleted = 0;
+    // Phantom depth is bounded by the base depth; re-query after each pass
+    // so a dangling mid-chain row (whose phantom parent is already gone)
+    // surfaces at the root level on the next pass.
+    for (var pass = 0; pass < 8; pass++) {
+      final roots = await getRootLevelNodes(storageId);
+      var found = false;
+      for (final row in roots) {
+        if (row.nodeKind != MediaNodeKind.directory || row.path.isEmpty) {
+          continue;
+        }
+        final canon = canonicalDbPath(row.path);
+        if (StoragePathCodec.isAboveBase(storageId, canon)) {
+          await deleteByPathPrefix(storageId, row.path);
+          deleted++;
+          found = true;
+          continue;
+        }
+        // Absolute-form root self node from pre-fix scans (e.g. stored `F:`
+        // with base `F:`): it relativizes to `''`, so it must go by exact
+        // stored-path match — a prefix delete would wipe the real root
+        // container instead.
+        if (StoragePathCodec.isStaleAbsoluteBase(storageId, canon)) {
+          await deleteByExactStoredPath(storageId, row.path);
+          deleted++;
+          found = true;
+        }
+      }
+      if (!found) break;
+    }
+    return deleted;
   }
 
   /// Deletes all nodes for an entire storage.
@@ -303,7 +443,7 @@ class MediaNodesDao extends DatabaseAccessor<AppDatabase> with _$MediaNodesDaoMi
     final unscanned = await (select(mediaNodesTable)
           ..where((t) =>
               t.dataScopeId.equals(StorageScope.of(storageId)) &
-              t.parentPath.equals(canonical) &
+              _parentMatches(t, canonical) &
               t.nodeKind.equals(MediaNodeKind.directory.name) &
               t.isScanDone.equals(false)))
         .get();
@@ -317,7 +457,7 @@ class MediaNodesDao extends DatabaseAccessor<AppDatabase> with _$MediaNodesDaoMi
     return (select(mediaNodesTable)
           ..where((t) =>
               t.dataScopeId.equals(StorageScope.of(storageId)) &
-              t.parentPath.equals(canonical) &
+              _parentMatches(t, canonical) &
               t.nodeKind.equals(MediaNodeKind.directory.name)))
         .get();
   }
@@ -329,7 +469,7 @@ class MediaNodesDao extends DatabaseAccessor<AppDatabase> with _$MediaNodesDaoMi
     return (select(mediaNodesTable)
           ..where((t) =>
               t.dataScopeId.equals(StorageScope.of(storageId)) &
-              t.parentPath.equals(canonical)))
+              _parentMatches(t, canonical)))
         .get();
   }
 
@@ -366,14 +506,17 @@ class MediaNodesDao extends DatabaseAccessor<AppDatabase> with _$MediaNodesDaoMi
     return getByPathRaw(storageId, path);
   }
 
-  /// Returns the storage root node (parentPath IS NULL).
-  Future<MediaNodesTableData?> getRootNode(String storageId) async {
-    return (select(mediaNodesTable)
-          ..where((t) =>
-              t.dataScopeId.equals(StorageScope.of(storageId)) & t.parentPath.isNull())
-          ..limit(1))
-        .getSingleOrNull();
-  }
+  /// Returns the storage-root CONTAINER row (`path == ''`), or null when the
+  /// storage has never been scanned.
+  ///
+  /// Deliberately NOT `_rootParent`: a NULL parent also matches every genuine
+  /// root-level child (a top-level dir/file and the pre-fix above-base phantom
+  /// alike), so `_rootParent` + `limit(1)` would return whichever row SQLite
+  /// happens to hit first — the container is not guaranteed. Keying on the
+  /// exact empty path is the container-only read that [_rootChildren] encodes
+  /// for [getRootLevelNodes].
+  Future<MediaNodesTableData?> getRootNode(String storageId) =>
+      getByPath(storageId, '');
 
   /// Legacy repair: returns rows whose stored `path` starts with `/` (or `//`)
   /// — pre-canonicalization rows that canonical queries cannot see.
@@ -416,13 +559,15 @@ class MediaNodesDao extends DatabaseAccessor<AppDatabase> with _$MediaNodesDaoMi
     ));
   }
 
-  /// Returns all top-level nodes (parentPath IS NULL) for a storage.
-  /// Used to compute aggregates for root sources that span the entire storage.
+  /// Returns all top-level nodes (parentPath IS NULL or legacy empty) for a
+  /// storage. Used to compute aggregates for root sources that span the entire
+  /// storage. The storage-root container row itself (`path == ''`) is not
+  /// its own child and is excluded (see [_rootChildren]).
   Future<List<MediaNodesTableData>> getRootLevelNodes(
       String storageId) async {
     return (select(mediaNodesTable)
           ..where((t) =>
-              t.dataScopeId.equals(StorageScope.of(storageId)) & t.parentPath.isNull()))
+              t.dataScopeId.equals(StorageScope.of(storageId)) & _rootChildren(t)))
         .get();
   }
 
@@ -469,7 +614,7 @@ class MediaNodesDao extends DatabaseAccessor<AppDatabase> with _$MediaNodesDaoMi
 
     Expression<bool> pathCondition;
     if (pathPrefix.isEmpty) {
-      pathCondition = mediaNodesTable.parentPath.isNull();
+      pathCondition = _rootParent(mediaNodesTable);
     } else {
       final canonical = StoragePathCodec.relativize(storageId, canonicalDbPath(pathPrefix));
       final escaped = escapeLike(canonical);
@@ -736,11 +881,17 @@ class MediaNodesDao extends DatabaseAccessor<AppDatabase> with _$MediaNodesDaoMi
     return transaction(() async {
       // Normalize the parent path so callers with different slash conventions
       // (rooted `/storage/...`, canonical `storage/...`) match the same rows.
-      final parentPath =
+      // An EMPTY relativized parent is the storage ROOT: collapse it to null so
+      // it takes the root branch below instead of a recursive-prefix match on
+      // an empty prefix (which matched nothing — the "root folder shows files
+      // but resolves to no playable content" bug).
+      final rawParent =
           query.parentPath == null
               ? null
               : StoragePathCodec.relativize(
                   query.storageId ?? '', canonicalDbPath(query.parentPath!));
+      final parentPath =
+          (rawParent == null || rawParent.isEmpty) ? null : rawParent;
 
       // 1. Build the dynamic WHERE expression
       Expression<bool> buildWhereClause(MediaNodesTable t) {
@@ -764,7 +915,8 @@ class MediaNodesDao extends DatabaseAccessor<AppDatabase> with _$MediaNodesDaoMi
             predicate &= t.path.isNotNull();
           } else {
             // Directory browsing at storage root: only show root-level nodes
-            predicate &= t.parentPath.isNull();
+            // (the `''` container row itself is not its own child).
+            predicate &= _rootChildren(t);
           }
         }
         if (query.nodeKind != null) {
@@ -841,53 +993,30 @@ class MediaNodesDao extends DatabaseAccessor<AppDatabase> with _$MediaNodesDaoMi
         }
       }
 
-      /// Probe-able / optional columns: rows without a value always sort
-      /// AFTER rows with one, regardless of direction (scan-probe promise).
-      bool needsNullsLast(MediaSortField f) {
-        switch (f) {
-          case MediaSortField.durationMs:
-          case MediaSortField.sizeInBytes:
-          case MediaSortField.pixelCount:
-          case MediaSortField.modifiedAt:
-          case MediaSortField.createdAt:
-            return true;
-          default:
-            return false;
-        }
-      }
-
       List<OrderingTerm Function(MediaNodesTable)> buildOrderClauses() {
         final mode = query.sortDirection == SortDirection.asc
             ? OrderingMode.asc
             : OrderingMode.desc;
 
-        final nullsLastTerms =
-            needsNullsLast(query.sortField)
-                ? <OrderingTerm Function(MediaNodesTable)>[
-                    // Leading `IS NULL` term (always ascending): 0 = has
-                    // value, 1 = NULL → NULLs land last either direction.
-                    (t) => OrderingTerm(
-                        expression: sortColumn(t).isNull(),
-                        mode: OrderingMode.asc),
-                  ]
-                : const <OrderingTerm Function(MediaNodesTable)>[];
+        final nullsLastTerms = _nullsLastTerms(query.sortField, sortColumn);
+        final tailTerms = _orderTailTerms(query.sortField);
 
         // 同目录连续 (pathGroupFirst): group same-parent files into contiguous
-        // blocks — ORDER BY (parentPath, sortField, name). Direction applies to
-        // both parentPath and sortField; name stays an asc tie-break.
+        // blocks — ORDER BY (parentPath, sortField, name, path). Direction
+        // applies to both parentPath and sortField; the tail stays ascending.
         if (query.pathGroupFirst) {
           return [
             (t) => OrderingTerm(expression: t.parentPath, mode: mode),
             ...nullsLastTerms,
             (t) => OrderingTerm(expression: sortColumn(t), mode: mode),
-            (t) =>
-                OrderingTerm(expression: t.normalizedName, mode: OrderingMode.asc),
+            ...tailTerms,
           ];
         }
 
         return [
           ...nullsLastTerms,
           (t) => OrderingTerm(expression: sortColumn(t), mode: mode),
+          ...tailTerms,
         ];
       }
 
@@ -1014,7 +1143,7 @@ class MediaNodesDao extends DatabaseAccessor<AppDatabase> with _$MediaNodesDaoMi
             if (source.kind == MediaSourceKind.directory &&
                 !source.recursive) {
               // v5-D5: currentDirDirect at the storage root → direct children.
-              expr &= t.parentPath.isNull();
+              expr &= _rootChildren(t);
             } else {
               // Full storage (recursive or storage-kind source).
               expr &= t.path.isNotNull();
@@ -1100,17 +1229,24 @@ class MediaNodesDao extends DatabaseAccessor<AppDatabase> with _$MediaNodesDaoMi
             ? OrderingMode.asc
             : OrderingMode.desc;
 
+        // Mirrors getPagedNodes: NULLs last, plus a deterministic name/path tail
+        // so equal keys (and NULL buckets) keep a stable, page-safe order.
+        final nullsLastTerms = _nullsLastTerms(sortField, sortColumn);
+        final tailTerms = _orderTailTerms(sortField);
+
         if (pathGroupFirst) {
           return [
             (t) => OrderingTerm(expression: t.parentPath, mode: mode),
+            ...nullsLastTerms,
             (t) => OrderingTerm(expression: sortColumn(t), mode: mode),
-            (t) => OrderingTerm(
-                expression: t.normalizedName, mode: OrderingMode.asc),
+            ...tailTerms,
           ];
         }
 
         return [
+          ...nullsLastTerms,
           (t) => OrderingTerm(expression: sortColumn(t), mode: mode),
+          ...tailTerms,
         ];
       }
 
@@ -1212,7 +1348,7 @@ class MediaNodesDao extends DatabaseAccessor<AppDatabase> with _$MediaNodesDaoMi
           .not();
     }
     if (canonical.isEmpty) {
-      return t.parentPath.isNull().not();
+      return _rootParent(t).not();
     }
     return t.parentPath.equals(canonical).not();
   }
@@ -1317,7 +1453,9 @@ class MediaNodesDao extends DatabaseAccessor<AppDatabase> with _$MediaNodesDaoMi
       final storageExpr = t.dataScopeId.equals(StorageScope.of(storageId));
 
       final parentExpr =
-          parentPath == null ? t.parentPath.isNull() : t.parentPath.equals(parentPath);
+          (parentPath == null || parentPath.isEmpty)
+              ? _rootChildren(t)
+              : t.parentPath.equals(parentPath);
 
       return storageExpr & parentExpr;
     });

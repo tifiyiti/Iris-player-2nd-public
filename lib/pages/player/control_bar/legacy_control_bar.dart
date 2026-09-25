@@ -23,6 +23,7 @@ import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_play_queue_store.dart';
 import 'package:iris/store/use_player_ui_store.dart';
 import 'package:iris/store/use_scrub_drag_store.dart';
+import 'package:iris/utils/app_exit.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/widgets/a11y_tooltip.dart';
 import 'package:iris/utils/platform.dart';
@@ -36,7 +37,6 @@ import 'package:iris/widgets/popups/settings/settings.dart';
 import 'package:iris/widgets/popups/storages/storages.dart';
 import 'package:iris/widgets/popups/track/subtitle_and_audio_track.dart';
 import 'package:provider/provider.dart';
-import 'package:window_manager/window_manager.dart';
 
 // We keep two ControlBar implementations on purpose:
 //
@@ -671,15 +671,7 @@ class LegacyControlBar extends HookWidget {
               ),
             ),
           ),
-          onTap: () async {
-            await context.read<MediaPlayer>().saveProgress();
-            if (isDesktop) {
-              windowManager.close();
-            } else {
-              SystemNavigator.pop();
-              exit(0);
-            }
-          },
+          onTap: () => AppExit.run(context.read<MediaPlayer>().saveProgress),
         ),
         if (isMobilePlatform)
           PopupMenuItem(

@@ -8,6 +8,10 @@ import 'package:iris/features/background_playback/model/db/tables/bg_source_rule
 import 'package:iris/features/background_playback/model/enum/bg_source_rule_kind.dart';
 import 'package:iris/features/background_playback/model/enum/bg_source_sort_field.dart';
 import 'package:iris/utils/dir_match.dart';
+// Referenced by the generated `media_nodes.modified_at` converter (app_database.g.dart
+// is a part of this library, so the class must be imported HERE, not only in the
+// table file).
+import 'package:iris/features/media_library/model/db/adapters/epoch_millis_converter.dart';
 import 'package:iris/features/media_library/model/db/tables/media_lib_sources_table.dart';
 import 'package:iris/features/media_library/model/db/tables/media_libs_table.dart';
 import 'package:iris/features/media_library/model/db/tables/media_nodes_table.dart';
@@ -94,6 +98,7 @@ import 'package:iris/models/db/migration/v42_migration.dart';
 import 'package:iris/models/db/migration/v43_migration.dart';
 import 'package:iris/models/db/migration/v44_migration.dart';
 import 'package:iris/models/db/migration/v45_migration.dart';
+import 'package:iris/models/db/migration/v46_migration.dart';
 import 'package:iris/models/db/tables/app_meta_table.dart';
 import 'package:iris/models/db/tables/navigation_table.dart';
 import 'package:iris/models/db/tables/storage_table.dart';
@@ -188,7 +193,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Increment schema version whenever the database structure changes.
   @override
-  int get schemaVersion => 45;
+  int get schemaVersion => 46;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -377,6 +382,10 @@ class AppDatabase extends _$AppDatabase {
 
           if (from < 45) {
             await MigrationV45(this).run(m);
+          }
+
+          if (from < 46) {
+            await MigrationV46(this).run(m);
           }
         },
 

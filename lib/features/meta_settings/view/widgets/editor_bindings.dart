@@ -1010,7 +1010,8 @@ abstract final class EditorBindings {
     showEnumRadioDialog<SpeedRatePickerMode>(
       context: context,
       title: SettingTexts.title('speed_rate_mode', t),
-      values: SpeedRatePickerMode.values,
+      // Platform-filtered: desktop is not offered the wheel.
+      values: speedRatePickerChoices(),
       currentValue: current,
       labelOf: (m) => SettingTexts.enumLabel('speed.rateMode', m.name, t),
       onSelected: (m) => unawaited(store.updateSpeedRatePickerMode(m)),

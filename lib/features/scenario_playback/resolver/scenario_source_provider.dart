@@ -8,6 +8,8 @@ import 'package:iris/features/meta_settings/engine/browse_scope_snapshot.dart';
 import 'package:iris/features/scenario_playback/model/domain/scenario_source.dart';
 import 'package:iris/features/scenario_playback/model/enum/scenario_sort_field.dart';
 import 'package:iris/features/scenario_playback/model/enum/scenario_source_kind.dart';
+import 'package:iris/models/db/storage_path_codec.dart';
+import 'package:iris/utils/path_conv.dart';
 
 /// Abstraction over how a [ScenarioSource] resolves into playable media.
 ///
@@ -88,19 +90,27 @@ class FolderSourceProvider implements ScenarioSourceProvider {
     required int count,
     ScenarioSortField sortField = ScenarioSortField.name,
     SortDirection sortDirection = SortDirection.asc,
-    bool sourceInternalFirst = true,
+    bool sourceInternalFirst = false,
     // Window fetches already know the total (count() ran once); skipping the
     // per-window COUNT avoids a full filtered count for every page.
     bool countTotal = true,
   }) {
     final page = (offset ~/ count) + 1;
+    // A source whose path resolves to the storage ROOT must use the root query
+    // form (parentPath null): its raw absolute path would relativize to an
+    // empty string and the recursive-prefix branch would then match nothing,
+    // so whole-storage playback resolved to just a placeholder. Recursive at
+    // the root means "every file under the storage".
+    final atRoot = StoragePathCodec.relativize(
+            source.storageId, canonicalDbPath(source.path))
+        .isEmpty;
     return nodeRepo.getPagedNodes(
       MediaNodePageQuery(
         page: page,
         pageSize: count,
         storageId: source.storageId,
-        parentPath: source.path.isEmpty ? null : source.path,
-        matchAllInStorage: source.path.isEmpty && source.recursive,
+        parentPath: atRoot ? null : source.path,
+        matchAllInStorage: atRoot && source.recursive,
         nodeKind: MediaNodeKind.file,
         // Only playable media enter the queue — excludes MediaType.unknown rows
         // (JSON, images, and any legacy mis-scanned folder rows that were

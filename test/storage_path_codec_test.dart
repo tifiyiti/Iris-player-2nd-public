@@ -77,4 +77,30 @@ void main() {
     expect(StoragePathCodec.relativize('saf', absolute), absolute);
     expect(StoragePathCodec.absolutize('saf', 'a.mp4'), 'a.mp4');
   });
+
+  test('isStaleAbsoluteBase catches the absolute-form root self node', () {
+    StoragePathCodec.baseResolver = (id) => const ['F:'];
+    // The pre-fix root self node on a drive-root storage: the base itself in
+    // absolute form. `isAboveBase` does NOT match it (it is the base, not
+    // strictly above it), so without this predicate the cleanup would leave
+    // it as an unscanned root child forever.
+    expect(StoragePathCodec.isAboveBase('s', 'F:'), isFalse);
+    expect(StoragePathCodec.isStaleAbsoluteBase('s', 'F:'), isTrue);
+    // Relative rows — real content and the real root container — never match.
+    expect(StoragePathCodec.isStaleAbsoluteBase('s', ''), isFalse);
+    expect(StoragePathCodec.isStaleAbsoluteBase('s', 'Movies'), isFalse);
+    expect(StoragePathCodec.isStaleAbsoluteBase('s', 'Movies/a.mp4'), isFalse);
+  });
+
+  test('isStaleAbsoluteBase under a subfolder base', () {
+    StoragePathCodec.baseResolver = (id) => const ['F:', 'dl', 'ar'];
+    expect(StoragePathCodec.isStaleAbsoluteBase('s', 'F:/dl/ar'), isTrue);
+    expect(StoragePathCodec.isAboveBase('s', 'F:/dl/ar'), isFalse);
+    // Strict ancestors stay the other predicate's job.
+    expect(StoragePathCodec.isAboveBase('s', 'F:/dl'), isTrue);
+    expect(StoragePathCodec.isStaleAbsoluteBase('s', 'F:/dl'), isFalse);
+    // Relative rows never match.
+    expect(StoragePathCodec.isStaleAbsoluteBase('s', 'kid'), isFalse);
+    expect(StoragePathCodec.isStaleAbsoluteBase('s', ''), isFalse);
+  });
 }

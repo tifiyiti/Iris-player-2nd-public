@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:iris/utils/app_exit.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/features/scenario_playback/playback/playback_provider_registry.dart';
 import 'package:iris/features/playback_tools/services/screenshot_service.dart';
@@ -55,7 +56,6 @@ import 'package:iris/widgets/popups/settings/settings.dart';
 import 'package:iris/widgets/popups/storages/storages.dart';
 import 'package:iris/widgets/popups/track/subtitle_and_audio_track.dart';
 import 'package:provider/provider.dart';
-import 'package:window_manager/window_manager.dart';
 
 final _log = AreaKeyLog(LogKeys.player);
 
@@ -786,13 +786,7 @@ class PotPlayerKeyExecutor {
         }
         break;
       case PotPlayerAction.exitApp:
-        await player.saveProgress();
-        if (isDesktop) {
-          await windowManager.close();
-        } else {
-          SystemNavigator.pop();
-          exit(0);
-        }
+        await AppExit.run(player.saveProgress);
         break;
     }
   }

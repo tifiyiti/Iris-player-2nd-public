@@ -1,3 +1,23 @@
+## v2.0.3
+
+### Changelog
+
+* Desktop control bar rebuilt around adaptive layout kinds (button row, overflow slots) with a floating control-group switch, only one control group shown at a time, and the left/right button grouping restored
+* Scan reliability: a finished scan always converges so it can no longer block playback; storage-root rows become playable after a scan; subfolder-base storages get a root scan-done stamp; absolute-form root phantoms are healed; `getRootNode` reads only the storage-root container
+* Scenario playback: the queue refreshes after scans, the scan gate is hardened, and only a single scan-completion dialog is surfaced
+* Scenario queue ordering: the modified-date order is now flat, precise and stable, backed by millisecond timestamps (schema v46, new migration)
+* Player exit goes through one durable `AppExit` path
+* Defaults and polish: the fresh-install side scrubber uses the ring dial, the preset pills share one size and the wheel is dropped on desktop, and the About / known-issues texts are clearer
+
+### 更新日志
+
+* 桌面控制栏按自适应布局类型重构（按钮行 / 溢出槽位），新增悬浮控制组切换；同一时间只显示一个控制组，并恢复左右按键分组
+* 扫描可靠性：扫描结束必定收敛，不再阻塞播放；扫描后存储根行可直接播放；子文件夹作为根时补上根扫描完成标记；修复绝对路径形式的根幻影；`getRootNode` 只读取存储根容器
+* 场景播放：扫描后刷新队列、加固扫描闸门，并且只弹一次扫描完成对话框
+* 场景队列排序：修改时间排序改为扁平、精确、稳定，底层改用毫秒时间戳（schema v46，新增迁移）
+* 播放器退出统一走一条可靠的 `AppExit` 路径
+* 默认值与打磨：全新安装的侧边拖动默认使用圆环表盘；预设药丸统一尺寸、桌面端去掉滚轮；关于页 / 已知问题文案更准确
+
 ## v2.0.2
 
 ### Changelog

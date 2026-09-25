@@ -59,6 +59,38 @@ void main() {
     });
   });
 
+  group('resolveLiveScanStatus', () {
+    test('a scanning stamp backed by a live scan stays scanning', () {
+      expect(
+        resolveLiveScanStatus(DirScanGateStatus.scanning, scanLive: true),
+        DirScanGateStatus.scanning,
+      );
+    });
+
+    test('a stale scanning stamp degrades to unscanned (so a rescan is offered)',
+        () {
+      // The stamp is only cleared by a successful completion of that exact
+      // subtree, so a failed child listing / stopped run leaves it forever —
+      // claiming "being scanned" would hide the rescan button permanently.
+      expect(
+        resolveLiveScanStatus(DirScanGateStatus.scanning, scanLive: false),
+        DirScanGateStatus.unscanned,
+      );
+    });
+
+    test('non-scanning statuses are untouched', () {
+      for (final status in [
+        DirScanGateStatus.done,
+        DirScanGateStatus.stale,
+        DirScanGateStatus.error,
+        DirScanGateStatus.unscanned,
+      ]) {
+        expect(resolveLiveScanStatus(status, scanLive: false), status);
+        expect(resolveLiveScanStatus(status, scanLive: true), status);
+      }
+    });
+  });
+
   group('staleness text', () {
     test('formats hours/minutes in Chinese', () {
       final t = AppLocalizationsZh();

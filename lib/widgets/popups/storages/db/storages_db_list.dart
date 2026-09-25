@@ -12,6 +12,7 @@ import 'package:iris/features/media_library/scan/service/recursive_scan_service.
 import 'package:iris/features/media_library/scan/service/scan_preflight.dart';
 import 'package:iris/features/media_library/scan/store/recursive_scan_store.dart';
 import 'package:iris/features/media_library/scan/view/scan_options_dialog.dart';
+import 'package:iris/features/scenario_playback/actions/media_revision_actions.dart';
 import 'package:iris/features/scenario_playback/actions/scenario_playback_actions.dart';
 import 'package:iris/features/scenario_playback/model/enum/scenario_sort_field.dart';
 import 'package:iris/features/scenario_playback/store/use_playback_scenario_store.dart';
@@ -307,6 +308,9 @@ class StoragesDbList extends HookWidget {
         rootPaths: [target.basePath.join('/')],
         context: context,
       );
+      // The scan mutated `media_nodes`: announce the storage so the derived
+      // queue index / open queue view reflect the new content.
+      await MediaRevisionActions.mediaNodesChanged([target.id]);
     }
 
     Future<void> handleMenu(BuildContext context, StorageTileAction value,

@@ -1,3 +1,4 @@
+import 'package:iris/features/media_library/model/enum/basic_enum.dart';
 import 'package:iris/features/media_library/model/enum/media_node.dart';
 
 /// Sort fields supported by scenario resolution.
@@ -26,6 +27,22 @@ extension ScenarioSortFieldMapping on ScenarioSortField {
         return MediaSortField.durationMs;
       case ScenarioSortField.sizeInBytes:
         return MediaSortField.sizeInBytes;
+    }
+  }
+
+  /// The direction a field reads best in when it is FIRST selected.
+  ///
+  /// Text reads A→Z; the numeric axes (time, duration, size) read
+  /// newest/largest first. Re-selecting the SAME field still toggles — this only
+  /// decides the direction of a field SWITCH.
+  SortDirection get naturalDirection {
+    switch (this) {
+      case ScenarioSortField.name:
+        return SortDirection.asc;
+      case ScenarioSortField.modifiedAt:
+      case ScenarioSortField.durationMs:
+      case ScenarioSortField.sizeInBytes:
+        return SortDirection.desc;
     }
   }
 }

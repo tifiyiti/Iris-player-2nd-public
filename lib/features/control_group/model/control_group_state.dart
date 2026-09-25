@@ -6,9 +6,9 @@ part 'control_group_state.g.dart';
 
 /// Persisted state of the one-handed bottom control-group switch.
 ///
-/// [group], the two per-orientation visibility flags and [floatingX]/[floatingY]
-/// survive app restarts (KV-backed), while the floating button's live drag uses
-/// memory-only frames and commits once on release.
+/// [group], the visibility flags and [floatingX]/[floatingY] survive app
+/// restarts (KV-backed), while the floating button's live drag uses memory-only
+/// frames and commits once on release.
 @freezed
 abstract class ControlGroupState with _$ControlGroupState {
   const factory ControlGroupState({
@@ -25,6 +25,16 @@ abstract class ControlGroupState with _$ControlGroupState {
 
     /// Whether the draggable switch button is shown in LANDSCAPE.
     @Default(false) bool floatingButtonLandscape,
+
+    /// Whether the draggable switch button is shown on DESKTOP.
+    ///
+    /// A phone splits visibility by orientation because rotation is a real
+    /// state; a desktop window is resized freely, so a per-orientation split
+    /// would be arbitrary — desktop is ONE flag instead. It ships ON: the
+    /// desktop normal bar then shows ONE bottom group at a time (playback OR
+    /// 副音) instead of stacking the standalone 副音 quick row on top of the
+    /// playback row. Phones keep the per-orientation flags above.
+    @Default(true) bool floatingButtonDesktop,
 
     /// Floating button position as a fraction of the host-minus-button box
     /// (0..1), so it survives window/video resizes. Shared by both orientations.

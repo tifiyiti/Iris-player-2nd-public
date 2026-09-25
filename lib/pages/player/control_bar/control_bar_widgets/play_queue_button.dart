@@ -19,6 +19,69 @@ import 'package:iris/utils/platform.dart';
 import 'package:iris/widgets/popup.dart';
 import 'package:iris/widgets/popups/play_queue.dart';
 
+/// Opens the play-queue surface from the control bar (button OR the More-menu
+/// fallback when the button is collapsed). Single authority for the docking /
+/// 副音-queue / legacy / scenario routing so both entry points stay identical.
+Future<void> openPlayQueueFromControlBar(
+  BuildContext context, {
+  required Future<void> Function(Future<void>) showControlForHover,
+}) async {
+  final AppState app = useAppStore().state;
+  final bool useMetadataSettings = app.useMetadataSettings;
+  final PlaylistPanelMode playlistPanelMode = app.playlistPanelMode;
+  final bool isFullScreen = usePlayerUiStore().state.isFullScreen;
+
+  bool shouldDockToggle() {
+    if (!isDesktop) return false;
+    if (!useMetadataSettings) return false;
+    if (playlistPanelMode != PlaylistPanelMode.dockedRight) return false;
+    return true;
+  }
+
+  if (shouldDockToggle()) {
+    if (isFullscreenDockOverlayEnabled(
+      isDesktop: isDesktop,
+      useMetadataSettings: useMetadataSettings,
+      mode: playlistPanelMode,
+      isFullScreen: isFullScreen,
+    )) {
+      final bool pinned = usePlayerUiStore().state.isFullscreenDockPinned;
+      usePlayerUiStore().updateIsFullscreenDockPeeking(false);
+      usePlayerUiStore().updateIsFullscreenDockPinned(!pinned);
+      return;
+    }
+    useAppStore().togglePlaylistPanelVisible();
+    return;
+  }
+
+  final bg = useBackgroundPlaybackStore();
+  final bool bgEnabled = bg.state.enabled &&
+      bg.state.controlTarget == ControlTarget.background;
+  if (BackgroundPlaybackGate.enabled && bgEnabled) {
+    await showControlForHover(
+      showPopup(
+        context: context,
+        child: const BackgroundQueuePanel(),
+        direction: app.defaultPopupDirection,
+      ),
+    );
+    return;
+  }
+  if (app.useLegacyStoragePersistence) {
+    await showControlForHover(
+      showPopup(
+        context: context,
+        child: const PlayQueue(),
+        direction: app.defaultPopupDirection,
+      ),
+    );
+  } else if (app.useScenarioDrivenPlayback) {
+    showScenarioBrowser(context, direction: app.defaultPopupDirection);
+  } else {
+    showPagedPlayQueueSheet(context, direction: app.defaultPopupDirection);
+  }
+}
+
 class PlayQueueButton extends HookWidget {
   const PlayQueueButton({
     super.key,
@@ -34,21 +97,8 @@ class PlayQueueButton extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
-    final popupDirection = useAppStore().select(context, (s) => s.defaultPopupDirection);
-    final useLegacy = useAppStore().select(context, (s) => s.useLegacyStoragePersistence);
-    final useScenarioDriven = useAppStore().select(context, (s) => s.useScenarioDrivenPlayback);
     final scheme = useEffectiveKeyboardScheme(context);
     final playlistPanelMode = useAppStore().select(context, (s) => s.playlistPanelMode);
-    final useMetadataSettings = useAppStore().select(context, (s) => s.useMetadataSettings);
-    final isFullScreen = usePlayerUiStore().select(context, (s) => s.isFullScreen);
-
-    // Sidebar-first: dock intent wins even in narrow portrait windows.
-    bool shouldDockToggle() {
-      if (!isDesktop) return false;
-      if (!useMetadataSettings) return false;
-      if (playlistPanelMode != PlaylistPanelMode.dockedRight) return false;
-      return true;
-    }
 
     final bool isDockMode = playlistPanelMode == PlaylistPanelMode.dockedRight;
     final String hintForMode = isDockMode
@@ -63,55 +113,8 @@ class PlayQueueButton extends HookWidget {
         color: color,
       ),
       onPressed: () {
-        if (shouldDockToggle()) {
-          // Picture fullscreen drives the overlay's runtime pin; windowed
-          // keeps the persisted visible flag (never touched from fullscreen).
-          if (isFullscreenDockOverlayEnabled(
-            isDesktop: isDesktop,
-            useMetadataSettings: useMetadataSettings,
-            mode: playlistPanelMode,
-            isFullScreen: isFullScreen,
-          )) {
-            // Pin toggles on the pin state alone: hovering (peek) + tap
-            // pins it open instead of dismissing it.
-            final bool pinned =
-                usePlayerUiStore().state.isFullscreenDockPinned;
-            usePlayerUiStore().updateIsFullscreenDockPeeking(false);
-            usePlayerUiStore().updateIsFullscreenDockPinned(!pinned);
-            return;
-          }
-          useAppStore().togglePlaylistPanelVisible();
-          return;
-        }
-        // 副音 control target: the play-queue button/sheet must present the
-        // background queue, never the foreground one (see 交接 §4 错误 1).
-        final bgEnabled =
-            useBackgroundPlaybackStore().state.enabled &&
-            useBackgroundPlaybackStore().state.controlTarget ==
-                ControlTarget.background;
-        if (BackgroundPlaybackGate.enabled && bgEnabled) {
-          showControlForHover(
-            showPopup(
-              context: context,
-              child: const BackgroundQueuePanel(),
-              direction: popupDirection,
-            ),
-          );
-          return;
-        }
-        if (useLegacy) {
-          showControlForHover(
-            showPopup(
-              context: context,
-              child: const PlayQueue(),
-              direction: popupDirection,
-            ),
-          );
-        } else if (useScenarioDriven) {
-          showScenarioBrowser(context, direction: popupDirection);
-        } else {
-          showPagedPlayQueueSheet(context, direction: popupDirection);
-        }
+        // ignore: discarded_futures
+        openPlayQueueFromControlBar(context, showControlForHover: showControlForHover);
       },
       style: ButtonStyle(overlayColor: overlayColor),
     );

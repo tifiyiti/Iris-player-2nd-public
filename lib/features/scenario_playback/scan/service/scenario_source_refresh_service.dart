@@ -212,7 +212,9 @@ class ScenarioSourceRefreshService {
 
     // Single-flight: the generic scan store allows exactly one scan at a time.
     if (scanStore.isScanning) {
-      if (context.mounted) await _infoDialog(context, t.scn_scan_busy_title, t.scn_scan_busy_body);
+      if (context.mounted) {
+        await _infoDialog(context, t.scn_scan_busy_title, t.scn_scan_busy_body);
+      }
       return false;
     }
 
@@ -220,7 +222,8 @@ class ScenarioSourceRefreshService {
     await scenarioStore.ensureReady();
 
     // ── 1. Tidy source rows (canonical dedup), scoped to this scenario ──
-    final deduped = await DbModule.scenarioRepo.dedupeScenarioSources(scenarioId);
+    final deduped =
+        await DbModule.scenarioRepo.dedupeScenarioSources(scenarioId);
     final sources = await DbModule.scenarioRepo.getSources(scenarioId);
     final explicit = await DbModule.scenarioRepo.getExplicitItems(scenarioId);
 
@@ -353,6 +356,9 @@ class ScenarioSourceRefreshService {
           nodesDao: DbModule.mediaNodesDao,
           sourcesDao: DbModule.mediaLibSourcesDao,
           probeService: probeEnabled ? createMediaProbeService() : null,
+          // Same seam as the explicit-file check, so an end-to-end refresh can
+          // run against a fake listing instead of the live filesystem.
+          listDir: listDir,
         );
         try {
           // ignore: use_build_context_synchronously
@@ -379,36 +385,50 @@ class ScenarioSourceRefreshService {
       }
     } finally {
       await progressSub.cancel();
+    }
+
+    // The ONE completion surface is the summary dialog below; it is built from
+    // this snapshot, so it must be captured before both progress surfaces are
+    // torn down.
+    var summary = batchStore.state;
+    try {
+      // Skipped units still advance the batch to 100% (decided, not scanned).
+      for (var i = 0; i < plan.units.length; i++) {
+        if (!batchStore.state.units[i].finished) {
+          batchStore.finishUnit(i, skipped: true);
+        }
+      }
+      batchStore.recordMissingExplicitFiles(missingExplicit);
+
+      // ── 6. Refresh the resolved queue ONCE ──
+      // A stopped run keeps whatever each finished storage already wrote (the
+      // incremental scan is per-directory atomic); it simply does not signal a
+      // queue refresh for a batch it never completed.
+      if (batchAborted) {
+        batchStore.stop();
+      } else {
+        await scenarioStore.bumpPlaybackVersion();
+        await scenarioStore.bumpSourceScanRevision(
+          storages: {for (final e in prepared) e.storage.id},
+        );
+        batchStore.complete();
+      }
+      summary = batchStore.state;
+    } finally {
+      // ── 7. Tear down BOTH progress surfaces, THEN show the dialog ──
+      // Releasing the overlay suppression while the generic scan store is
+      // still `done` would mount its auto-close countdown underneath the
+      // summary dialog; the batch panel would linger behind it too. Resetting
+      // both to idle first makes the dialog the single completion surface
+      // (the "several popups" regression). Safe here: all media writes and
+      // revisions are already committed.
+      batchStore.reset();
+      await scanStore.resetScan();
       scanStore.setOverlaySuppressed(false);
     }
 
-    // Skipped units still advance the batch to 100% (decided, not scanned).
-    for (var i = 0; i < plan.units.length; i++) {
-      if (!batchStore.state.units[i].finished) {
-        batchStore.finishUnit(i, skipped: true);
-      }
-    }
-    batchStore.recordMissingExplicitFiles(missingExplicit);
-
-    // ── 6. Refresh the resolved queue ONCE ──
-    // A stopped run keeps whatever each finished storage already wrote (the
-    // incremental scan is per-directory atomic); it simply does not signal a
-    // queue refresh for a batch it never completed.
-    if (batchAborted) {
-      batchStore.stop();
-    } else {
-      await scenarioStore.bumpPlaybackVersion();
-      await scenarioStore.bumpSourceScanRevision(
-        storages: {for (final e in prepared) e.storage.id},
-      );
-      batchStore.complete();
-    }
-
     if (context.mounted) {
-      await showScenarioSourceRefreshSummaryDialog(
-        context,
-        batchStore.state,
-      );
+      await showScenarioSourceRefreshSummaryDialog(context, summary);
     }
     return !batchAborted;
   }

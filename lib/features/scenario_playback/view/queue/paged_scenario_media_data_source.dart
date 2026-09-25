@@ -856,7 +856,7 @@ class PagedScenarioMediaDataSource
     final scenario = _activeScenario(context);
     final current = _currentOrderChoice(scenario);
     final direction = scenario?.sortDirection ?? SortDirection.asc;
-    final sourceInternalFirst = scenario?.sourceInternalFirst ?? true;
+    final sourceInternalFirst = scenario?.sourceInternalFirst ?? false;
     final isDedup = scenario?.duplicatePolicy == DuplicatePolicy.deduplicate;
 
     return PopupMenuButton<_OrderChoice>(
@@ -1026,17 +1026,18 @@ class PagedScenarioMediaDataSource
         await _store.setSort(original, direction);
       }
     } else {
-      // filesdb-style: re-clicking the CURRENT field toggles asc/desc;
-      // switching to a different field keeps the current direction. The
-      // current field is the underlying scenario.sortField (NOT the displayed
-      // Original choice), so every field click responds.
+      // filesdb-style: re-clicking the CURRENT field toggles asc/desc; switching
+      // to a different field starts from that field's natural direction (name
+      // A→Z, the numeric axes newest/largest first). The current field is the
+      // underlying scenario.sortField (NOT the displayed Original choice), so
+      // every field click responds.
       final target = _scenarioSortField(choice);
       final isCurrent = sortField == target;
       final direction = isCurrent
           ? (currentDir == SortDirection.asc
               ? SortDirection.desc
               : SortDirection.asc)
-          : currentDir;
+          : target.naturalDirection;
       await _store.setSort(target, direction);
     }
     await fetchPage(0, pageSize);
@@ -1117,7 +1118,7 @@ class PagedScenarioMediaDataSource
         return _keyboardSetSort(direction: SortDirection.desc);
       case PlaylistAction.sortByFolder:
         final scenario = _store.activeScenario;
-        await _store.setSourceInternalFirst(!(scenario?.sourceInternalFirst ?? true));
+        await _store.setSourceInternalFirst(!(scenario?.sourceInternalFirst ?? false));
         await fetchPage(0, pageSize);
         return true;
       case PlaylistAction.sortByName:
@@ -1192,6 +1193,10 @@ class PagedScenarioMediaDataSource
 
   /// Sets [field] (default: the current field) with an explicit direction and
   /// refreshes. Leaves shuffle first, mirroring the order menu.
+  ///
+  /// A field SWITCH without an explicit direction picks the field's natural
+  /// direction; re-selecting the current field keeps the current direction (the
+  /// paired `sortAscending` / `sortDescending` actions set it outright).
   Future<bool> _keyboardSetSort({
     ScenarioSortField? field,
     SortDirection? direction,
@@ -1200,8 +1205,12 @@ class PagedScenarioMediaDataSource
     if (scenario?.order == PlaybackOrder.shuffled) {
       await _store.toggleShuffle();
     }
-    final target = field ?? scenario?.sortField ?? ScenarioSortField.name;
-    final dir = direction ?? scenario?.sortDirection ?? SortDirection.asc;
+    final current = scenario?.sortField ?? ScenarioSortField.name;
+    final target = field ?? current;
+    final dir = direction ??
+        (target == current
+            ? (scenario?.sortDirection ?? SortDirection.asc)
+            : target.naturalDirection);
     await _store.setSort(target, dir);
     await fetchPage(0, pageSize);
     return true;

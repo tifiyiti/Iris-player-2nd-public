@@ -5,11 +5,13 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/features/control_group/store/use_control_group_store.dart';
 import 'package:iris/utils/get_localizations.dart';
+import 'package:iris/utils/platform.dart';
 
-/// Per-orientation visibility editor for the floating bottom-group switch.
+/// Visibility editor for the floating bottom-group switch.
 ///
-/// The switch button is a persistent player-Stack child, so its visibility is
-/// split by orientation rather than a single flag: portrait ships ON (the
+/// The switch button is a persistent player-Stack child. Its visibility is
+/// platform-shaped: DESKTOP is ONE flag (a resized window has no stable
+/// rotation), while PHONES split it per orientation — portrait ships ON (the
 /// phone's primary, one-handed orientation) and landscape ships OFF (the bar
 /// already fits one row there). Selection commits LIVE — the bar behind the
 /// dialog reflects the change immediately — and there is no text input, so a
@@ -28,8 +30,10 @@ class ControlGroupFloatingDialog extends HookWidget {
   Widget build(BuildContext context) {
     final t = getLocalizations(context);
     final store = useControlGroupStore();
-    // Field-scoped subscriptions: only the two flags this dialog edits, so the
+    // Field-scoped subscriptions: only the flags this dialog edits, so the
     // dialog never rebuilds on unrelated control-group state.
+    final bool desktop =
+        store.select(context, (s) => s.floatingButtonDesktop);
     final bool portrait =
         store.select(context, (s) => s.floatingButtonPortrait);
     final bool landscape =
@@ -50,22 +54,32 @@ class ControlGroupFloatingDialog extends HookWidget {
           const SizedBox(height: 4),
           // Full-width rows = large thumb targets; `contentPadding` zero keeps
           // the switches aligned with the title instead of indented.
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(t.control_group_floating_show_landscape),
-            value: landscape,
-            onChanged: (bool v) => unawaited(
-              store.setFloatingButtonVisible(isLandscape: true, visible: v),
+          if (isMobilePlatform) ...[
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(t.control_group_floating_show_landscape),
+              value: landscape,
+              onChanged: (bool v) => unawaited(
+                store.setFloatingButtonVisible(isLandscape: true, visible: v),
+              ),
             ),
-          ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(t.control_group_floating_show_portrait),
-            value: portrait,
-            onChanged: (bool v) => unawaited(
-              store.setFloatingButtonVisible(isLandscape: false, visible: v),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(t.control_group_floating_show_portrait),
+              value: portrait,
+              onChanged: (bool v) => unawaited(
+                store.setFloatingButtonVisible(isLandscape: false, visible: v),
+              ),
             ),
-          ),
+          ] else
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(t.control_group_floating_show_desktop),
+              value: desktop,
+              onChanged: (bool v) => unawaited(
+                store.setDesktopFloatingButtonVisible(visible: v),
+              ),
+            ),
         ],
       ),
       actions: [

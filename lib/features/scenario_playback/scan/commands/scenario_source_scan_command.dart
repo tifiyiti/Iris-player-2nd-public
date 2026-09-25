@@ -8,6 +8,23 @@ import 'package:iris/store/use_storage_store.dart';
 /// queue toolbar, sources toolbar) shares the exact same launch path and
 /// offline-gating rule.
 abstract final class ScenarioSourceScanCommand {
+  /// In-flight refresh for the whole app, or null when idle.
+  ///
+  /// Single-flight: the scan store only rejects a SECOND scan once one has
+  /// actually started, but [ScenarioSourceRefreshService] does a lot of async
+  /// work (DB reads, remote preflight) before it ever calls `startScan`. A
+  /// second trigger inside that window (a double-tap, or the same action from
+  /// two surfaces) would start a duplicate batch and stack its own options +
+  /// summary dialogs. Joining the active run collapses them into one.
+  static Future<bool>? _inFlight;
+
+  /// Test seam: replaces the refresh runner so single-flight can be exercised
+  /// without a live database, scenario, or filesystem. Production leaves it
+  /// null and [run] builds a real [ScenarioSourceRefreshService].
+  @visibleForTesting
+  static Future<bool> Function(BuildContext context, String scenarioId)?
+      debugRunOverride;
+
   /// Whether the action should be enabled right now.
   ///
   /// A scenario's source storages are only known after an async DB read, so UI
@@ -22,13 +39,21 @@ abstract final class ScenarioSourceScanCommand {
   }
 
   /// Launches the refresh for [scenarioId]. Returns true when a refresh ran.
+  ///
+  /// A concurrent call returns the in-flight run's result instead of starting
+  /// a second one (see [_inFlight]).
   static Future<bool> run(
     BuildContext context, {
     required String scenarioId,
   }) {
-    return ScenarioSourceRefreshService().refreshScenarioSources(
-      context: context,
-      scenarioId: scenarioId,
-    );
+    final active = _inFlight;
+    if (active != null) return active;
+    final runner = debugRunOverride ??
+        (BuildContext ctx, String id) => ScenarioSourceRefreshService()
+            .refreshScenarioSources(context: ctx, scenarioId: id);
+    final future =
+        runner(context, scenarioId).whenComplete(() => _inFlight = null);
+    _inFlight = future;
+    return future;
   }
 }

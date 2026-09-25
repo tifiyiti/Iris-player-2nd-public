@@ -15,6 +15,7 @@ import 'package:iris/pages/player/control_bar/control_bar_widgets/rotate_button.
 import 'package:iris/pages/player/control_bar/control_bar_widgets/shuffle_button.dart';
 import 'package:iris/features/background_playback/model/enum/bg_quick_bar_align.dart';
 import 'package:iris/features/background_playback/view/background_quick_bar.dart';
+import 'package:iris/pages/player/control_bar/control_bar_layout/resolve_control_bar_overflow.dart';
 import 'package:iris/pages/player/control_bar/control_bar_widgets/background_playback_menu_button.dart';
 import 'package:iris/pages/player/control_bar/control_bar_widgets/stop_button.dart';
 import 'package:iris/pages/player/control_bar/control_bar_widgets/storage_button.dart';
@@ -32,6 +33,7 @@ class ControlBarControls {
     required this.file,
     required this.circleScale,
     this.quickBarAlign = BgQuickBarAlign.right,
+    this.collapsed = const <ControlBarSlot>{},
   });
 
   final VoidCallback showControl;
@@ -43,6 +45,14 @@ class ControlBarControls {
 
   /// Where the 副音 quick row sits in the linear layouts.
   final BgQuickBarAlign quickBarAlign;
+
+  /// Optional slots the bar must push into the More menu at the current width
+  /// (see `resolveControlBarOverflow`). Every builder here filters on it, so a
+  /// collapsed control disappears from the bar AND appears in More.
+  final Set<ControlBarSlot> collapsed;
+
+  bool isCollapsed(ControlBarSlot slot) => collapsed.contains(slot);
+
 
   bool get showFit => file?.type != ContentType.audio;
 
@@ -104,7 +114,8 @@ class ControlBarControls {
       showControl: showControl,
       showControlForHover: showControlForHover,
       color: color,
-      overlayColor: overlayColor);
+      overlayColor: overlayColor,
+      collapsed: collapsed);
 
   Widget get slider => ControlBarSlider(showControl: showControl, color: color);
 
@@ -118,26 +129,27 @@ class ControlBarControls {
   /// the seek axis in [DesktopControlLayout]. Single source of truth for the
   /// one-line AND stacked arrangements (order must never drift between them).
   List<Widget> get desktopLeftButtons => [
-        playPause,
-        stop,
-        prev,
-        next,
-        shuffle,
-        repeat,
-        if (showFit) fit,
-        if (showWindowFit) windowFitMode,
-        rate,
-        rotateOrVolume,
+        if (!isCollapsed(ControlBarSlot.playPause)) playPause,
+        if (!isCollapsed(ControlBarSlot.stop)) stop,
+        if (!isCollapsed(ControlBarSlot.prev)) prev,
+        if (!isCollapsed(ControlBarSlot.next)) next,
+        if (!isCollapsed(ControlBarSlot.shuffle)) shuffle,
+        if (!isCollapsed(ControlBarSlot.repeat)) repeat,
+        if (showFit && !isCollapsed(ControlBarSlot.fit)) fit,
+        if (showWindowFit && !isCollapsed(ControlBarSlot.windowFitMode))
+          windowFitMode,
+        if (!isCollapsed(ControlBarSlot.rate)) rate,
+        if (!isCollapsed(ControlBarSlot.volume)) rotateOrVolume,
       ];
 
   /// Right group of the desktop bar — restores subtitle lost vs legacy.
   /// Playlist dock toggle lives ONLY in the side panel ([CircleSliderLayout]).
   List<Widget> get desktopRightButtons => [
-        subtitle,
-        backgroundPlaybackMenu,
-        playQueue,
-        storage,
-        if (isDesktop) fullscreen,
+        if (!isCollapsed(ControlBarSlot.subtitle)) subtitle,
+        if (!isCollapsed(ControlBarSlot.backgroundMenu)) backgroundPlaybackMenu,
+        if (!isCollapsed(ControlBarSlot.playQueue)) playQueue,
+        if (!isCollapsed(ControlBarSlot.storage)) storage,
+        if (isDesktop && !isCollapsed(ControlBarSlot.fullscreen)) fullscreen,
         more,
       ];
 

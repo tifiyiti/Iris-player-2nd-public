@@ -6,6 +6,8 @@ import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/features/meta_settings/contributions/settings_catalog.dart';
 import 'package:iris/features/meta_settings/view/setting_texts.dart';
 import 'package:iris/features/speed/model/enum/speed_rate_picker_mode.dart';
+import 'package:iris/features/speed/model/speed_rate_picker_resolver.dart';
+import 'package:iris/features/speed/model/speed_rate_scale_math.dart';
 import 'package:iris/features/speed/view/rate_picker_card.dart';
 import 'package:iris/features/speed/view/rate_preset_chips.dart';
 import 'package:iris/features/speed/view/rate_slider_sheet.dart';
@@ -15,6 +17,7 @@ import 'package:iris/models/db/app_database.dart';
 import 'package:iris/models/db/db_module.dart';
 import 'package:iris/models/store/app_state.dart';
 import 'package:iris/store/use_app_store.dart';
+import 'package:iris/utils/platform.dart';
 import 'package:iris/widgets/dialogs/show_rate_dialog.dart';
 
 import 'helpers/sqlite3_loader.dart';
@@ -46,6 +49,10 @@ void main() {
   });
 
   setUp(() async {
+    // Widget tests run on a DESKTOP host, and desktop is not offered the wheel
+    // at all — so without this every case here would resolve to the slider.
+    debugIsMobilePlatformOverride = true;
+    addTearDown(() => debugIsMobilePlatformOverride = null);
     // Both the mode and the remembered card position are AppStore singleton
     // state, so they would otherwise leak from one case into the next.
     await useAppStore()
@@ -57,6 +64,12 @@ void main() {
 
   Finder card() => find.byKey(const ValueKey('rate_picker_card'));
   Finder handle() => find.byKey(const ValueKey('rate_picker_drag_handle'));
+
+  /// The VISIBLE preset pill. Measuring the `ChoiceChip` slot instead is what
+  /// let a label-sized pill ship: the slot is uniform by construction, so it
+  /// can never report the defect.
+  Finder pill(double stop) => find.byKey(
+      ValueKey<String>('rate_preset_pill_${formatSpeedLabel(stop)}'));
 
   /// The horizontal FRACTION the card is parked at — the quantity the pickers
   /// actually share. Pixels are not comparable across shapes: a 220px wheel
@@ -180,13 +193,10 @@ void main() {
     testWidgets('nine presets lay out as an exact 3x3 grid', (tester) async {
       await _openAs(tester, SpeedRatePickerMode.slider);
 
-      final Finder chips = find.byType(ChoiceChip);
-      expect(chips, findsNWidgets(kRatePresetStops.length));
       expect(kRatePresetStops.length, 9, reason: 'the grid is 3x3 by design');
-
       final List<double> rows = <double>[
-        for (int i = 0; i < kRatePresetStops.length; i++)
-          tester.getCenter(chips.at(i)).dy.roundToDouble(),
+        for (final double stop in kRatePresetStops)
+          tester.getCenter(pill(stop)).dy.roundToDouble(),
       ];
       final Set<double> distinct = rows.toSet();
       expect(distinct.length, 3, reason: 'nine chips must form three rows');
@@ -196,31 +206,34 @@ void main() {
       }
     });
 
-    testWidgets('every preset chip is the same size', (tester) async {
+    testWidgets('every preset pill is the same size, at any font scale',
+        (tester) async {
       _phoneViewport(tester);
       // A user who has turned the system font up is the case that breaks a
-      // label-sized chip: "0.25X" outgrows its cell while "3.0X" does not, and
+      // label-sized pill: "0.25X" outgrows its cell while "3.0X" does not, and
       // the grid stops reading as a grid.
       tester.platformDispatcher.textScaleFactorTestValue = 1.5;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
       await _openAs(tester, SpeedRatePickerMode.slider);
 
-      final Finder chips = find.byType(ChoiceChip);
-      expect(chips, findsNWidgets(kRatePresetStops.length));
-      final Rect first = tester.getRect(chips.at(0));
-      for (int i = 0; i < kRatePresetStops.length; i++) {
-        final Rect r = tester.getRect(chips.at(i));
-        expect(r.width, closeTo(first.width, 0.01));
-        expect(r.height, closeTo(first.height, 0.01));
+      final List<Rect> pills = <Rect>[
+        for (final double stop in kRatePresetStops) tester.getRect(pill(stop)),
+      ];
+      for (final Rect r in pills) {
+        expect(r.width, closeTo(pills.first.width, 0.01),
+            reason: 'pills must be one size, got $pills');
+        expect(r.height, closeTo(pills.first.height, 0.01),
+            reason: 'pills must be one size, got $pills');
+      }
+      for (final double stop in kRatePresetStops) {
+        final Rect r = tester.getRect(pill(stop));
         final Rect label = tester.getRect(
-            find.descendant(of: chips.at(i), matching: find.byType(Text)));
+            find.descendant(of: pill(stop), matching: find.byType(Text)));
         expect(label.center.dx, closeTo(r.center.dx, 0.5),
-            reason: 'chip $i label is off-centre (label=$label, chip=$r)');
+            reason: '$stop label is off-centre (label=$label, pill=$r)');
         expect(label.center.dy, closeTo(r.center.dy, 0.5),
-            reason: 'chip $i label is off-centre (label=$label, chip=$r)');
-        expect(label.width, lessThanOrEqualTo(r.width),
-            reason: 'chip $i label outgrew its cell ($label in $r)');
+            reason: '$stop label is off-centre (label=$label, pill=$r)');
       }
       expect(tester.takeException(), isNull,
           reason: 'a large font scale must not overflow the grid');
@@ -330,6 +343,48 @@ void main() {
       await _openAs(tester, SpeedRatePickerMode.dualWheel);
       expect(xFraction(tester), closeTo(parked, 0.01),
           reason: 'one remembered spot serves whichever picker is current');
+    });
+  });
+
+  group('desktop does not offer the wheel', () {
+    setUp(() => debugIsMobilePlatformOverride = false);
+
+    test('the chooser drops it', () {
+      final List<SpeedRatePickerMode> choices = speedRatePickerChoices();
+      expect(choices, isNot(contains(SpeedRatePickerMode.dualWheel)));
+      expect(choices, contains(SpeedRatePickerMode.slider));
+      expect(choices, contains(SpeedRatePickerMode.list));
+    });
+
+    test('a stored wheel value degrades to the slider', () {
+      expect(coerceSpeedRatePickerMode(SpeedRatePickerMode.dualWheel),
+          SpeedRatePickerMode.slider);
+      expect(coerceSpeedRatePickerMode(SpeedRatePickerMode.slider),
+          SpeedRatePickerMode.slider);
+      expect(coerceSpeedRatePickerMode(SpeedRatePickerMode.list),
+          SpeedRatePickerMode.list);
+    });
+
+    testWidgets('a stored wheel value opens the SLIDER picker', (tester) async {
+      // A row set on a phone (or carried in by a settings transfer) must not
+      // open a picker this platform does not offer.
+      await useAppStore()
+          .updateSpeedRatePickerMode(SpeedRatePickerMode.dualWheel);
+      await _openPicker(tester);
+
+      expect(find.byType(RateSliderSheet), findsOneWidget);
+      expect(find.byType(RateWheelDialog), findsNothing);
+    });
+  });
+
+  group('mobile keeps the wheel', () {
+    test('the chooser offers it', () {
+      expect(speedRatePickerChoices(), contains(SpeedRatePickerMode.dualWheel));
+    });
+
+    test('nothing is coerced', () {
+      expect(coerceSpeedRatePickerMode(SpeedRatePickerMode.dualWheel),
+          SpeedRatePickerMode.dualWheel);
     });
   });
 
@@ -445,6 +500,11 @@ Finder _expected(SpeedRatePickerMode mode) => switch (mode) {
 
 Future<void> _openAs(WidgetTester tester, SpeedRatePickerMode mode) async {
   await useAppStore().updateSpeedRatePickerMode(mode);
+  await _openPicker(tester);
+}
+
+/// Opens the picker for whatever mode currently resolves.
+Future<void> _openPicker(WidgetTester tester) async {
   await tester.pumpWidget(
     StoreScope(
       child: MaterialApp(

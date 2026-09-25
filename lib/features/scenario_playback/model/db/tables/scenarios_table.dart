@@ -44,9 +44,10 @@ class ScenariosTable extends Table {
   TextColumn get repeatMode => textEnum<Repeat>().nullable()();
 
   /// True when the queue groups by source and sorts each source by
-  /// (parentPath, sortField, name). Defaults to true (D5/D6).
+  /// (parentPath, sortField, name). Defaults to false (D5/D6); every writer sets
+  /// the value explicitly, so the SQL default is only a fresh-install fallback.
   BoolColumn get sourceInternalFirst =>
-      boolean().withDefault(const Constant(true))();
+      boolean().withDefault(const Constant(false))();
 
   DateTimeColumn get createdAt => dateTime().nullable()();
 

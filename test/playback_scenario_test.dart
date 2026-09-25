@@ -140,8 +140,14 @@ void main() {
         recursive: true,
       );
 
-      // Default sourceInternalFirst=true → ORDER BY (parentPath asc, name asc):
+      // A fresh scenario defaults to sourceInternalFirst=false (flat order).
+      expect(scenario.sourceInternalFirst, isFalse);
+
+      // sourceInternalFirst=true → ORDER BY (parentPath asc, name asc):
       // root files (parentPath NULL) first, then A/*, then B/*.
+      await scenarioRepo.updateScenario(
+        scenario.copyWith(sourceInternalFirst: true),
+      );
       final grouped = await resolver.resolvePage(
         scenarioId: scenario.id,
         page: 0,
@@ -1401,7 +1407,7 @@ void main() {
       await repo.addSource(
           scenarioId: scenario.id, storageId: 'st1', path: '', recursive: true);
 
-      // ON (default): same-parent files contiguous → A/b, A/c, then B/a.
+      // ON: same-parent files contiguous → A/b, A/c, then B/a.
       final grouped = await resolver.resolvePage(
         scenarioId: scenario.id,
         page: 0,
@@ -1422,7 +1428,8 @@ void main() {
           ['a.mp4', 'b.mp4', 'c.mp4']);
 
       final persisted = await repo.getScenario(scenario.id);
-      expect(persisted!.sourceInternalFirst, isTrue);
+      // The override never writes the scenario, whose default is now false.
+      expect(persisted!.sourceInternalFirst, isFalse);
     });
 
     test(
@@ -1671,7 +1678,8 @@ void main() {
       await DbModule.scenarioRepo.addSource(
           scenarioId: id, storageId: 'st1', path: '', recursive: true);
 
-      // Default 同目录连续 ON → A/a, A/b, B/a, B/b. Current = A/b.
+      // 同目录连续 ON → A/a, A/b, B/a, B/b. Current = A/b.
+      await store.setSourceInternalFirst(true);
       await store.setCurrentItem(
         occurrence: const PlaybackOccurrenceId(storageId: 'st1', path: 'A/b.mp4'),
         virtualPos: 1,
@@ -1701,6 +1709,8 @@ void main() {
         occurrence: const PlaybackOccurrenceId(storageId: 'st1', path: 'A/b.mp4'),
         virtualPos: 1,
       );
+      // 同目录连续 ON first, so the long-lived cache is primed grouped.
+      await store.setSourceInternalFirst(true);
       // Prime the long-lived provider's cache under the ON order, then toggle.
       expect((await provider.next())?.path, 'B/a.mp4');
       expect((await provider.previous())?.path, 'A/b.mp4');
@@ -2050,14 +2060,8 @@ void main() {
       final id = await newScenario();
       await store.refreshScenarios();
 
-      // Default true (D6).
-      expect((await store.getScenario(id))!.sourceInternalFirst, isTrue);
-      expect(
-        store.state.scenarios.firstWhere((c) => c.id == id).sourceInternalFirst,
-        isTrue,
-      );
-
-      await store.setSourceInternalFirst(false);
+      // Default false (D6): flat order, so a plain field sort (e.g. by
+      // modified date) reads as one global sequence, not folder blocks.
       expect((await store.getScenario(id))!.sourceInternalFirst, isFalse);
       expect(
         store.state.scenarios.firstWhere((c) => c.id == id).sourceInternalFirst,
@@ -2069,6 +2073,13 @@ void main() {
       expect(
         store.state.scenarios.firstWhere((c) => c.id == id).sourceInternalFirst,
         isTrue,
+      );
+
+      await store.setSourceInternalFirst(false);
+      expect((await store.getScenario(id))!.sourceInternalFirst, isFalse);
+      expect(
+        store.state.scenarios.firstWhere((c) => c.id == id).sourceInternalFirst,
+        isFalse,
       );
     });
 

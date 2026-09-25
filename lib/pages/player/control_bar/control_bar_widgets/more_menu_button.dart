@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -30,10 +28,15 @@ import 'package:iris/models/player.dart';
 import 'package:iris/models/storages/local.dart';
 import 'package:iris/models/store/app_state.dart';
 import 'package:iris/models/store/phone_landscape_slider_type_helper.dart';
+import 'package:iris/pages/player/control_bar/control_bar_layout/control_bar_slot_actions.dart';
+import 'package:iris/pages/player/control_bar/control_bar_layout/resolve_control_bar_overflow.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/background_playback_menu_button.dart';
 import 'package:iris/pages/player/control_bar/control_bar_widgets/control_bar_constants.dart';
+import 'package:iris/pages/player/control_bar/control_bar_widgets/play_queue_button.dart';
 import 'package:iris/pages/player/control_bar/control_bar_widgets/seek_step_popover.dart';
 import 'package:iris/store/use_app_store.dart';
 import 'package:iris/store/use_player_ui_store.dart';
+import 'package:iris/utils/app_exit.dart';
 import 'package:iris/utils/get_localizations.dart';
 import 'package:iris/utils/layout_breakpoints.dart';
 import 'package:iris/utils/platform.dart';
@@ -50,7 +53,6 @@ import 'package:iris/widgets/popups/history.dart';
 import 'package:iris/widgets/popups/settings/settings.dart';
 import 'package:iris/widgets/popups/track/subtitle_and_audio_track.dart';
 import 'package:provider/provider.dart';
-import 'package:window_manager/window_manager.dart';
 
 class MoreMenuButton extends HookWidget {
   const MoreMenuButton({
@@ -59,12 +61,18 @@ class MoreMenuButton extends HookWidget {
     required this.showControlForHover,
     this.color,
     this.overlayColor,
+    this.collapsed = const <ControlBarSlot>{},
   });
 
   final void Function() showControl;
   final Future<void> Function(Future<void>) showControlForHover;
   final Color? color;
   final WidgetStateProperty<Color?>? overlayColor;
+
+  /// Optional bar slots pushed here at the current width (see
+  /// `resolveControlBarOverflow`). They render as extra entries at the TOP of
+  /// the menu, above a divider, so a collapsed control stays one tap away.
+  final Set<ControlBarSlot> collapsed;
 
   @override
   Widget build(BuildContext context) {
@@ -141,10 +149,10 @@ class MoreMenuButton extends HookWidget {
     // whole menu. Same precomputed-args convention as every other item below.
     final bool frameToolsVisible =
         usePlaybackToolsStore().select(context, (s) => s.frameToolsVisible);
-    // Bottom control-group switch button: available where a second group is
-    // (phones, desktop phone-mode). State read in build — see note above.
-    final bool cgPhoneMode = useAppStore()
-        .select(context, (s) => isMobilePlatform || s.desktopCenterZonePhoneMode);
+    // Bottom control-group switch button: available on phones and on desktop
+    // now (desktop opts in through the button's own per-orientation visibility,
+    // configured by the dialog this item opens). State read in build — see note
+    // above.
 
     // 副音 float-panel visibility toggle (shown only while 副音 runs).
     final bgStore = useBackgroundPlaybackStore();
@@ -214,6 +222,10 @@ class MoreMenuButton extends HookWidget {
       clipBehavior: Clip.hardEdge,
       constraints: const BoxConstraints(minWidth: kPopupMenuMinWidth),
       itemBuilder: (context) => [
+        // Collapsed bar controls (narrow width) come first — they were primary
+        // affordances on the bar, so they lead the menu.
+        ..._collapsedItems(context, t, subtitleHint),
+        if (collapsed.isNotEmpty) const PopupMenuDivider(),
         _openFileItemWithHint(context, t, openFileHint),
         _openLinkItemWithHint(context, t, openLinkHint),
         _jumpToTimeItemWithHint(context, t, jumpHint),
@@ -237,7 +249,8 @@ class MoreMenuButton extends HookWidget {
         // is permanently false): rule CRUD lives in meta-settings, playback
         // stays unaware single-video. Row hidden, definition kept as dead code.
         if (VirtualMediaGate.legacySheetEnabled) _virtualMediaItem(context, t),
-        if (!layoutHasRateButton) _rateItem(context, t, rate),
+        if (!layoutHasRateButton && !collapsed.contains(ControlBarSlot.rate))
+          _rateItem(context, t, rate),
         if (shouldShowSidePanelEntry)
           _unifiedSidePanelItem(context, t, sidePanelTitle),
         // Fine-tune range retired — dial axis strip now mirrors global seek step.
@@ -247,8 +260,8 @@ class MoreMenuButton extends HookWidget {
           _frameToolsItem(context, t, frameToolsVisible),
           _screenshotItem(context, t),
         ],
-        // Floating bottom-group switch button (phone / desktop phone-mode).
-        if (cgPhoneMode) _controlGroupItem(context, t),
+        // Floating bottom-group switch button (phones / desktop).
+        _controlGroupItem(context, t),
         // Subtitle & audio tracks — moved from control bar (now seek step) to More.
         // Industry standard grouping: playback tracks sit directly above History
         // (before system entries Settings/Exit), so they remain discoverable
@@ -517,15 +530,7 @@ class MoreMenuButton extends HookWidget {
         title: Text(t.exit),
         trailing: _hintText(context, DesktopShortcutHintTarget.exit, scheme),
       ),
-      onTap: () async {
-        await context.read<MediaPlayer>().saveProgress();
-        if (isDesktop) {
-          windowManager.close();
-        } else {
-          SystemNavigator.pop();
-          exit(0);
-        }
-      },
+      onTap: () => AppExit.run(context.read<MediaPlayer>().saveProgress),
     );
   }
 
@@ -629,15 +634,7 @@ class MoreMenuButton extends HookWidget {
         title: Text(t.exit),
         trailing: _hintFromLabel(context, hint),
       ),
-      onTap: () async {
-        await context.read<MediaPlayer>().saveProgress();
-        if (isDesktop) {
-          windowManager.close();
-        } else {
-          SystemNavigator.pop();
-          exit(0);
-        }
-      },
+      onTap: () => AppExit.run(context.read<MediaPlayer>().saveProgress),
     );
   }
 
@@ -751,6 +748,194 @@ class MoreMenuButton extends HookWidget {
         subtitle: Text(t.control_group_floating_desc),
       ),
       onTap: () => showControlForHover(showControlGroupFloatingDialog(context)),
+    );
+  }
+
+  /// Entries for the optional bar slots pushed into More at the current width.
+  ///
+  /// Ordered by [kControlBarCollapseOrder] so the least important control
+  /// appears first. Subtitles are skipped: the menu already carries an
+  /// unconditional subtitle/audio-track entry, and duplicating it here would
+  /// list the same action twice.
+  List<PopupMenuEntry> _collapsedItems(
+    BuildContext context,
+    t,
+    String? subtitleHint,
+  ) {
+    if (collapsed.isEmpty) return const <PopupMenuEntry>[];
+    final AppState app = useAppStore().state;
+    final bg = useBackgroundPlaybackStore().state;
+    final scenario = usePlaybackScenarioStore().state;
+    final bool useScenario =
+        !app.useLegacyStoragePersistence && app.useScenarioDrivenPlayback;
+    final bool shuffleOn = bg.bgOwnsControls
+        ? bg.shuffle
+        : (useScenario ? scenario.activeScenarioShuffled : app.shuffle);
+    final Repeat repeat =
+        useScenario ? scenario.activeScenarioRepeat : app.repeat;
+
+    final List<PopupMenuEntry> items = <PopupMenuEntry>[];
+    for (final ControlBarSlot slot in kControlBarCollapseOrder) {
+      if (!collapsed.contains(slot)) continue;
+      switch (slot) {
+        case ControlBarSlot.storage:
+          items.add(_collapsedTile(
+            context,
+            icon: Icons.storage_rounded,
+            title: t.storage,
+            onTap: () => openStorageFromControlBar(context, showControlForHover),
+          ));
+        case ControlBarSlot.shuffle:
+          items.add(_collapsedTile(
+            context,
+            icon: Icons.shuffle_rounded,
+            title: '${t.shuffle}: ${shuffleOn ? t.on : t.off}',
+            onTap: () {
+              showControl();
+              // ignore: discarded_futures
+              toggleShuffleFromControlBar(context);
+            },
+          ));
+        case ControlBarSlot.repeat:
+          items.add(_collapsedTile(
+            context,
+            icon: repeat == Repeat.one
+                ? Icons.repeat_one_rounded
+                : Icons.repeat_rounded,
+            title: repeat == Repeat.one
+                ? t.repeat_one
+                : repeat == Repeat.all
+                    ? t.repeat_all
+                    : t.repeat_none,
+            onTap: () {
+              showControl();
+              // ignore: discarded_futures
+              toggleRepeatFromControlBar();
+            },
+          ));
+        case ControlBarSlot.playQueue:
+          items.add(_collapsedTile(
+            context,
+            icon: Icons.playlist_play_rounded,
+            title: t.play_queue,
+            onTap: () {
+              showControl();
+              // ignore: discarded_futures
+              openPlayQueueFromControlBar(
+                context,
+                showControlForHover: showControlForHover,
+              );
+            },
+          ));
+        case ControlBarSlot.subtitle:
+          // Already present as the unconditional subtitle/audio entry below.
+          break;
+        case ControlBarSlot.backgroundMenu:
+          items.add(_collapsedBackgroundMenuTile(context, t));
+        case ControlBarSlot.stop:
+          items.add(_collapsedTile(
+            context,
+            icon: Icons.stop_rounded,
+            title: t.stop,
+            onTap: () {
+              showControl();
+              // ignore: discarded_futures
+              stopFromControlBar(context);
+            },
+          ));
+        case ControlBarSlot.fit:
+          items.add(_collapsedTile(
+            context,
+            icon: Icons.fit_screen_rounded,
+            title: t.video_zoom,
+            onTap: () {
+              showControl();
+              // ignore: discarded_futures
+              cycleFitFromControlBar(context);
+            },
+          ));
+        case ControlBarSlot.windowFitMode:
+          items.add(_collapsedTile(
+            context,
+            icon: Icons.open_in_full_rounded,
+            title: t.window_label,
+            onTap: () {
+              showControl();
+              // ignore: discarded_futures
+              toggleWindowFitModeFromControlBar(context);
+            },
+          ));
+        case ControlBarSlot.rate:
+          items.add(_rateItem(context, t, app.rate));
+        case ControlBarSlot.playPause:
+        case ControlBarSlot.prev:
+        case ControlBarSlot.next:
+        case ControlBarSlot.volume:
+        case ControlBarSlot.fullscreen:
+        case ControlBarSlot.more:
+          // Core slots never collapse.
+          break;
+      }
+    }
+    return items;
+  }
+
+  PopupMenuItem _collapsedTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return PopupMenuItem(
+      child: ListTile(
+        mouseCursor: SystemMouseCursors.click,
+        leading: Icon(icon, size: kMenuTileIconSize),
+        title: Text(title),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  /// The 副音 menu collapsed into More: opens the SAME entry list as the on-bar
+  /// 副音 button, anchored to this row.
+  PopupMenuItem _collapsedBackgroundMenuTile(BuildContext context, t) {
+    return PopupMenuItem(
+      child: Builder(
+        builder: (itemContext) => ListTile(
+          mouseCursor: SystemMouseCursors.click,
+          leading: const Icon(Icons.multitrack_audio_rounded,
+              size: kMenuTileIconSize),
+          title: Text(t.bg_menu_tooltip),
+          onTap: () {
+            showControl();
+            final RenderBox? box =
+                itemContext.findRenderObject() as RenderBox?;
+            final RenderBox? overlay =
+                Overlay.of(itemContext).context.findRenderObject() as RenderBox?;
+            RelativeRect position = const RelativeRect.fromLTRB(0, 0, 0, 0);
+            if (box != null && box.hasSize && overlay != null) {
+              final Offset topLeft =
+                  box.localToGlobal(Offset.zero, ancestor: overlay);
+              final Offset bottomRight = box.localToGlobal(
+                  box.size.bottomRight(Offset.zero),
+                  ancestor: overlay);
+              position = RelativeRect.fromRect(
+                Rect.fromPoints(topLeft, bottomRight),
+                Offset.zero & overlay.size,
+              );
+            }
+            // ignore: discarded_futures
+            showMenu<Object>(
+              context: itemContext,
+              position: position,
+              items: buildBackgroundPlaybackMenuEntries(
+                context: itemContext,
+                showControl: showControl,
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }

@@ -668,15 +668,15 @@ class PagedScenarioPreviewDataSource
         );
       }
     } else {
-      // queue-style: re-clicking the CURRENT field toggles asc/desc;
-      // switching to a different field keeps the current direction.
+      // queue-style: re-clicking the CURRENT field toggles asc/desc; switching
+      // to a different field starts from that field's natural direction.
       final target = _scenarioSortField(choice);
       final isCurrent = sortField == target;
       final direction = isCurrent
           ? (currentDir == SortDirection.asc
               ? SortDirection.desc
               : SortDirection.asc)
-          : currentDir;
+          : target.naturalDirection;
       _sortConfig = _sortConfig.copyWith(
         sortField: target,
         sortDirection: direction,
@@ -769,9 +769,16 @@ class PagedScenarioPreviewDataSource
         shuffleSeed: () => null,
       );
     }
+    final target = field ?? _sortConfig.sortField;
     _sortConfig = _sortConfig.copyWith(
-      sortField: field ?? _sortConfig.sortField,
-      sortDirection: direction ?? _sortConfig.sortDirection,
+      sortField: target,
+      // A field switch picks that field's natural direction; an explicit
+      // direction (the sortAscending / sortDescending actions) always wins, and
+      // re-selecting the current field keeps the current direction.
+      sortDirection: direction ??
+          (target == _sortConfig.sortField
+              ? _sortConfig.sortDirection
+              : target.naturalDirection),
     );
     await fetchPage(0, pageSize);
     return true;

@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:iris/features/media_library/model/db/adapters/epoch_millis_converter.dart';
 import 'package:iris/features/media_library/model/enum/media_node.dart';
 import 'package:iris/features/media_library/model/media_lib/media_node.dart' show MediaType;
 
@@ -88,7 +89,16 @@ class MediaNodesTable extends Table {
   IntColumn get totalSizeInBytes => integer().withDefault(const Constant(0))();
   IntColumn get totalDurationMs => integer().withDefault(const Constant(0))();
   //
-  DateTimeColumn get modifiedAt => dateTime().nullable()();
+  /// File/scan modification time, stored as epoch **milliseconds**.
+  ///
+  /// Sub-second precision matters for ordering: whole seconds made files written
+  /// in the same second compare equal. Declared as an int column because the
+  /// underlying SQLite column IS an INTEGER — [EpochMillisConverter] supplies
+  /// the `DateTime?` type the generated row class and the read/write sites use.
+  /// [createdAt] deliberately keeps Drift's default (seconds) mapping — the
+  /// scanner never writes it.
+  IntColumn get modifiedAt =>
+      integer().map(const EpochMillisConverter()).nullable()();
 
   /// For filesystem content:
   //

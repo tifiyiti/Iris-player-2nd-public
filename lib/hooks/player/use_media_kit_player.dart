@@ -908,7 +908,7 @@ MediaKitPlayer useMediaKitPlayer(BuildContext context) {
       );
       final sanePosition = Duration(milliseconds: posMs);
       areaKeyLog.i('Save progress: ${file.name}, position: $sanePosition, duration: ${player.state.duration}');
-      persistPlaybackProgress(
+      await persistPlaybackProgress(
         file: file,
         position: sanePosition,
         durationMs: durMs,
