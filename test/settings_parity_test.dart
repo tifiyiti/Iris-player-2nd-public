@@ -38,6 +38,9 @@ void main() {
         'window.playlistPopupTheme',
         'window.playlistDockTheme',
         'video.desktopDisplayMode',
+        // Play-queue toolbar layout (cross-platform; the queue's own trailing
+        // toggle is the runtime control).
+        'window.scenarioQueueLayout',
         'app.alwaysPlayFromBeginning',
         // Auto-resume last media on app start (metadata-only AUX row,
         // hidden via DefVisibility under gate OFF).
@@ -185,6 +188,9 @@ void main() {
       expect(keys('play', 'android'), [
         'app.playerBackend',
         'video.mobileDisplayMode',
+        // Play-queue toolbar layout (cross-platform; the queue's own trailing
+        // toggle is the runtime control).
+        'window.scenarioQueueLayout',
         'app.alwaysPlayFromBeginning',
         // Auto-resume last media on app start (metadata-only AUX row).
         'playback.resumeOnStartup',

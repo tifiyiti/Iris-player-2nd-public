@@ -42,6 +42,8 @@ import 'package:iris/features/virtual_media/rule/vm_tick_extent.dart'
 import 'package:iris/features/virtual_media/store/vm_prefs.dart' show VmPrefs;
 import 'package:iris/features/media_library/scan/view/scan_auto_close_settings_dialog.dart';
 import 'package:iris/features/playback_tools/services/screenshot_paths.dart';
+import 'package:iris/features/scenario_playback/model/enum/scenario_queue_layout.dart';
+import 'package:iris/features/scenario_playback/model/enum/scenario_queue_profile.dart';
 import 'package:iris/features/tag_play/playback/tag_play_input_policy.dart';
 import 'package:iris/features/tag_play/store/use_tag_play_store.dart';
 import 'package:iris/features/playback_tools/view/screenshot_save_path_dialog.dart'
@@ -565,6 +567,15 @@ abstract final class EditorBindings {
         subtitle: (s, t) => SettingTexts.enumLabel(
             'window.playlistDockTheme', s.playlistDockTheme.name, t),
         open: _openPlaylistDockThemeDialog,
+      ),
+      'scenario_queue_layout': _tile(
+        icon: Icons.view_agenda_outlined,
+        titleKey: 'set_scenario_queue_layout',
+        // Deliberately NOT the current value: which of the three stored layouts
+        // applies depends on the screen shape, and this subtitle has no
+        // BuildContext to resolve it. The dialog names the shape it edits.
+        subtitle: (s, t) => t.set_scenario_queue_layout_scope,
+        open: _openScenarioQueueLayoutDialog,
       ),
 
       // ── Play · video display mode (`video.` AUX enums, per-platform) ──
@@ -1104,6 +1115,37 @@ abstract final class EditorBindings {
       onSelected: (m) => unawaited(store.updatePlaylistDockTheme(m)),
     );
   }
+
+  /// Edits the toolbar layout of the CURRENT screen shape only.
+  ///
+  /// The three shapes are stored separately, so the dialog has to say which one
+  /// it is about — otherwise picking V2 on a phone looks like it did nothing,
+  /// because the desktop is still on V1.
+  static void _openScenarioQueueLayoutDialog(BuildContext context) {
+    final t = getLocalizations(context);
+    final store = useAppStore();
+    final profile = scenarioQueueProfileOf(context, state: store.state);
+    showEnumRadioDialog<ScenarioQueueLayout>(
+      context: context,
+      title: SettingTexts.title('set_scenario_queue_layout', t),
+      subtitle: t.set_scenario_queue_layout_profile(
+          _queueProfileLabel(profile, t)),
+      values: ScenarioQueueLayout.values,
+      currentValue: store.state.scenarioQueueLayoutFor(profile),
+      labelOf: (m) =>
+          SettingTexts.enumLabel('window.scenarioQueueLayout', m.name, t),
+      onSelected: (m) =>
+          unawaited(store.updateScenarioQueueLayout(profile, m)),
+    );
+  }
+
+  /// Human name of a screen shape, for the settings dialog.
+  static String _queueProfileLabel(ScenarioQueueProfile profile, AppLocalizations t) =>
+      switch (profile) {
+        ScenarioQueueProfile.desktop => t.scn_queue_profile_desktop,
+        ScenarioQueueProfile.portrait => t.scn_queue_profile_portrait,
+        ScenarioQueueProfile.landscape => t.scn_queue_profile_landscape,
+      };
 
   static void _openDesktopDisplayModeDialog(BuildContext context) {
     final t = getLocalizations(context);

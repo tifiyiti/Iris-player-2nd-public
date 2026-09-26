@@ -77,6 +77,13 @@ const List<SettingDomain> kSettingDomains = <SettingDomain>[
         'dialog, so they have no own def/editor key.',
   ),
   SettingDomain(
+    defNamespace: 'form',
+    storagePrefix: 'form.',
+    editorKeyForm: '(AUX only — no catalog defs)',
+    note: 'Remembered geometry of the shared keyboard form (where it sits and '
+        'how wide), written by the shell itself; no user-facing editor row.',
+  ),
+  SettingDomain(
     defNamespace: 'gesture',
     storagePrefix: 'app.',
     editorKeyForm: 'gesture_unified',

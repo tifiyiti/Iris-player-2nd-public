@@ -7,9 +7,13 @@ import 'package:flutter_breadcrumb/flutter_breadcrumb.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/features/paginated_browser/data_source/paginated_browser_data_source.dart';
 import 'package:iris/features/paginated_browser/data_source/playlist_key_target.dart';
+import 'package:iris/features/paginated_browser/models/browser_toolbar_layout.dart';
+import 'package:iris/features/paginated_browser/models/generic_browser_models.dart';
 import 'package:iris/features/paginated_browser/models/tooltip_direction.dart';
 import 'package:iris/features/paginated_browser/paginated_browser_controller.dart';
+import 'package:iris/features/paginated_browser/widgets/compact_single_row_bar.dart';
 import 'package:iris/features/paginated_browser/widgets/dynamic_responsive_bar.dart';
+import 'package:iris/features/paginated_browser/widgets/floating_grid_bar.dart';
 import 'package:iris/features/paginated_browser/widgets/list_keyboard_controller.dart';
 import 'package:iris/features/paginated_browser/widgets/list_keyboard_scope.dart';
 import 'package:iris/features/paginated_browser/widgets/unified_item_tile.dart';
@@ -67,6 +71,37 @@ class PaginatedBrowserPage<T> extends HookWidget {
   /// (false) keeps every legacy/other browser byte-identical.
   final bool listKeyboard;
 
+  /// Bottom-toolbar arrangement. [BrowserToolbarLayout.responsive] (the
+  /// default) keeps every browser on the shared responsive bar;
+  /// [BrowserToolbarLayout.compactSingleLine] swaps in [CompactSingleRowBar],
+  /// which never reflows (the scenario play queue's V2 layout);
+  /// [BrowserToolbarLayout.floatingGrid] drops the bottom section entirely and
+  /// overlays [FloatingGridBar] on the list (its V3 layout).
+  final BrowserToolbarLayout toolbarLayout;
+
+  /// V3 only: the floating bar's remembered spot, as a fraction (0..1) of the
+  /// available travel. Null centres it. The generic page deliberately does not
+  /// own this preference — the caller reads and writes it, exactly as it owns
+  /// [overflowActions] and [showBreadcrumb].
+  final Offset? floatingBarOffset;
+
+  /// V3 only: called ONCE per drag with the fraction the bar came to rest at.
+  /// Null disables dragging; the bar still renders, pinned to centre.
+  final ValueChanged<Offset>? onFloatingBarMoved;
+
+  /// Page-level chrome that only the compact bar can host, because only it has
+  /// an overflow button (e.g. the queue's breadcrumb-visibility checkbox). The
+  /// responsive bar has nowhere to put these and ignores them.
+  final List<PageAction> overflowActions;
+
+  /// Whether the breadcrumb row renders. True by default, so every existing
+  /// browser is unaffected; the scenario queue drives it from a user
+  /// preference, which BOTH of its layouts honour.
+  ///
+  /// Only gates the breadcrumb itself — an in-page search's query banner keeps
+  /// its slot, so hiding crumbs can never hide the search state.
+  final bool showBreadcrumb;
+
   const PaginatedBrowserPage({
     super.key,
     required this.dataSource,
@@ -80,6 +115,11 @@ class PaginatedBrowserPage<T> extends HookWidget {
     this.emptyStateOverride,
     this.keyboardAware = false,
     this.listKeyboard = false,
+    this.toolbarLayout = BrowserToolbarLayout.responsive,
+    this.overflowActions = const [],
+    this.showBreadcrumb = true,
+    this.floatingBarOffset,
+    this.onFloatingBarMoved,
   });
 
   @override
@@ -132,7 +172,12 @@ class PaginatedBrowserPage<T> extends HookWidget {
         await _centerCurrent(itemScrollController, dataSource, index);
       });
       return;
-    }, [dataSource, dataSource.isLoading, dataSource.items, dataSource.currentPage]);
+    }, [
+      dataSource,
+      dataSource.isLoading,
+      dataSource.items,
+      dataSource.currentPage
+    ]);
 
     final isSearchActive = activeController.isSearchActive;
 
@@ -160,40 +205,122 @@ class PaginatedBrowserPage<T> extends HookWidget {
             }
           }
         },
-        child: Column(
-          children: [
-            // Content area
-            Expanded(
-              child: _wrapKeyboardShell(
-                context,
-                _buildBodyInScope(
-                  context,
-                  activeController,
-                  itemScrollController,
-                  scrollOffsetController,
-                  itemPositionsListener,
-                  scrollOffsetListener,
-                  listKeyboardCtl,
-                ),
-                listFocusNode,
-                listKeyboard,
-                activeController,
-                itemScrollController,
-                listKeyboardCtl,
-              ),
-            ),
-
-            // Bottom section: breadcrumb/search-bar slot + divider + toolbar.
-            // keyboardAware → reacts to the IME inset (search bar rises,
-            // toolbar hidden while typing) without rebuilding the content.
-            _buildBottomBarInScope(
-              context,
-              activeController,
-              itemScrollController,
-            ),
-          ],
+        child: _buildShell(
+          context,
+          activeController,
+          itemScrollController,
+          scrollOffsetController,
+          itemPositionsListener,
+          scrollOffsetListener,
+          listFocusNode,
+          listKeyboardCtl,
         ),
       ),
+    );
+  }
+
+  /// The page shell, in one of two shapes.
+  ///
+  /// The default (V1/V2) is a Column: content on top, bottom section beneath.
+  /// [BrowserToolbarLayout.floatingGrid] has no bottom section at all, so the
+  /// content is the whole page and the bar is a sibling INSIDE the content's box
+  /// — the list keeps its full height and the bar floats over it. The breadcrumb
+  /// moves to the top in that layout, since there is no bottom slot left to hold
+  /// it; hiding it is the default, so the common case shows nothing either way.
+  Widget _buildShell(
+    BuildContext context,
+    PaginatedBrowserController<T> controller,
+    ItemScrollController itemScrollController,
+    ScrollOffsetController scrollOffsetController,
+    ItemPositionsListener itemPositionsListener,
+    ScrollOffsetListener scrollOffsetListener,
+    FocusNode listFocusNode,
+    ListKeyboardController listKeyboardCtl,
+  ) {
+    final Widget content = _wrapKeyboardShell(
+      context,
+      _buildBodyInScope(
+        context,
+        controller,
+        itemScrollController,
+        scrollOffsetController,
+        itemPositionsListener,
+        scrollOffsetListener,
+        listKeyboardCtl,
+      ),
+      listFocusNode,
+      listKeyboard,
+      controller,
+      itemScrollController,
+      listKeyboardCtl,
+    );
+
+    if (toolbarLayout != BrowserToolbarLayout.floatingGrid) {
+      return Column(
+        children: [
+          Expanded(child: content),
+          // Bottom section: breadcrumb/search-bar slot + divider + toolbar.
+          // keyboardAware → reacts to the IME inset (search bar rises,
+          // toolbar hidden while typing) without rebuilding the content.
+          _buildBottomBarInScope(context, controller, itemScrollController),
+        ],
+      );
+    }
+
+    return Column(
+      children: [
+        _buildFloatingHeaderInScope(context, controller),
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) => Stack(
+              children: [
+                content,
+                // The bar shrink-wraps its tiles and positions ITSELF from the
+                // remembered fraction, so it is a `Positioned(left: 0, top: 0)`
+                // child: the host Stack sizes itself from the list, and the bar
+                // translates away from the origin. Wrapping it in
+                // `Positioned.fill`/`Align` instead made the bar fill the whole
+                // host, leaving it no room to move at all.
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  child: FloatingGridBar<T>(
+                    controller: controller,
+                    dataSource: dataSource,
+                    onClose: onClose,
+                    onGoToCurrent: dataSource.supportsCurrentItem
+                        ? () => _goToCurrent(itemScrollController, dataSource)
+                        : null,
+                    overflowActions: overflowActions,
+                    offset: floatingBarOffset,
+                    onMoved: onFloatingBarMoved,
+                    // The list area's width, so the grid re-chunks instead of
+                    // overflowing a narrow host. The bar is a `Positioned` child
+                    // and cannot measure this itself.
+                    maxWidth: constraints.maxWidth,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// V3's breadcrumb slot: the same [ListenableBuilder] scope the bottom section
+  /// uses, minus the divider and the toolbar.
+  ///
+  /// It deliberately does NOT honour [keyboardAware]: the only V3 page is the
+  /// scenario queue, which hosts no text field, and an IME inset has nothing to
+  /// lift here.
+  Widget _buildFloatingHeaderInScope(
+    BuildContext context,
+    PaginatedBrowserController<T> controller,
+  ) {
+    return ListenableBuilder(
+      listenable: dataSource,
+      builder: (context, _) => _buildBreadcrumbOrSearchBar(context, controller),
     );
   }
 
@@ -294,7 +421,7 @@ class PaginatedBrowserPage<T> extends HookWidget {
     }
 
     final breadcrumbs = dataSource.currentBreadcrumbs;
-    if (breadcrumbs == null || breadcrumbs.isEmpty) {
+    if (!showBreadcrumb || breadcrumbs == null || breadcrumbs.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -327,11 +454,9 @@ class PaginatedBrowserPage<T> extends HookWidget {
                   _crumbLabel(items[index], getLocalizations(context)),
                   style: TextStyle(
                     fontWeight: isLast ? FontWeight.bold : FontWeight.normal,
-                    color: _crumbColor(items[index],
-                            Theme.of(context).colorScheme) ??
-                        (isLast
-                            ? null
-                            : Theme.of(context).colorScheme.primary),
+                    color: _crumbColor(
+                            items[index], Theme.of(context).colorScheme) ??
+                        (isLast ? null : Theme.of(context).colorScheme.primary),
                   ),
                 ),
               ),
@@ -394,24 +519,44 @@ class PaginatedBrowserPage<T> extends HookWidget {
         keyboardAware: keyboardAware,
         divider: Divider(
           height: 0,
-          color: Theme.of(context)
-              .colorScheme
-              .primary
-              .withValues(alpha: 0.25),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
         ),
-        toolbar: DynamicResponsiveBar<T>(
-          controller: controller,
-          dataSource: dataSource,
-          onClose: onClose,
-          onHomePage: onHomePage,
-          showHomePage: showHomePage,
-          showBackButton: showBackButton,
-          goToCurrentInsertIndex: goToCurrentInsertIndex ?? 0,
-          onGoToCurrent: dataSource.supportsCurrentItem
-              ? () => _goToCurrent(itemScrollController, dataSource)
-              : null,
-        ),
+        toolbar: _buildToolbar(context, controller, itemScrollController),
       ),
+    );
+  }
+
+  /// Picks the bottom toolbar for [toolbarLayout]. Both variants receive the
+  /// same data source and close/locate callbacks, so the layout choice cannot
+  /// change what a control does.
+  Widget _buildToolbar(
+    BuildContext context,
+    PaginatedBrowserController<T> controller,
+    ItemScrollController itemScrollController,
+  ) {
+    final VoidCallback? onGoToCurrent = dataSource.supportsCurrentItem
+        ? () => _goToCurrent(itemScrollController, dataSource)
+        : null;
+
+    if (toolbarLayout == BrowserToolbarLayout.compactSingleLine) {
+      return CompactSingleRowBar<T>(
+        controller: controller,
+        dataSource: dataSource,
+        onClose: onClose,
+        onGoToCurrent: onGoToCurrent,
+        overflowActions: overflowActions,
+      );
+    }
+
+    return DynamicResponsiveBar<T>(
+      controller: controller,
+      dataSource: dataSource,
+      onClose: onClose,
+      onHomePage: onHomePage,
+      showHomePage: showHomePage,
+      showBackButton: showBackButton,
+      goToCurrentInsertIndex: goToCurrentInsertIndex ?? 0,
+      onGoToCurrent: onGoToCurrent,
     );
   }
 
@@ -436,7 +581,8 @@ class PaginatedBrowserPage<T> extends HookWidget {
         focusNode: listFocusNode,
         // Track focus → the cursor accent dims when the keys leave the list
         // (ownership is decided by the primary focus, see ListKeyboardScope).
-        onFocusChange: (hasFocus) => listKeyboardCtl.listActive.value = hasFocus,
+        onFocusChange: (hasFocus) =>
+            listKeyboardCtl.listActive.value = hasFocus,
         onKeyEvent: (node, event) => _handleListKey(
           context,
           controller,
@@ -480,7 +626,8 @@ class PaginatedBrowserPage<T> extends HookWidget {
               const SizedBox(height: 16),
               Text(
                 t.browser_load_failed,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
@@ -627,7 +774,8 @@ class PaginatedBrowserPage<T> extends HookWidget {
         for (final item in items) dataSource.buildItemTitle(item) ?? '',
       ];
       final index = keyboardCtl.typeAhead(event.logicalKey.keyLabel, names);
-      if (index != null) _moveCursorTo(itemScrollController, keyboardCtl, index);
+      if (index != null)
+        _moveCursorTo(itemScrollController, keyboardCtl, index);
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
@@ -733,8 +881,7 @@ class _BottomBarSection<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final inset =
-        keyboardAware ? MediaQuery.viewInsetsOf(context).bottom : 0.0;
+    final inset = keyboardAware ? MediaQuery.viewInsetsOf(context).bottom : 0.0;
     final keyboardOpen = inset > 0;
     return Column(
       mainAxisSize: MainAxisSize.min,

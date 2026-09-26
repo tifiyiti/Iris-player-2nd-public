@@ -25,6 +25,8 @@
   "checked_new_version": "Checked new version",
   "close": "Close",
   "confirmUpdate": "Confirm update",
+  "keyboard_form_drag": "Drag to move",
+  "keyboard_form_resize": "Drag to resize",
   "crop": "Crop",
   "dark": "Dark",
   "dependencies": "Dependencies",
@@ -834,6 +836,21 @@
   "set_side_fullscreen_behavior": "Side panel in fullscreen",
   "set_playlist_popup_theme": "Floating queue theme",
   "set_playlist_dock_theme": "Side queue theme",
+  "set_scenario_queue_layout": "Play queue layout",
+  "scn_queue_layout_v1": "V1 (classic)",
+  "scn_queue_layout_v2": "V2 (single row)",
+  "scn_queue_layout_v3": "V3 (floating)",
+  "scn_queue_profile_desktop": "Computer",
+  "scn_queue_profile_portrait": "Phone portrait",
+  "scn_queue_profile_landscape": "Phone landscape",
+  "set_scenario_queue_layout_profile": "Applies to: {profile}",
+  "@set_scenario_queue_layout_profile": {
+    "description": "Names which screen shape the play-queue layout setting is editing.",
+    "placeholders": {
+      "profile": { "type": "String" }
+    }
+  },
+  "set_scenario_queue_layout_scope": "Chosen separately for computer, phone landscape and phone portrait",
   "set_video_display_mode": "Video display mode",
   "set_gesture_profile": "Unified gesture scheme",
   "set_scan_rescan_reminder": "Rescan reminder",
@@ -877,6 +894,7 @@
   "set_fs_edge_reveal_width_desc": "Width of the right-edge hover strip that reveals the side queue in picture fullscreen, as a percentage of the screen (0-50%; 0 disables hover summoning). Moving the pointer off the panel +5px hides it again",
   "set_playlist_popup_theme_desc": "Floating queue theme: follow system / dark / light (desktop only)",
   "set_playlist_dock_theme_desc": "Side queue theme: PotPlayer dark / follow system / light (desktop only)",
+  "set_scenario_queue_layout_desc": "V1 keeps the classic multi-row toolbar; V2 condenses it into one row and moves the rest into the more menu; V3 removes the bottom bar entirely and floats the controls over the list as a translucent grid of tiles you can drag anywhere. Defaults: V3 in phone landscape, V2 elsewhere. The toolbar button switches at any time",
   "set_video_display_mode_desc": "Video fit: fill/stretch/crop/original (desktop adds auto/force-original; Fit button in control bar switches too)",
   "set_osd_enabled_desc": "Show floating info for keyboard shortcuts",
   "set_osd_visibility_mode_desc": "Always show, or hide while the control bar is visible",
@@ -1406,6 +1424,24 @@
   "scn_close": "Close",
   "scn_scan_sources": "Scan and update sources",
   "scn_rescan_sources": "Rescan source",
+  "scn_manage_scenario": "Manage scenario",
+  "scn_shuffle_refresh": "Shuffle refresh",
+  "scn_remove_from_tag": "Remove from tag",
+  "scn_exclude_selected": "Exclude selected",
+  "scn_order_shuffled": "Shuffled",
+  "scn_order_original": "Original",
+  "scn_order_original_of": "Original ({field})",
+  "@scn_order_original_of": {
+    "description": "The queue order menu's action row that restores the captured queue-generation sort. {field} is the localized name of that sort field (e.g. Name / Modified), so the row says what it will restore instead of competing with that field's own row for the active arrow.",
+    "placeholders": {
+      "field": {"type": "String"}
+    }
+  },
+  "scn_order_name": "Name",
+  "scn_order_modified": "Modified",
+  "scn_order_duration": "Duration",
+  "scn_order_size": "Size",
+  "scn_source_internal_first": "Same folder first",
   "scn_scan_busy_title": "Scan already running",
   "scn_scan_busy_body": "Another scan is already in progress. Wait for it to finish or stop it, then try again.",
   "scn_scan_none_title": "No sources to scan",
@@ -1489,6 +1525,13 @@
   "scn_batch_start_hint": ">= 0",
   "scn_sort_shuffled": "Shuffled",
   "scn_sort_original": "Original",
+  "scn_sort_original_of": "Original ({field})",
+  "@scn_sort_original_of": {
+    "description": "The preview order menu's action row that restores the captured queue-generation sort. {field} is the localized name of that sort field (e.g. Name / Modified), so the row says what it will restore instead of competing with that field's own row for the active arrow.",
+    "placeholders": {
+      "field": {"type": "String"}
+    }
+  },
   "scn_sort_name": "Name",
   "scn_sort_modified": "Modified",
   "scn_sort_duration": "Duration",
@@ -2238,8 +2281,37 @@
   "browser_back": "Back",
   "browser_home": "Home",
   "browser_search": "Search",
+  "browser_save": "Save",
   "browser_close": "Close",
+  "browser_more": "More",
+  "browser_show_breadcrumb": "Show breadcrumb",
+  "dock_playlist_to_float": "Currently docked at the side - switch to floating",
+  "dock_playlist_to_dock": "Currently floating - switch to the side",
   "browser_go_current": "Go to current",
+  "browser_page_counter": "Page {page} of {total}",
+  "@browser_page_counter": {
+    "description": "Accessibility label of the page counter tile in the floating play-queue bar.",
+    "placeholders": {
+      "page": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "browser_total_per_page": "{total} items, {perPage} per page",
+  "@browser_total_per_page": {
+    "description": "Accessibility label of the total/per-page tile in the floating play-queue bar.",
+    "placeholders": {
+      "total": { "type": "int" },
+      "perPage": { "type": "int" }
+    }
+  },
+  "browser_selected_count": "{selected} of {total} selected",
+  "@browser_selected_count": {
+    "description": "Accessibility label of the selected-count tile in the floating play-queue bar.",
+    "placeholders": {
+      "selected": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
   "browser_select_all": "Select All",
   "browser_deselect_all": "Deselect All",
   "browser_invert": "Invert",
@@ -2253,6 +2325,8 @@
   "browser_jump_label": "Page",
   "browser_jump_invalid": "Invalid page number",
   "browser_jump_go": "Go",
+  "browser_jump_first_page": "First page",
+  "browser_jump_last_page": "Last page",
   "browser_size_title": "Items per Page",
   "browser_size_total": "Total items: {total}",
   "@browser_size_total": {
@@ -2260,7 +2334,12 @@
       "total": {"type": "int"}
     }
   },
-  "browser_size_hint": "Please enter a value between 1 and 100,000.",
+  "browser_size_hint": "Please enter a value between 1 and {max}.",
+  "@browser_size_hint": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
   "browser_size_helper": "{total}\n{hint}",
   "@browser_size_helper": {
     "placeholders": {
@@ -2270,7 +2349,12 @@
   },
   "browser_size_input_hint": "Number of items per page",
   "browser_size_label": "Page size",
-  "browser_size_invalid": "Enter a number between 1 and 100,000",
+  "browser_size_invalid": "Enter a number between 1 and {max}",
+  "@browser_size_invalid": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
   "browser_size_apply": "Apply",
   "browser_load_failed": "Failed to load browser contents.",
   "browser_retry": "Retry",

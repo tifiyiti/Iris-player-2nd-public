@@ -105,6 +105,9 @@ class MetaSettingsModule {
   /// Row-key prefix of the sideway-panel domain (`slider.*`).
   static const String kSliderRowPrefix = 'slider.';
 
+  /// Row-key prefix of the shared keyboard-form geometry domain (`form.*`).
+  static const String kFormRowPrefix = 'form.';
+
   /// Row-key prefix of the speed-gesture domain (`speed.*`).
   static const String kSpeedRowPrefix = 'speed.';
 
@@ -215,6 +218,11 @@ class MetaSettingsModule {
       _saveAux(kSliderRowPrefix, field, encoded);
   static Future<Map<String, String>> loadSliderRows() =>
       _loadAux(kSliderRowPrefix);
+
+  static Future<void> saveFormRow(String field, String encoded) =>
+      _saveAux(kFormRowPrefix, field, encoded);
+  static Future<Map<String, String>> loadFormRows() =>
+      _loadAux(kFormRowPrefix);
 
   static Future<void> saveSpeedRow(String field, String encoded) =>
       _saveAux(kSpeedRowPrefix, field, encoded);

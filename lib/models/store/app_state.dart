@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:iris/features/scenario_playback/model/enum/scenario_queue_layout.dart'
+    show ScenarioQueueLayout;
 import 'package:iris/features/speed/model/enum/speed_gesture_mode.dart'
     show SpeedGestureMode;
 import 'package:iris/features/speed/model/enum/speed_rate_picker_mode.dart'
@@ -15,6 +17,7 @@ import 'package:iris/models/enums/breadcrumb_start_side.dart'
 import 'package:iris/models/enums/video_cache_preset.dart';
 import 'package:iris/models/enums/webdav_scan_mode.dart' show WebDavScanMode;
 import 'package:iris/models/store/gesture_region.dart';
+import 'package:iris/models/store/keyboard_form_geometry.dart';
 import 'package:iris/models/store/title_overlay_config.dart';
 import 'package:iris/models/store/video_display_mode.dart';
 import 'package:iris/models/store/window_fit_mode.dart';
@@ -48,6 +51,13 @@ enum PlayerBackend {
   mediaKit,
   fvp,
 }
+
+/// Where a never-dragged V3 floating queue bar starts, as a fraction of the list
+/// area's travel: horizontally centred, low down — the same spot the
+/// control-group floating switch button defaults to (`floatingX = 0.5`,
+/// `floatingY = 0.72`), so the two floaters read as one system. Every profile
+/// starts here; they diverge only once the user drags one of them.
+const Offset kScenarioQueueBarDefaultOffset = Offset(0.5, 0.72);
 
 /// Which media types global browsing surfaces expose. Metadata-mode-only:
 /// persisted exclusively via a dedicated `browse.` Drift row (never the
@@ -745,6 +755,69 @@ abstract class AppState with _$AppState {
     @JsonKey(includeToJson: false, includeFromJson: false)
     PlaylistDockTheme playlistDockTheme,
 
+    /// Toolbar layout of the scenario play queue, remembered PER screen shape
+    /// (see `ScenarioQueueProfile`): the original responsive bar
+    /// ([ScenarioQueueLayout.v1]), the compact single-row bar
+    /// ([ScenarioQueueLayout.v2]) or the floating square-tile grid
+    /// ([ScenarioQueueLayout.v3]).
+    ///
+    /// Persisted as the `window.scenarioQueueLayout{Desktop,Portrait,Landscape}`
+    /// AUX rows, never in the legacy blob. A missing per-profile row falls back
+    /// to the pre-split `window.scenarioQueueLayout` row, which is what carries
+    /// an already-upgraded install's single choice into all three profiles
+    /// without a schema migration; that row is read-only afterwards.
+    ///
+    /// The defaults are chosen PER SHAPE, not one value for all three: a phone
+    /// held sideways has the width for the floating grid, a phone held upright
+    /// and a desktop dock are better served by the compact row. So landscape
+    /// ships [ScenarioQueueLayout.v3] and the other two
+    /// [ScenarioQueueLayout.v2] — V2 rather than V1 because the condensed row is
+    /// the better default everywhere, and a fresh install has no "toolbar it
+    /// already knows" to protect.
+    ///
+    /// A default only ever applies when NEITHER the per-profile row NOR the
+    /// pre-split row exists, so an install that already chose keeps its choice in
+    /// every shape and this change cannot move anyone's toolbar. The queue's own
+    /// toggle button and the settings row are the only ways to move them.
+    @Default(ScenarioQueueLayout.v2)
+    @JsonKey(includeToJson: false, includeFromJson: false)
+    ScenarioQueueLayout scenarioQueueLayoutDesktop,
+    @Default(ScenarioQueueLayout.v2)
+    @JsonKey(includeToJson: false, includeFromJson: false)
+    ScenarioQueueLayout scenarioQueueLayoutPortrait,
+    @Default(ScenarioQueueLayout.v3)
+    @JsonKey(includeToJson: false, includeFromJson: false)
+    ScenarioQueueLayout scenarioQueueLayoutLandscape,
+
+    /// Remembered spot of the V3 floating bar, per profile, as a FRACTION
+    /// (0..1) of the list area's travel — never pixels, which would drift the
+    /// moment the dock resizes or the phone rotates.
+    ///
+    /// Persisted as the `window.scenarioQueueBarOffset{...}` AUX rows
+    /// (`"x,y"`, the shape `frameToolsOffset` already round-trips). Only
+    /// [ScenarioQueueLayout.v3] reads these; V1 and V2 have no floating bar, so
+    /// their stored spots are carried along untouched. All three start at
+    /// [kScenarioQueueBarDefaultOffset] and diverge the moment one is dragged.
+    @Default(kScenarioQueueBarDefaultOffset)
+    @JsonKey(includeToJson: false, includeFromJson: false)
+    Offset scenarioQueueBarOffsetDesktop,
+    @Default(kScenarioQueueBarDefaultOffset)
+    @JsonKey(includeToJson: false, includeFromJson: false)
+    Offset scenarioQueueBarOffsetPortrait,
+    @Default(kScenarioQueueBarDefaultOffset)
+    @JsonKey(includeToJson: false, includeFromJson: false)
+    Offset scenarioQueueBarOffsetLandscape,
+
+    /// Whether the scenario play queue renders its breadcrumb row (scenario
+    /// name › tag). Shared by BOTH queue layouts — the checkbox that drives it
+    /// lives in the V2 overflow menu, so V1 honours the choice without owning a
+    /// control. Persisted as the `window.scenarioQueueShowBreadcrumb` AUX row.
+    /// Defaults to false: the queue crumbs are informational only
+    /// (`navigateToCrumb` is a no-op there), and the saved space goes to rows.
+    @Default(false)
+    @JsonKey(includeToJson: false, includeFromJson: false)
+    bool scenarioQueueShowBreadcrumb,
+
     /// Right-edge activation strip width as a percentage of the playback-area
     /// width, for the picture-fullscreen side-dock hover peek. Persisted as
     /// `window.fullscreenDockEdgeRevealPct`; hard-clamped to 0..50 (see
@@ -821,6 +894,16 @@ abstract class AppState with _$AppState {
     @Default(Offset(0.5, 0.5))
     @JsonKey(includeToJson: false, includeFromJson: false)
     Offset speedRateDialogOffset,
+
+    /// Where the shared keyboard form (the browser page jump) sits and how wide
+    /// it is, as fractions of the travel and of the available width.
+    ///
+    /// Persisted RELATIVE, for the same reason as [speedRateDialogOffset]: an
+    /// absolute offset drifts as soon as the window resizes or the device
+    /// rotates. Persisted as `form.geometry` (`"dx,dy[,widthFraction]"`).
+    @Default(KeyboardFormGeometry.kDefault)
+    @JsonKey(includeToJson: false, includeFromJson: false)
+    KeyboardFormGeometry keyboardFormGeometry,
 
     // ── Virtual media (metadata era, AUX rows `virtualmedia.`) ──────────────
     //

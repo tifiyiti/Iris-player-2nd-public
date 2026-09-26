@@ -19,7 +19,13 @@ import 'package:iris/models/enums/breadcrumb_start_side.dart'
     show BreadcrumbStartSide;
 import 'package:iris/models/enums/video_cache_preset.dart';
 import 'package:iris/models/enums/webdav_scan_mode.dart' show WebDavScanMode;
+import 'package:iris/features/paginated_browser/data_source/paginated_browser_data_source.dart'
+    show clampPageSize;
 import 'package:iris/features/phone/one_handed_scrubber/controller/phone_ring_dial_math.dart';
+import 'package:iris/features/scenario_playback/model/enum/scenario_queue_layout.dart'
+    show ScenarioQueueLayout, nextScenarioQueueLayout;
+import 'package:iris/features/scenario_playback/model/enum/scenario_queue_profile.dart'
+    show ScenarioQueueProfile, ScenarioQueueProfileRows, ScenarioQueueProfileState;
 import 'package:iris/features/speed/model/enum/speed_gesture_mode.dart'
     show SpeedGestureMode;
 import 'package:iris/features/speed/model/enum/speed_rate_picker_mode.dart'
@@ -34,6 +40,7 @@ import 'package:iris/features/tag_play/playback/tag_play_controller.dart';
 import 'package:iris/features/tag_play/store/use_tag_play_store.dart';
 import 'package:iris/features/window/playlist_dock/resolve_playlist_dock.dart';
 import 'package:iris/models/store/app_state.dart';
+import 'package:iris/models/store/keyboard_form_geometry.dart';
 import 'package:iris/models/store/gesture/gesture_region_layout.dart';
 import 'package:iris/store/use_player_ui_store.dart';
 import 'package:iris/models/store/gesture_region.dart';
@@ -1130,8 +1137,13 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
       final next = AppState.fromJson(
         json.decode(json.encode(payload)) as Map<String, dynamic>,
       );
-      set(next);
-      return next;
+      // The round-trip drops every JsonKey-excluded (AUX-backed) field, so
+      // re-hydrate those domains from the DB before publishing: without this
+      // an unrelated settings edit resets the queue toolbar, the form
+      // geometry and the dock theme to defaults until the next restart.
+      final hydrated = await applyAuxDomains(next);
+      set(hydrated);
+      return hydrated;
     } catch (e) {
       areaKeyLog.e('applyJsonField($field): $e');
       return null;
@@ -1374,6 +1386,24 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
     await _saveScreenshotRow('desktopDir', v, SettingValueType.string);
   }
 
+  /// Decodes a stored `"x,y"` fraction pair, tolerating the JSON-quoted form
+  /// older builds may have written. Null on anything malformed, so the caller
+  /// keeps the default placement instead of parking a widget at NaN.
+  static Offset? _decodeFraction(String? raw) {
+    if (raw == null) return null;
+    try {
+      final String decoded = ValueCodec.decodeString(raw) ?? raw;
+      final List<String> parts = decoded.split(',');
+      if (parts.length != 2) return null;
+      final double? x = double.tryParse(parts[0].trim());
+      final double? y = double.tryParse(parts[1].trim());
+      if (x == null || y == null || x.isNaN || y.isNaN) return null;
+      return Offset(x.clamp(0.0, 1.0), y.clamp(0.0, 1.0));
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Commits the frame-tools float panel position ONCE, at the end of a drag.
   ///
   /// Fractions are clamped to [0,1] so a stored value can never park the panel
@@ -1564,7 +1594,9 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
           prefetched: slice(MetaSettingsModule.kOsdRowPrefix));
       final withWindow = await applyWindowRows(withOsd,
           prefetched: slice(MetaSettingsModule.kWindowRowPrefix));
-      final withVideo = await applyVideoRows(withWindow,
+      final withForm = await applyFormRows(withWindow,
+          prefetched: slice(MetaSettingsModule.kFormRowPrefix));
+      final withVideo = await applyVideoRows(withForm,
           prefetched: slice(MetaSettingsModule.kVideoRowPrefix));
       final withSlider = await applySliderRows(withVideo,
           prefetched: slice(MetaSettingsModule.kSliderRowPrefix));
@@ -1591,6 +1623,43 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
     final String? encoded = ValueCodec.encode(type, value);
     if (encoded == null) return;
     await MetaSettingsModule.saveWindowRow(field, encoded);
+  }
+
+  // ── Shared keyboard-form geometry ──────────────────────────────────────
+  // AUX `form.` rows — JsonKey-excluded, no user-facing setting row.
+
+  Future<void> _saveFormRow(String field, String encoded) async {
+    if (!state.useMetadataSettings || !MetaSettingsModule.ready) return;
+    await MetaSettingsModule.saveFormRow(field, encoded);
+  }
+
+  /// Commits the keyboard form's remembered box ONCE, at the end of a gesture.
+  ///
+  /// Fractions are clamped on the way in so a stored value can never park the
+  /// form outside its travel, and drag/resize frames stay memory-only (see
+  /// `DraggableDialogShell`) — one Drift write per gesture, never per frame.
+  Future<void> updateKeyboardFormGeometry(KeyboardFormGeometry geometry) async {
+    final KeyboardFormGeometry clamped = KeyboardFormGeometry.clamped(
+      offset: geometry.offset,
+      widthFraction: geometry.widthFraction,
+    );
+    if (state.keyboardFormGeometry == clamped) return;
+    set(state.copyWith(keyboardFormGeometry: clamped));
+    // "dx,dy[,width]" — the same bare shape speed.dialogOffset round-trips.
+    await _saveFormRow('geometry', clamped.encode());
+  }
+
+  Future<AppState> applyFormRows(AppState base,
+      {Map<String, String>? prefetched}) async {
+    if (!base.useMetadataSettings || !MetaSettingsModule.ready) return base;
+    final Map<String, String> rows =
+        prefetched ?? await MetaSettingsModule.loadFormRows();
+    if (rows.isEmpty) return base;
+    // parse() degrades a corrupt row to the centred default rather than
+    // throwing: a bad geometry must not strand the form off-screen.
+    return base.copyWith(
+      keyboardFormGeometry: KeyboardFormGeometry.parse(rows['geometry']),
+    );
   }
 
   Future<void> updatePlaylistPanelMode(PlaylistPanelMode mode) async {
@@ -1656,6 +1725,56 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
     set(state.copyWith(playlistDockTheme: v));
     await _saveWindowRow(
         'playlistDockTheme', v.name, SettingValueType.enumeration);
+  }
+
+  /// Scenario play-queue toolbar layout for ONE screen shape. Read by the queue
+  /// page for every mount (floating popup, side dock, storages-db host), so
+  /// flipping it restyles the mounted queue without a reopen.
+  ///
+  /// Per profile on purpose: a sideways phone has room for a different toolbar
+  /// than the same phone upright, and the desktop dock is a third shape again.
+  Future<void> updateScenarioQueueLayout(
+      ScenarioQueueProfile profile, ScenarioQueueLayout layout) async {
+    set(state.withScenarioQueueLayout(profile, layout));
+    await _saveWindowRow(
+        profile.layoutRow, layout.name, SettingValueType.enumeration);
+  }
+
+  /// The queue's own one-button layout switch. Cycles v1 → v2 → v3 → v1 within
+  /// [profile] alone, so using the button on a phone never edits what the
+  /// desktop will show.
+  Future<void> toggleScenarioQueueLayout(ScenarioQueueProfile profile) async {
+    await updateScenarioQueueLayout(
+        profile, nextScenarioQueueLayout(state.scenarioQueueLayoutFor(profile)));
+  }
+
+  /// Commits the V3 floating bar's position ONCE, at the end of a drag.
+  ///
+  /// Fractions are clamped to [0,1] so a stored value can never park the bar
+  /// outside the list area; the drag itself stays memory-only (see
+  /// `FloatingGridBar`'s `onPanUpdate`), exactly like the frame-tools float
+  /// panel and the control-group floating button.
+  Future<void> updateScenarioQueueBarOffset(
+      ScenarioQueueProfile profile, Offset fraction) async {
+    final Offset clamped = Offset(
+      fraction.dx.clamp(0.0, 1.0).toDouble(),
+      fraction.dy.clamp(0.0, 1.0).toDouble(),
+    );
+    if (state.scenarioQueueBarOffsetFor(profile) == clamped) return;
+    set(state.withScenarioQueueBarOffset(profile, clamped));
+    // "x,y" string, the same shape sidePanelDialogOffset already round-trips.
+    await _saveWindowRow(
+        profile.barOffsetRow, '${clamped.dx},${clamped.dy}',
+        SettingValueType.string);
+  }
+
+  /// Breadcrumb visibility of the scenario play queue. Deliberately has no
+  /// settings row: the queue's V2 overflow checkbox is the single control, and
+  /// both layouts read this one value.
+  Future<void> updateScenarioQueueShowBreadcrumb(bool visible) async {
+    set(state.copyWith(scenarioQueueShowBreadcrumb: visible));
+    await _saveWindowRow(
+        'scenarioQueueShowBreadcrumb', visible, SettingValueType.bool);
   }
 
   /// Desktop window-fit mode (窗口适应模式). Runtime toggle: the control-bar
@@ -2035,6 +2154,11 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
         enm(rows['playlistPopupTheme'], PlaylistPopupTheme.values);
     final dockTheme = enm(rows['playlistDockTheme'], PlaylistDockTheme.values);
     final fitMode = enm(rows['fitMode'], WindowFitMode.values);
+    // The pre-split row an already-upgraded install wrote. It is a READ-ONLY
+    // migration seed: whichever profiles have no row of their own inherit it, so
+    // the split costs existing users nothing and needs no schema migration.
+    final legacyQueueLayout =
+        enm(rows['scenarioQueueLayout'], ScenarioQueueLayout.values);
     final visibleRaw = rows['playlistPanelVisible'];
     final widthRaw = rows['playlistPanelWidth'];
     final edgeRaw = rows['fullscreenDockEdgeRevealPct'];
@@ -2060,7 +2184,29 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
         ? null
         : ValueCodec.decodeBool(keepRaw, fallback: base.keepWindowInBounds);
 
-    return base.copyWith(
+    // A missing row must NOT force the default: `false` is a legitimate stored
+    // value here, so only a present row may override the base.
+    final crumbRaw = rows['scenarioQueueShowBreadcrumb'];
+    final bool? showQueueBreadcrumb = crumbRaw == null
+        ? null
+        : ValueCodec.decodeBool(crumbRaw,
+            fallback: base.scenarioQueueShowBreadcrumb);
+
+    var next = base;
+    for (final profile in ScenarioQueueProfile.values) {
+      next = next.withScenarioQueueLayout(
+        profile,
+        enm(rows[profile.layoutRow], ScenarioQueueLayout.values) ??
+            legacyQueueLayout ??
+            next.scenarioQueueLayoutFor(profile),
+      );
+      final Offset? offset = _decodeFraction(rows[profile.barOffsetRow]);
+      if (offset != null) {
+        next = next.withScenarioQueueBarOffset(profile, offset);
+      }
+    }
+
+    return next.copyWith(
       playlistPanelMode: mode ?? base.playlistPanelMode,
       sideFullscreenBehavior: behavior ?? base.sideFullscreenBehavior,
       playlistPopupTheme: popupTheme ?? base.playlistPopupTheme,
@@ -2070,6 +2216,8 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
       playlistPanelWidth: width ?? base.playlistPanelWidth,
       fullscreenDockEdgeRevealPct: edgePct ?? base.fullscreenDockEdgeRevealPct,
       keepWindowInBounds: keepInBounds ?? base.keepWindowInBounds,
+      scenarioQueueShowBreadcrumb:
+          showQueueBreadcrumb ?? base.scenarioQueueShowBreadcrumb,
     );
   }
 
@@ -2289,7 +2437,14 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
   /// Single source of truth for post-load normalization. Runs on BOTH paths
   /// (legacy blob and metadata rows) so behavior stays identical.
   AppState _normalizeLoaded(AppState appState) {
-    var normalized = appState.copyWith(autoPlay: false);
+    var normalized = appState.copyWith(
+      autoPlay: false,
+      // Clamp ON READ: a browser page size persisted by an older build (the
+      // prompt used to allow 100000) would otherwise materialize a huge page
+      // on upgrade.
+      storageBrowserPageSize:
+          clampPageSize(appState.storageBrowserPageSize),
+    );
 
     if (!normalized.reuseLastOrientation) {
       normalized = normalized.copyWith(
@@ -2461,13 +2616,24 @@ class AppStore extends PersistentStore<AppState> implements SettingsEngineHost {
   Future<void> importFromJson(Map<String, dynamic> json) async {
     var imported = AppState.fromJson(json);
 
-    imported = imported.copyWith(autoPlay: false);
+    imported = imported.copyWith(
+      autoPlay: false,
+      // An imported settings bundle may carry an out-of-range page size; clamp
+      // it here so the import boundary matches the load boundary.
+      storageBrowserPageSize:
+          clampPageSize(imported.storageBrowserPageSize),
+    );
 
     if (!imported.reuseLastOrientation) {
       imported = imported.copyWith(
         runtimeOrientation: imported.preferredOrientation,
       );
     }
+
+    // Same round-trip loss as applyJsonField: the bundle carries no
+    // JsonKey-excluded (AUX-backed) fields, so re-hydrate those domains from
+    // the DB instead of publishing defaults over the live state.
+    imported = await applyAuxDomains(imported);
 
     set(imported);
     await _persist(imported);

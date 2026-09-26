@@ -466,6 +466,7 @@ class StorageBrowserDataSource extends PaginatedBrowserDataSource<FileItem> {
   @override
   Future<void> changePageSize(int newSize) async {
     if (newSize < 1) return;
+    newSize = clampPageSize(newSize);
     await useAppStore().updateStorageBrowserPageSize(newSize);
     _currentPage = 0;
     notifyListeners();

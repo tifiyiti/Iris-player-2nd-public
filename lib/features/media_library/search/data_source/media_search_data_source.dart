@@ -1451,6 +1451,7 @@ class MediaSearchDataSource extends PaginatedBrowserDataSource<SearchResultItem>
   @override
   Future<void> changePageSize(int newSize) async {
     if (newSize < 1) return;
+    newSize = clampPageSize(newSize);
     await useMediaLibSearchStore().updatePageSize(newSize);
     await fetchPage(0, pageSize);
   }

@@ -84,7 +84,25 @@ abstract final class PlatformKeyPolicy {
     'breadcrumbStartLandscape',
   };
 
+  // The scenario play queue exists on desktop AND phone, so its layout rows must
+  // reach a phone restore. They live under `window.` only because that is the
+  // AUX domain the dock/window settings already use — the prefix says nothing
+  // about the platform, and taking it literally dropped these rows from every
+  // phone transfer. Explicit list rather than a prefix rule: the `window.` domain
+  // is otherwise genuinely desktop-only.
+  static const Set<String> crossPlatformWindowAux = {
+    'window.scenarioQueueLayout',
+    'window.scenarioQueueLayoutDesktop',
+    'window.scenarioQueueLayoutPortrait',
+    'window.scenarioQueueLayoutLandscape',
+    'window.scenarioQueueBarOffsetDesktop',
+    'window.scenarioQueueBarOffsetPortrait',
+    'window.scenarioQueueBarOffsetLandscape',
+    'window.scenarioQueueShowBreadcrumb',
+  };
+
   static bool _isDesktopOnlyAux(String key) {
+    if (crossPlatformWindowAux.contains(key)) return false;
     return key.startsWith('window.') ||
         key.startsWith('keybind.') ||
         key.startsWith('osd.') ||

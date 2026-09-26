@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:iris/store/kv/use_kv_store.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/features/media_library/model/enum/basic_enum.dart';
+import 'package:iris/features/paginated_browser/data_source/paginated_browser_data_source.dart'
+    show clampPageSize;
 import 'package:iris/features/scenario_playback/commands/scenario_commands.dart';
 import 'package:iris/features/scenario_playback/model/db/repositories/scenario_repository.dart';
 import 'package:iris/features/scenario_playback/model/domain/effective_playback_item.dart';
@@ -1283,7 +1285,17 @@ class PlaybackScenarioStore
       final storage = getKvStore();
       final raw = await storage.read(key: _activeScenarioKey);
       if (raw == null) return null;
-      return PlaybackScenarioStoreState.fromJson(json.decode(raw));
+      // Clamp the per-surface page sizes ON READ: a size persisted by an older
+      // build (the prompt used to allow 100000) would otherwise materialize a
+      // huge page on upgrade.
+      final loaded = PlaybackScenarioStoreState.fromJson(json.decode(raw));
+      return loaded.copyWith(
+        playingScenarioQueuePageSize:
+            clampPageSize(loaded.playingScenarioQueuePageSize),
+        scenarioPreviewQueuePageSize:
+            clampPageSize(loaded.scenarioPreviewQueuePageSize),
+        scenarioManagePageSize: clampPageSize(loaded.scenarioManagePageSize),
+      );
     } catch (e) {
       areaKeyLog.e('Error loading PlaybackScenarioStore: $e');
     }

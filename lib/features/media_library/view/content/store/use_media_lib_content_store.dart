@@ -29,6 +29,8 @@ import 'package:iris/features/media_library/view/tab/store/libs/enum/load_state.
 import 'package:iris/features/meta_settings/engine/browse_scope_snapshot.dart'
     show currentBrowseScopeMediaTypes, currentPlayableScopeMediaTypes;
 import 'package:iris/features/scenario_playback/actions/media_revision_actions.dart';
+import 'package:iris/features/paginated_browser/data_source/paginated_browser_data_source.dart'
+    show clampPageSize;
 import 'package:iris/models/db/db_module.dart';
 import 'package:iris/store/persistent_store.dart';
 import 'package:iris/store/use_app_store.dart';
@@ -78,7 +80,11 @@ class MediaLibContentStore extends PersistentStore<MediaLibContentState> {
       final raw = await _storage.read(key: _storageKey);
       if (raw != null) {
         final jsonMap = json.decode(raw) as Map<String, dynamic>;
-        set(MediaLibContentState.fromJson(jsonMap));
+        // A page is materialized in memory, so a size persisted by an older
+        // build (the prompt used to allow 100000) must be clamped ON READ —
+        // otherwise an upgrade fetches a hundred thousand rows and freezes.
+        final loaded = MediaLibContentState.fromJson(jsonMap);
+        set(loaded.copyWith(pageSize: clampPageSize(loaded.pageSize)));
       }
       return state;
     } catch (e) {

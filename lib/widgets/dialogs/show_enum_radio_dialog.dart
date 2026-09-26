@@ -9,11 +9,13 @@ Future<void> showEnumRadioDialog<T>({
   required T currentValue,
   required String Function(T) labelOf,
   required void Function(T) onSelected,
+  String? subtitle,
 }) {
   return showDialog<void>(
     context: context,
     builder: (_) => EnumRadioDialog<T>(
       title: title,
+      subtitle: subtitle,
       values: values,
       currentValue: currentValue,
       labelOf: labelOf,
@@ -30,9 +32,17 @@ class EnumRadioDialog<T> extends HookWidget {
     required this.currentValue,
     required this.labelOf,
     required this.onSelected,
+    this.subtitle,
   });
 
   final String title;
+
+  /// Optional line under the title. For a dialog whose value is stored per
+  /// screen shape, this is what says WHICH shape the radios are about —
+  /// without it, changing the value on a phone looks like it did nothing,
+  /// because the desktop is still on the old one.
+  final String? subtitle;
+
   final List<T> values;
   final T currentValue;
   final String Function(T value) labelOf;
@@ -48,21 +58,37 @@ class EnumRadioDialog<T> extends HookWidget {
     return AlertDialog(
       title: Text(title),
       content: SingleChildScrollView(
-        child: RadioGroup<T>(
-          groupValue: currentValue,
-          onChanged: (v) {
-            if (v != null) select(v);
-          },
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: values.map((e) {
-              return ListTile(
-                title: Text(labelOf(e)),
-                leading: Radio<T>(value: e),
-                onTap: () => select(e),
-              );
-            }).toList(),
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (subtitle != null) ...[
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  subtitle!,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              const SizedBox(height: 4),
+            ],
+            RadioGroup<T>(
+              groupValue: currentValue,
+              onChanged: (v) {
+                if (v != null) select(v);
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: values.map((e) {
+                  return ListTile(
+                    title: Text(labelOf(e)),
+                    leading: Radio<T>(value: e),
+                    onTap: () => select(e),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
         ),
       ),
       actions: [

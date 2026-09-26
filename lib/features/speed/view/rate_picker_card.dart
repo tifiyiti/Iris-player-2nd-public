@@ -48,6 +48,9 @@ Future<void> showDraggableRateCard(BuildContext context, Widget card) {
         // ignore: discarded_futures
         store.updateSpeedRateDialogOffset(f);
       },
+      // Matches the route's own barrierDismissible above; the shell paints its
+      // scrim, so this is what actually governs the tap.
+      dismissible: true,
       child: card,
     ),
   );

@@ -97,10 +97,33 @@ void main() {
       expect(PlatformKeyPolicy.isTransferableAuxKey('virtualmedia.strategy', 'windows'), isTrue);
     });
 
+    test('the cross-platform queue rows survive a transfer in BOTH directions', () {
+      // These sit under the `window.` prefix but describe a preference the
+      // play queue has on a phone too. Reading the prefix literally dropped them
+      // from every phone restore, silently resetting the layout on the device the
+      // user was moving to.
+      for (final key in PlatformKeyPolicy.crossPlatformWindowAux) {
+        expect(PlatformKeyPolicy.isTransferableAuxKey(key, 'android'), isTrue,
+            reason: '$key must reach a phone');
+        expect(PlatformKeyPolicy.isTransferableAuxKey(key, 'ios'), isTrue,
+            reason: '$key must reach a phone');
+        expect(PlatformKeyPolicy.isTransferableAuxKey(key, 'windows'), isTrue,
+            reason: '$key must reach a desktop');
+      }
+      // The genuinely desktop-only window rows are unaffected by that exception.
+      expect(PlatformKeyPolicy.isTransferableAuxKey('window.fitMode', 'android'), isFalse);
+      expect(PlatformKeyPolicy.isTransferableAuxKey('window.playlistPanelWidth', 'android'), isFalse);
+    });
+
     test('skip note is stable for the import report', () {
       expect(PlatformKeyPolicy.skipNoteFor('window.fitMode', 'android', isAuxRow: true), kPlatformSkippedNote);
       expect(PlatformKeyPolicy.skipNoteFor('autoResize', 'android'), kPlatformSkippedNote);
       expect(PlatformKeyPolicy.skipNoteFor('language', 'android'), isNull);
+      expect(
+        PlatformKeyPolicy.skipNoteFor('window.scenarioQueueLayoutPortrait', 'android',
+            isAuxRow: true),
+        isNull,
+      );
     });
   });
 

@@ -141,7 +141,7 @@ class LibContentDataSource extends PaginatedBrowserDataSource<LibContentItem> {
 
   @override
   Future<void> changePageSize(int newSize) async {
-    await _store.updatePageSize(newSize);
+    await _store.updatePageSize(clampPageSize(newSize));
   }
 
   @override

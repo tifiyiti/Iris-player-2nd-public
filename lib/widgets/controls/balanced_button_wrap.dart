@@ -41,6 +41,7 @@ class BalancedButtonWrap extends MultiChildRenderObjectWidget {
     this.crossAxisAlignment = WrapCrossAlignment.center,
     this.spacing = 8,
     this.runSpacing = 6,
+    this.maxColumns,
     super.children,
   });
 
@@ -53,6 +54,20 @@ class BalancedButtonWrap extends MultiChildRenderObjectWidget {
   final double spacing;
   final double runSpacing;
 
+  /// Hard cap on how many children may share one row.
+  ///
+  /// Left null (the default) the row count is purely a function of the available
+  /// width, which is what every existing caller wants. Set it when the row count
+  /// is part of the DESIGN rather than an accident of the container: without a
+  /// cap, a child-count change (one mode having a tile fewer) or a slightly
+  /// wider host silently re-flows the block, moving a control the user had just
+  /// aimed at.
+  ///
+  /// A cap can only ever make rows shorter and more numerous, never wider: it is
+  /// applied as a minimum against the width-derived capacity, and the
+  /// non-uniform fit guard still applies, so the block can never overflow.
+  final int? maxColumns;
+
   @override
   RenderBalancedButtonWrap createRenderObject(BuildContext context) {
     return RenderBalancedButtonWrap(
@@ -60,6 +75,7 @@ class BalancedButtonWrap extends MultiChildRenderObjectWidget {
       crossAxisAlignment: crossAxisAlignment,
       spacing: spacing,
       runSpacing: runSpacing,
+      maxColumns: maxColumns,
       textDirection: Directionality.maybeOf(context),
     );
   }
@@ -72,6 +88,7 @@ class BalancedButtonWrap extends MultiChildRenderObjectWidget {
       ..crossAxisAlignment = crossAxisAlignment
       ..spacing = spacing
       ..runSpacing = runSpacing
+      ..maxColumns = maxColumns
       ..textDirection = Directionality.maybeOf(context);
   }
 }
@@ -103,11 +120,13 @@ class RenderBalancedButtonWrap extends RenderBox
     required WrapCrossAlignment crossAxisAlignment,
     required double spacing,
     required double runSpacing,
+    required int? maxColumns,
     required TextDirection? textDirection,
   })  : _alignment = alignment,
         _crossAxisAlignment = crossAxisAlignment,
         _spacing = spacing,
         _runSpacing = runSpacing,
+        _maxColumns = maxColumns,
         _textDirection = textDirection;
 
   WrapAlignment get alignment => _alignment;
@@ -139,6 +158,14 @@ class RenderBalancedButtonWrap extends RenderBox
   set runSpacing(double value) {
     if (_runSpacing == value) return;
     _runSpacing = value;
+    markNeedsLayout();
+  }
+
+  int? get maxColumns => _maxColumns;
+  int? _maxColumns;
+  set maxColumns(int? value) {
+    if (_maxColumns == value) return;
+    _maxColumns = value;
     markNeedsLayout();
   }
 
@@ -258,6 +285,11 @@ class RenderBalancedButtonWrap extends RenderBox
       capacity++;
     }
     if (capacity < 1) capacity = 1;
+    // The design cap, applied as a MINIMUM against the width-derived capacity:
+    // it can only force an earlier wrap, never a wider row than the width
+    // allows, so the block still cannot overflow.
+    final int? cap = maxColumns;
+    if (cap != null && cap > 0 && cap < capacity) capacity = cap;
 
     final List<int> counts = balancedRowCounts(n, capacity);
 

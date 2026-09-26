@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iris/features/paginated_browser/data_source/paginated_browser_data_source.dart';
 import 'package:iris/features/paginated_browser/models/generic_browser_models.dart';
 import 'package:iris/features/paginated_browser/paginated_browser_controller.dart';
+import 'package:iris/features/paginated_browser/widgets/browser_bar_primitives.dart';
 import 'package:iris/utils/get_localizations.dart';
-import 'package:iris/widgets/adaptive/keyboard_form_shell.dart';
 
 const double _kSpacing = 4.0;
-const double _kPageNavWidth = 108.0;
-const double _kPerPageTextWidth = 64.0;
-const double _kSelectedCountWidth = 80.0;
 
 class DynamicResponsiveBar<T> extends HookWidget {
   final PaginatedBrowserController<T> controller;
@@ -135,13 +131,8 @@ class DynamicResponsiveBar<T> extends HookWidget {
         final trailingActionBtns =
             _buildCustomActionIcons(dataSource.buildTrailingPageActions(context));
 
-        final goCurrentBtn = onGoToCurrent != null && dataSource.supportsCurrentItem
-            ? IconButton(
-                tooltip: getLocalizations(context).browser_go_current,
-                icon: const Icon(Icons.my_location),
-                onPressed: onGoToCurrent,
-              )
-            : null;
+        final goCurrentBtn = buildBrowserGoCurrentButton(
+            context, dataSource, onGoToCurrent);
 
         final actionCluster = [
           ...customActionBtns.take(goToCurrentInsertIndex),
@@ -401,101 +392,15 @@ class DynamicResponsiveBar<T> extends HookWidget {
     return dataSource.items.isNotEmpty;
   }
 
-  Widget _buildPageNavCompact(BuildContext context) {
-    final prevBtn = IconButton(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-      icon: const Icon(Icons.navigate_before),
-      onPressed: dataSource.currentPage > 0
-          ? () => dataSource.fetchPage(dataSource.currentPage - 1, dataSource.pageSize)
-          : null,
-    );
+  Widget _buildPageNavCompact(BuildContext context) =>
+      buildBrowserPageNav(context, dataSource);
 
-    final nextBtn = IconButton(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-      icon: const Icon(Icons.navigate_next),
-      onPressed: dataSource.currentPage < dataSource.totalPages - 1
-          ? () => dataSource.fetchPage(dataSource.currentPage + 1, dataSource.pageSize)
-          : null,
-    );
+  Widget _buildPerPageTotalChip(BuildContext context) =>
+      buildBrowserPerPageTotalChip(context, dataSource);
 
-    // The toolbar sits outside the browser list's `Material`, so a bare `Text`
-    // would inherit the outermost Material's DefaultTextStyle (the app theme)
-    // rather than this toolbar's theme. On the dark docked panel that rendered
-    // app-dark text on a black background — invisible. Pin the foreground to
-    // the toolbar theme explicitly.
-    final pageText = InkWell(
-      onTap: () => _handleNumericJump(context),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-        child: Text(
-          '${dataSource.currentPage + 1}/${dataSource.totalPages}',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-          ),
-        ),
-      ),
-    );
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [prevBtn, pageText, nextBtn],
-    );
-  }
-
-  Widget _buildPerPageTotalChip(BuildContext context) {
-    // v9-D2: fixed width so the chip occupies the same space regardless of how
-    // many digits the total count has (matches _estimateWidth's InkWell=100).
-    return ConstrainedBox(
-      constraints: BoxConstraints.tightFor(width: _kPerPageTextWidth),
-      child: InkWell(
-        onTap: () => _handleChangePageSize(context),
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              '${dataSource.totalItems}/${dataSource.pageSize}',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSelectedCountBadge(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.check_circle_outline, size: 18),
-          const SizedBox(width: 4),
-          Text(
-            '${controller.selectedIds.length}/${dataSource.totalItems}',
-            // Same reason as the page counter: pin to the toolbar theme
-            // instead of the ambient DefaultTextStyle.
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildSelectedCountBadge(BuildContext context) =>
+      buildBrowserSelectedCountBadge(
+          context, controller.selectedIds.length, dataSource);
 
   List<Widget> _buildCustomActionIcons(List<PageAction> actions) {
     return actions.map((action) {
@@ -572,81 +477,19 @@ class DynamicResponsiveBar<T> extends HookWidget {
       if (w is IconButton) {
         total += 48; // default Flutter IconButton size
       } else if (w is Row) {
-        total += _kPageNavWidth;
+        total += kBrowserBarPageNavWidth;
       } else if (w is PopupMenuButton) {
         total += 48;
       } else if (w is ConstrainedBox) {
         // v9-D2: the items-per-page chip has a fixed width; estimate it as such.
-        total += _kPerPageTextWidth;
+        total += kBrowserBarPerPageTextWidth;
       } else if (w is InkWell) {
-        total += _kPerPageTextWidth;
+        total += kBrowserBarPerPageTextWidth;
       } else {
-        total += _kSelectedCountWidth;
+        total += kBrowserBarSelectedCountWidth;
       }
       total += _kSpacing;
     }
     return total;
-  }
-
-  void _handleNumericJump(BuildContext context) {
-    final t = getLocalizations(context);
-    final int totalPages = dataSource.totalPages;
-    showKeyboardTextPrompt(
-      context: context,
-      title: t.browser_jump_title,
-      label: t.browser_jump_label,
-      hint: t.browser_jump_hint(totalPages),
-      confirmLabel: t.browser_jump_go,
-      cancelLabel: t.cancel,
-      keyboardType: TextInputType.number,
-      inputFormatters: <TextInputFormatter>[
-        FilteringTextInputFormatter.digitsOnly,
-      ],
-      validate: (value) {
-        final target = int.tryParse(value);
-        if (target == null || target < 1 || target > totalPages) {
-          return t.browser_jump_invalid;
-        }
-        return null;
-      },
-    ).then((value) {
-      if (value == null) return;
-      final target = int.tryParse(value);
-      if (target == null) return;
-      dataSource.fetchPage(target - 1, dataSource.pageSize);
-    });
-  }
-
-  void _handleChangePageSize(BuildContext context) {
-    final t = getLocalizations(context);
-    showKeyboardTextPrompt(
-      context: context,
-      title: t.browser_size_title,
-      label: t.browser_size_label,
-      hint: t.browser_size_input_hint,
-      helper: t.browser_size_helper(
-        t.browser_size_total(dataSource.totalItems),
-        t.browser_size_hint,
-      ),
-      initialValue: '${dataSource.pageSize}',
-      confirmLabel: t.browser_size_apply,
-      cancelLabel: t.cancel,
-      keyboardType: TextInputType.number,
-      inputFormatters: <TextInputFormatter>[
-        FilteringTextInputFormatter.digitsOnly,
-      ],
-      validate: (value) {
-        final target = int.tryParse(value);
-        if (target == null || target < 1 || target > 100000) {
-          return t.browser_size_invalid;
-        }
-        return null;
-      },
-    ).then((value) {
-      if (value == null) return;
-      final target = int.tryParse(value);
-      if (target == null) return;
-      dataSource.changePageSize(target);
-    });
   }
 }

@@ -296,6 +296,7 @@ class MockBrowserDataSource extends PaginatedBrowserDataSource<MockItemEntity> {
   @override
   Future<void> changePageSize(int newSize) async {
     if (newSize < 1) return;
+    newSize = clampPageSize(newSize);
     _pageSize = newSize;
     _currentPage = 0;
     await fetchPage(0, _pageSize);

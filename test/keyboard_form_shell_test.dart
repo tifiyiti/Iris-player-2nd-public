@@ -253,4 +253,74 @@ void main() {
     expect(find.byType(TextField), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('body actions run after the prompt closes, disabled ones are inert',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    int firstSelected = 0;
+    int lastSelected = 0;
+    String? result = 'untouched';
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () async {
+                result = await showKeyboardTextPrompt(
+                  context: context,
+                  title: 'Jump',
+                  bodyActions: [
+                    KeyboardTextPromptAction(
+                      label: 'First page',
+                      icon: Icons.first_page,
+                      onSelected: () => firstSelected++,
+                    ),
+                    KeyboardTextPromptAction(
+                      label: 'Last page',
+                      icon: Icons.last_page,
+                      onSelected: () => lastSelected++,
+                      enabled: false,
+                    ),
+                  ],
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    // Deferred l10n delegates load async — settle before tapping the opener.
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    TextButton action(String label) => tester.widget<TextButton>(
+          find.ancestor(
+            of: find.text(label),
+            matching: find.byType(TextButton),
+          ),
+        );
+
+    expect(action('First page').onPressed, isNotNull);
+    expect(action('Last page').onPressed, isNull);
+
+    await tester.tap(find.text('First page'));
+    await tester.pumpAndSettle();
+
+    expect(firstSelected, 1);
+    expect(lastSelected, 0);
+    // Shortcuts own their side effect, so the prompt resolves like a cancel.
+    expect(result, isNull);
+    expect(find.text('Jump'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 }

@@ -53,11 +53,18 @@ class PageAction {
   final VoidCallback? onPressed;
   final List<PageAction>? subActions;
 
+  /// Renders this action as a checkbox row instead of a plain one, for menus
+  /// that expose a boolean preference (e.g. the scenario queue's breadcrumb
+  /// toggle). Null — the default — means a plain row, so every existing
+  /// action renders exactly as before.
+  final bool? checked;
+
   const PageAction({
     required this.icon,
     required this.label,
     this.onPressed,
     this.subActions,
+    this.checked,
   });
 
   /// Offline-grey: both null renders the action disabled (IconButton with

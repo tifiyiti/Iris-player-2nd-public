@@ -7,8 +7,12 @@ import 'package:iris/features/meta_settings/bridge/scan_state_bridge.dart';
 import 'package:iris/features/meta_settings/bridge/state_bridge.dart';
 import 'package:iris/features/meta_settings/engine/settings_engine.dart';
 import 'package:iris/features/meta_settings/meta_settings_module.dart';
+import 'package:iris/features/scenario_playback/model/enum/scenario_queue_layout.dart';
+import 'package:iris/features/scenario_playback/model/enum/scenario_queue_profile.dart';
 import 'package:iris/models/db/app_database.dart';
 import 'package:iris/models/db/db_module.dart';
+import 'package:iris/models/store/app_state.dart';
+import 'package:iris/models/store/keyboard_form_geometry.dart';
 import 'package:iris/store/use_app_store.dart';
 
 import 'helpers/sqlite3_loader.dart';
@@ -151,5 +155,35 @@ void main() {
         reason: 'snapshot replacement is namespace-scoped to app.*; '
             'wiping scan.* would silently demote the DB from authority');
     expect(mirror['app.language'], '"zh"');
+  });
+
+  test('engine applyField keeps AUX-backed prefs live (no reset to default)',
+      () async {
+    // The toJson/fromJson round-trip inside applyJsonField drops every
+    // JsonKey-excluded field, so an unrelated settings edit used to reset
+    // the queue toolbar, the form geometry and the dock theme to defaults.
+    await store.setMetadataGate(true);
+    await store.updateScenarioQueueLayout(
+        ScenarioQueueProfile.desktop, ScenarioQueueLayout.v1);
+    await store.updateKeyboardFormGeometry(const KeyboardFormGeometry(
+        offset: Offset(0.2, 0.85), widthFraction: 0.4));
+    await store.updatePlaylistDockTheme(PlaylistDockTheme.light);
+
+    expect(
+        await SettingsEngine.applyField(store, 'language', 'zh'), isTrue);
+
+    expect(store.state.language, 'zh');
+    expect(
+        store.state
+            .scenarioQueueLayoutFor(ScenarioQueueProfile.desktop),
+        ScenarioQueueLayout.v1,
+        reason: 'queue layout must survive an unrelated settings edit');
+    expect(
+        store.state.keyboardFormGeometry,
+        const KeyboardFormGeometry(
+            offset: Offset(0.2, 0.85), widthFraction: 0.4),
+        reason: 'form geometry must survive an unrelated settings edit');
+    expect(store.state.playlistDockTheme, PlaylistDockTheme.light,
+        reason: 'dock theme must survive an unrelated settings edit');
   });
 }

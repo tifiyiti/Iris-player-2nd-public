@@ -14,6 +14,8 @@ import 'package:iris/features/media_library/play_queue/engine/shuffle_engine.dar
 import 'package:iris/features/media_library/play_queue/models/play_queue_source.dart';
 import 'package:iris/features/media_library/play_queue/models/query_play_queue_state.dart';
 import 'package:iris/features/meta_settings/engine/browse_scope_snapshot.dart';
+import 'package:iris/features/paginated_browser/data_source/paginated_browser_data_source.dart'
+    show clampPageSize, kMaxBrowserPageSize;
 import 'package:iris/models/file.dart';
 import 'package:iris/models/storages/storage.dart' show StorageType;
 import 'package:iris/models/store/play_queue_state.dart';
@@ -571,7 +573,11 @@ class QueryPlayQueueBackend extends PersistentStore<QueryPlayQueueState>
 
   @override
   Future<void> setItemsPerPage(int size) async {
-    final clamped = size.clamp(1, state.maxItemsPerPage);
+    // Both bounds, not just this backend's own budget: the shared browser
+    // ceiling is what the prompt enforces, so persisting past it would only be
+    // rejected again by the read clamp.
+    final clamped =
+        size.clamp(1, min<int>(state.maxItemsPerPage, kMaxBrowserPageSize));
     set(state.copyWith(itemsPerPage: clamped));
     await save(state);
   }
@@ -629,7 +635,12 @@ class QueryPlayQueueBackend extends PersistentStore<QueryPlayQueueState>
       final KvStore sec = getKvStore();
       final raw = await sec.read(key: 'query_play_queue_state');
       if (raw != null) {
-        return QueryPlayQueueState.fromJson(json.decode(raw));
+        // Clamp ON READ: the queue's own page-size prompt caps at
+        // kMaxBrowserPageSize, so anything above that in the blob was written by
+        // an older build and must not be handed to the data source — it fetches
+        // a whole page the moment the queue page opens.
+        final loaded = QueryPlayQueueState.fromJson(json.decode(raw));
+        return loaded.copyWith(itemsPerPage: clampPageSize(loaded.itemsPerPage));
       }
     } catch (e) {
       areaKeyLog.e('Error loading QueryPlayQueueState: $e');

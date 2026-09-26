@@ -18,6 +18,8 @@ import 'package:iris/features/scenario_playback/model/enum/exclude_lifetime.dart
 import 'package:iris/features/scenario_playback/model/enum/exclude_rule_kind.dart';
 import 'package:iris/features/scenario_playback/model/enum/exclude_scope.dart';
 import 'package:iris/features/scenario_playback/model/enum/playback_order.dart';
+import 'package:iris/features/scenario_playback/model/enum/scenario_queue_layout.dart';
+import 'package:iris/features/scenario_playback/model/enum/scenario_queue_profile.dart';
 import 'package:iris/features/scenario_playback/model/enum/scenario_sort_field.dart';
 import 'package:iris/features/media_library/model/enum/media_lib_sources.dart';
 import 'package:iris/features/media_library/search/model/search_context.dart';
@@ -34,6 +36,7 @@ import 'package:iris/features/scenario_playback/store/use_playback_scenario_stor
 import 'package:iris/features/scenario_playback/view/coordinator/scenario_browser.dart';
 import 'package:iris/features/scenario_playback/view/coordinator/scenario_browser_store.dart';
 import 'package:iris/features/scenario_playback/view/dialogs/show_save_scenario_dialog.dart';
+import 'package:iris/features/scenario_playback/view/sort/scenario_order_choice.dart';
 import 'package:iris/features/scenario_playback/view/widgets/playback_meta_row.dart';
 import 'package:iris/features/tag_play/model/db/repositories/tag_play_repository.dart';
 import 'package:iris/features/tag_play/model/domain/tag_play_view_state.dart';
@@ -46,6 +49,7 @@ import 'package:iris/features/virtual_media/rule/vm_title_composer.dart'
     show kVmDisplayPrefix;
 import 'package:iris/features/virtual_media/service/vm_overlay_service.dart';
 import 'package:iris/features/virtual_media/view/vm_child_segment_list.dart';
+import 'package:iris/l10n/app_localizations.dart';
 import 'package:iris/models/db/db_module.dart';
 import 'package:iris/models/storages/local.dart';
 import 'package:iris/models/storages/storage.dart';
@@ -74,6 +78,26 @@ OpenInFolderHost resolveOpenInFolderHost({required bool dockedPanel}) =>
     dockedPanel
         ? OpenInFolderHost.pushPopup
         : OpenInFolderHost.replaceCurrentRoute;
+
+/// Icon of the layout the queue's layout-switch button moves TO.
+///
+/// Each target is drawn as "what you will get", so the icon and the label always
+/// describe the same destination: a list for V1, a single condensed row for V2,
+/// a floating grid of tiles for V3.
+IconData _queueLayoutIcon(ScenarioQueueLayout target) =>
+    switch (target) {
+      ScenarioQueueLayout.v1 => Icons.view_list_outlined,
+      ScenarioQueueLayout.v2 => Icons.view_agenda_outlined,
+      ScenarioQueueLayout.v3 => Icons.grid_view_rounded,
+    };
+
+/// Label of the layout the queue's layout-switch button moves TO.
+String _queueLayoutLabel(ScenarioQueueLayout target, AppLocalizations t) =>
+    switch (target) {
+      ScenarioQueueLayout.v1 => t.scn_queue_layout_v1,
+      ScenarioQueueLayout.v2 => t.scn_queue_layout_v2,
+      ScenarioQueueLayout.v3 => t.scn_queue_layout_v3,
+    };
 
 /// Target rows of the queue's keyboard bulk-removes (remove-selected,
 /// remove-unselected, remove-missing).
@@ -335,6 +359,7 @@ class PagedScenarioMediaDataSource
   @override
   Future<void> changePageSize(int newSize) async {
     if (newSize < 1) return;
+    newSize = clampPageSize(newSize);
     await _store.updatePlayingScenarioQueuePageSize(newSize);
     _currentPage = 0;
     await fetchPage(0, pageSize);
@@ -854,39 +879,51 @@ class PagedScenarioMediaDataSource
   Widget buildSortMenu(BuildContext context) {
     if (_tagActive) return _buildTagSortMenu(context);
     final scenario = _activeScenario(context);
-    final current = _currentOrderChoice(scenario);
+    final current = resolveScenarioOrderChoice(
+      order: scenario?.order ?? PlaybackOrder.sequential,
+      sortField: scenario?.sortField ?? ScenarioSortField.name,
+    );
     final direction = scenario?.sortDirection ?? SortDirection.asc;
     final sourceInternalFirst = scenario?.sourceInternalFirst ?? false;
     final isDedup = scenario?.duplicatePolicy == DuplicatePolicy.deduplicate;
+    final captured = scenario?.originalSortField;
+    final t = getLocalizations(context);
 
-    return PopupMenuButton<_OrderChoice>(
+    return PopupMenuButton<ScenarioOrderChoice>(
       icon: const Icon(Icons.sort_rounded),
       onSelected: _onOrderSelected,
       itemBuilder: (_) => [
         _sortItem(
           context,
-          _OrderChoice.shuffled,
-          'Shuffled',
+          ScenarioOrderChoice.shuffled,
+          t.scn_order_shuffled,
           current,
           direction,
         ),
+        // An ACTION, never a marked state: it restores the captured rule, so it
+        // names the field it will restore instead of competing with that field's
+        // own row for the arrow.
         _sortItem(
           context,
-          _OrderChoice.original,
-          'Original',
+          ScenarioOrderChoice.original,
+          captured == null
+              ? t.scn_order_original
+              : t.scn_order_original_of(_orderFieldLabel(t, captured)),
           current,
           direction,
-          disabled: scenario?.originalSortField == null,
+          disabled: captured == null,
         ),
-        _sortItem(context, _OrderChoice.name, 'Name', current, direction),
-        _sortItem(context, _OrderChoice.modifiedAt, 'Modified', current, direction),
         _sortItem(
-            context, _OrderChoice.durationMs, 'Duration', current, direction),
-        _sortItem(context, _OrderChoice.sizeInBytes, 'Size', current, direction),
+            context, ScenarioOrderChoice.name, t.scn_order_name, current, direction),
+        _sortItem(context, ScenarioOrderChoice.modifiedAt, t.scn_order_modified,
+            current, direction),
+        _sortItem(context, ScenarioOrderChoice.durationMs, t.scn_order_duration,
+            current, direction),
+        _sortItem(context, ScenarioOrderChoice.sizeInBytes, t.scn_order_size,
+            current, direction),
         const PopupMenuDivider(),
         _checkboxItem(
-          context,
-          '同目录连续',
+          t.scn_source_internal_first,
           sourceInternalFirst,
           onToggle: () async {
             await _store.setSourceInternalFirst(!sourceInternalFirst);
@@ -894,8 +931,7 @@ class PagedScenarioMediaDataSource
           },
         ),
         _checkboxItem(
-          context,
-          '去重',
+          t.scn_dedupe,
           isDedup,
           onToggle: () async {
             await _store.toggleDuplicatePolicy();
@@ -909,11 +945,11 @@ class PagedScenarioMediaDataSource
   /// filesdb-style sort item: the current item shows an up/down arrow;
   /// re-clicking the current item toggles the direction (see
   /// [_onOrderSelected]).
-  PopupMenuItem<_OrderChoice> _sortItem(
+  PopupMenuItem<ScenarioOrderChoice> _sortItem(
     BuildContext context,
-    _OrderChoice choice,
+    ScenarioOrderChoice choice,
     String label,
-    _OrderChoice current,
+    ScenarioOrderChoice current,
     SortDirection direction, {
     bool disabled = false,
   }) {
@@ -939,59 +975,58 @@ class PagedScenarioMediaDataSource
   }
 
   /// Checkbox row at the bottom of the sort menu (same style as filesdb's
-  /// folder_first). Toggling persists the option, refreshes page 0, then
-  /// closes the menu.
-  PopupMenuItem<_OrderChoice> _checkboxItem(
-    BuildContext context,
+  /// folder_first). The WHOLE ROW is the tap target, so a click on the label
+  /// toggles exactly like a click on the box; the checkbox only mirrors the
+  /// state and must not swallow the tap (same contract as the V2/V3 overflow
+  /// rows). Toggling persists the option and refreshes page 0; the menu closes
+  /// ITSELF, because `PopupMenuItem.handleTap` pops the menu route before it
+  /// runs this callback — a pop from here would land on the route underneath,
+  /// taking the floating queue popup (or, in the side dock, the hosting page)
+  /// with it.
+  PopupMenuItem<ScenarioOrderChoice> _checkboxItem(
     String label,
     bool value, {
     required Future<void> Function() onToggle,
   }) {
     return PopupMenuItem(
+      onTap: onToggle,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label),
-          Checkbox(
-            value: value,
-            onChanged: (_) async {
-              await onToggle();
-              if (context.mounted) Navigator.pop(context);
-            },
+          IgnorePointer(
+            child: Checkbox(
+              value: value,
+              onChanged: (_) {},
+            ),
           ),
         ],
       ),
     );
   }
 
-  /// The order choice currently in effect: Shuffled wins; then Original when
-  /// the live sort matches the captured generation rule; else the sort field.
-  _OrderChoice _currentOrderChoice(Scenario? scenario) {
-    if (scenario?.order == PlaybackOrder.shuffled) {
-      return _OrderChoice.shuffled;
-    }
-    final original = scenario?.originalSortField;
-    if (original != null && scenario?.sortField == original) {
-      return _OrderChoice.original;
-    }
-    switch (scenario?.sortField ?? ScenarioSortField.name) {
+  /// The localized label of one sort field, for the Original row's hint
+  /// ("Original (Name)"): the row names the field it will restore, so the
+  /// captured rule never competes with that field's own row for the arrow.
+  String _orderFieldLabel(AppLocalizations t, ScenarioSortField field) {
+    switch (field) {
       case ScenarioSortField.name:
-        return _OrderChoice.name;
+        return t.scn_order_name;
       case ScenarioSortField.modifiedAt:
-        return _OrderChoice.modifiedAt;
+        return t.scn_order_modified;
       case ScenarioSortField.durationMs:
-        return _OrderChoice.durationMs;
+        return t.scn_order_duration;
       case ScenarioSortField.sizeInBytes:
-        return _OrderChoice.sizeInBytes;
+        return t.scn_order_size;
     }
   }
 
-  Future<void> _onOrderSelected(_OrderChoice choice) async {
+  Future<void> _onOrderSelected(ScenarioOrderChoice choice) async {
     final scenario = _store.state.scenarios
         .where((c) => c.id == _store.state.activeScenarioId)
         .firstOrNull;
 
-    if (choice == _OrderChoice.shuffled) {
+    if (choice == ScenarioOrderChoice.shuffled) {
       // Shuffled supports asc/desc like the other items: when already shuffled
       // a re-click flips the direction (reverse of the shuffled sequence);
       // otherwise it enables shuffle (forward, asc).
@@ -1013,7 +1048,7 @@ class PagedScenarioMediaDataSource
     final sortField = scenario?.sortField ?? ScenarioSortField.name;
     final currentDir = scenario?.sortDirection ?? SortDirection.asc;
 
-    if (choice == _OrderChoice.original) {
+    if (choice == ScenarioOrderChoice.original) {
       // Original asc = the captured first-add sort; re-click toggles to
       // desc = reversed original order (D3).
       final original = scenario?.originalSortField;
@@ -1029,9 +1064,10 @@ class PagedScenarioMediaDataSource
       // filesdb-style: re-clicking the CURRENT field toggles asc/desc; switching
       // to a different field starts from that field's natural direction (name
       // A→Z, the numeric axes newest/largest first). The current field is the
-      // underlying scenario.sortField (NOT the displayed Original choice), so
-      // every field click responds.
-      final target = _scenarioSortField(choice);
+      // underlying scenario.sortField, so every field click responds — and the
+      // menu marks that same field (see [resolveScenarioOrderChoice]).
+      // `shuffled`/`original` returned above, so this row has a field.
+      final target = choice.sortField!;
       final isCurrent = sortField == target;
       final direction = isCurrent
           ? (currentDir == SortDirection.asc
@@ -1041,22 +1077,6 @@ class PagedScenarioMediaDataSource
       await _store.setSort(target, direction);
     }
     await fetchPage(0, pageSize);
-  }
-
-  ScenarioSortField _scenarioSortField(_OrderChoice choice) {
-    switch (choice) {
-      case _OrderChoice.name:
-        return ScenarioSortField.name;
-      case _OrderChoice.modifiedAt:
-        return ScenarioSortField.modifiedAt;
-      case _OrderChoice.durationMs:
-        return ScenarioSortField.durationMs;
-      case _OrderChoice.sizeInBytes:
-        return ScenarioSortField.sizeInBytes;
-      case _OrderChoice.shuffled:
-      case _OrderChoice.original:
-        return ScenarioSortField.name;
-    }
   }
 
   // ── PotPlayer playlist keyboard (PL >) ──
@@ -1337,23 +1357,44 @@ class PagedScenarioMediaDataSource
 
   @override
   List<PageAction> buildTrailingPageActions(BuildContext scenarioContext) {
-    if (isMobilePlatform) return const [];
+    final appStore = useAppStore();
+    // The layout switch is a QUEUE-wide control, so it lives in the trailing
+    // group in every layout: V1 renders it as a button left of the close X, V2
+    // and V3 fold the whole trailing group into their overflow menu.
+    //
+    // It cycles within the CURRENT screen shape only — using the button on a
+    // phone must not change what the desktop will render.
+    final profile = scenarioQueueProfileOf(scenarioContext, state: appStore.state);
+    final layout =
+        appStore.select(scenarioContext, (s) => s.scenarioQueueLayoutFor(profile));
+    // The label names the layout the button moves TO, which is what makes a
+    // three-step cycle usable without a submenu.
+    final target = nextScenarioQueueLayout(layout);
+    final t = getLocalizations(scenarioContext);
+    final actions = <PageAction>[
+      PageAction(
+        icon: Icon(_queueLayoutIcon(target), size: 18),
+        label: _queueLayoutLabel(target, t),
+        onPressed: () => unawaited(appStore.toggleScenarioQueueLayout(profile)),
+      ),
+    ];
+
+    if (isMobilePlatform) return actions;
     // Dock/float toggle is desktop-only (手机不需要侧边/浮动).
     // Dock/float toggle pinned at the far right of the toolbar (just left of
     // the close button), for both the tag view and the normal queue.
-    final docked = useAppStore()
+    final docked = appStore
         .select(scenarioContext, (s) => s.playlistPanelMode.name == 'dockedRight');
-    return [
-      PageAction(
-        icon: Icon(
-          docked ? Icons.view_sidebar_rounded : Icons.open_in_new_rounded,
-          size: 18,
-          color: docked ? Theme.of(scenarioContext).colorScheme.primary : null,
-        ),
-        label: docked ? '当前：侧边停靠 · 切为浮动' : '当前：浮动 · 切为侧边',
-        onPressed: () => useAppStore().togglePlaylistPanelMode(),
+    actions.add(PageAction(
+      icon: Icon(
+        docked ? Icons.view_sidebar_rounded : Icons.open_in_new_rounded,
+        size: 18,
+        color: docked ? Theme.of(scenarioContext).colorScheme.primary : null,
       ),
-    ];
+      label: docked ? t.dock_playlist_to_float : t.dock_playlist_to_dock,
+      onPressed: () => unawaited(appStore.togglePlaylistPanelMode()),
+    ));
+    return actions;
   }
 
   @override
@@ -1365,21 +1406,22 @@ class PagedScenarioMediaDataSource
       return [
         PageAction(
           icon: const Icon(Icons.search, size: 18),
-          label: 'Search',
+          label: getLocalizations(scenarioContext).browser_search,
           onPressed: () => _openQueueSearch(scenarioContext),
         ),
       ];
     }
 
+    final t = getLocalizations(scenarioContext);
     final actions = <PageAction>[
       PageAction(
         icon: const Icon(Icons.search, size: 18),
-        label: 'Search',
+        label: t.browser_search,
         onPressed: () => _openQueueSearch(scenarioContext),
       ),
       PageAction(
         icon: const Icon(Icons.tune, size: 18),
-        label: 'Manage scenario',
+        label: t.scn_manage_scenario,
         onPressed: () => openManagerFromQueue(
           scenarioContext,
           scenarioId: scenarioId,
@@ -1388,7 +1430,7 @@ class PagedScenarioMediaDataSource
       ),
       PageAction(
         icon: const Icon(Icons.autorenew_rounded, size: 16),
-        label: getLocalizations(scenarioContext).scn_rescan_sources,
+        label: t.scn_rescan_sources,
         onPressed: ScenarioSourceScanCommand.isEnabled()
             ? () async {
                 await ScenarioSourceScanCommand.run(
@@ -1401,7 +1443,7 @@ class PagedScenarioMediaDataSource
       ),
       PageAction(
         icon: const Icon(Icons.casino_outlined, size: 18),
-        label: 'Shuffle refresh',
+        label: t.scn_shuffle_refresh,
         onPressed: () async {
           await _store.shuffleRefresh();
           await fetchPage(0, pageSize);
@@ -1418,7 +1460,7 @@ class PagedScenarioMediaDataSource
         0,
         PageAction(
           icon: const Icon(Icons.save_outlined),
-          label: 'Save',
+          label: t.browser_save,
           onPressed: () async {
             if (!scenarioContext.mounted) return;
             await _runSaveScenario(scenarioContext);
@@ -1641,10 +1683,11 @@ class PagedScenarioMediaDataSource
     // with its existing error UI; queue rows themselves grey via
     // isItemUnavailable.
     if (_tagActive) {
+      final t = getLocalizations(scenario);
       return [
         CustomSelectionAction<EffectivePlaybackItem>(
           icon: const Icon(Icons.remove_circle_outline, size: 18),
-          label: '从 Tag 移除',
+          label: t.scn_remove_from_tag,
           onPressed: (ctx, selected) async {
             for (final item in selected) {
               await _removeFromActiveTag(item);
@@ -1654,10 +1697,11 @@ class PagedScenarioMediaDataSource
         ),
       ];
     }
+    final t = getLocalizations(scenario);
     return [
       CustomSelectionAction<EffectivePlaybackItem>(
         icon: const Icon(Icons.remove_circle_outline, size: 18),
-        label: 'Exclude selected',
+        label: t.scn_exclude_selected,
         onPressed: (ctx, selected) async {
           for (final item in selected) {
             await _store.addExcludeRule(_excludeRule(item,
@@ -1778,18 +1822,6 @@ class PagedScenarioMediaDataSource
       path: item.pathValue,
     );
   }
-}
-
-/// Order choices of the queue's order menu. [shuffled] toggles scenario
-/// shuffle (same source of truth as the player button); [original] restores
-/// the captured queue-generation rule; the rest are plain sort fields.
-enum _OrderChoice {
-  shuffled,
-  original,
-  name,
-  modifiedAt,
-  durationMs,
-  sizeInBytes,
 }
 
 /// Order choices of the ACTIVE TAG VIEW's menu.

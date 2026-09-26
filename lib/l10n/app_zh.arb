@@ -25,6 +25,8 @@
   "checked_new_version": "检查到新版本",
   "close": "关闭",
   "confirmUpdate": "确认更新",
+  "keyboard_form_drag": "拖动以移动",
+  "keyboard_form_resize": "拖动以调整宽度",
   "crop": "裁切",
   "dark": "暗色",
   "dependencies": "开源库",
@@ -744,6 +746,21 @@
   "set_side_fullscreen_behavior": "全屏时的侧边面板",
   "set_playlist_popup_theme": "浮动队列主题",
   "set_playlist_dock_theme": "侧边队列主题",
+  "set_scenario_queue_layout": "播放队列布局",
+  "scn_queue_layout_v1": "V1（经典）",
+  "scn_queue_layout_v2": "V2（单行）",
+  "scn_queue_layout_v3": "V3（悬浮）",
+  "scn_queue_profile_desktop": "电脑",
+  "scn_queue_profile_portrait": "手机竖屏",
+  "scn_queue_profile_landscape": "手机横屏",
+  "set_scenario_queue_layout_profile": "当前设置：{profile}",
+  "@set_scenario_queue_layout_profile": {
+    "description": "说明播放队列布局这一项正在编辑哪种屏幕形态。",
+    "placeholders": {
+      "profile": { "type": "String" }
+    }
+  },
+  "set_scenario_queue_layout_scope": "电脑、手机横屏、手机竖屏各自独立保存",
   "set_video_display_mode": "视频显示模式",
   "set_gesture_profile": "统一手势方案",
   "set_scan_rescan_reminder": "重新扫描提醒",
@@ -781,6 +798,7 @@
   "set_fs_edge_reveal_width_desc": "画面全屏下右缘悬停唤出侧边队列的触发条宽度，按屏幕宽度百分比计算（0-50%，0 表示关闭悬停唤出）。鼠标移出面板 5px 后自动收起",
   "set_playlist_popup_theme_desc": "浮动队列主题：跟随系统 / 深色 / 白色（仅桌面）",
   "set_playlist_dock_theme_desc": "侧边队列主题：PotPlayer 深色 / 跟随系统 / 白色（仅桌面）",
+  "set_scenario_queue_layout_desc": "V1 保留经典多行工具栏；V2 压缩为一行，其余功能收进「更多」菜单；V3 干脆去掉底栏，把控件做成半透明的可拖动方格悬浮在列表上。默认：手机横屏用 V3，其余用 V2。也可随时用工具栏上的按钮切换",
   "set_video_display_mode_desc": "视频画面适配：铺满/填充/裁剪/原始比例（桌面含自适应/强制原始；控制栏 Fit 按钮同步切换）",
   "set_osd_enabled_desc": "为键盘快捷键显示浮动提示",
   "set_osd_visibility_mode_desc": "始终显示，或在控制栏可见时隐藏",
@@ -1304,6 +1322,18 @@
   "scn_close": "关闭",
   "scn_scan_sources": "扫描更新源数据",
   "scn_rescan_sources": "重新扫描源",
+  "scn_manage_scenario": "管理场景",
+  "scn_shuffle_refresh": "洗牌刷新",
+  "scn_remove_from_tag": "从 Tag 移除",
+  "scn_exclude_selected": "排除所选",
+  "scn_order_shuffled": "随机",
+  "scn_order_original": "原始顺序",
+  "scn_order_original_of": "原始顺序（{field}）",
+  "scn_order_name": "名称",
+  "scn_order_modified": "修改时间",
+  "scn_order_duration": "时长",
+  "scn_order_size": "大小",
+  "scn_source_internal_first": "同目录连续",
   "scn_scan_busy_title": "扫描进行中",
   "scn_scan_busy_body": "已有另一个扫描正在进行。请等待其完成或停止后再试。",
   "scn_scan_none_title": "没有可扫描的源",
@@ -1387,6 +1417,7 @@
   "scn_batch_start_hint": ">= 0",
   "scn_sort_shuffled": "随机",
   "scn_sort_original": "原始",
+  "scn_sort_original_of": "原始（{field}）",
   "scn_sort_name": "名称",
   "scn_sort_modified": "修改时间",
   "scn_sort_duration": "时长",
@@ -2091,8 +2122,37 @@
   "browser_back": "返回",
   "browser_home": "首页",
   "browser_search": "搜索",
+  "browser_save": "保存",
   "browser_close": "关闭",
+  "browser_more": "更多",
+  "browser_show_breadcrumb": "显示面包屑",
+  "dock_playlist_to_float": "当前：侧边停靠 · 切为浮动",
+  "dock_playlist_to_dock": "当前：浮动 · 切为侧边",
   "browser_go_current": "定位到当前",
+  "browser_page_counter": "第 {page} 页，共 {total} 页",
+  "@browser_page_counter": {
+    "description": "悬浮播放队列栏中页码方格的读屏标签。",
+    "placeholders": {
+      "page": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "browser_total_per_page": "共 {total} 项，每页 {perPage} 项",
+  "@browser_total_per_page": {
+    "description": "悬浮播放队列栏中总数/每页方格的读屏标签。",
+    "placeholders": {
+      "total": { "type": "int" },
+      "perPage": { "type": "int" }
+    }
+  },
+  "browser_selected_count": "已选 {selected} 项，共 {total} 项",
+  "@browser_selected_count": {
+    "description": "悬浮播放队列栏中已选计数方格的读屏标签。",
+    "placeholders": {
+      "selected": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
   "browser_select_all": "全选",
   "browser_deselect_all": "取消全选",
   "browser_invert": "反选",
@@ -2106,6 +2166,8 @@
   "browser_jump_label": "页面",
   "browser_jump_invalid": "无效的页码",
   "browser_jump_go": "前往",
+  "browser_jump_first_page": "首页",
+  "browser_jump_last_page": "末页",
   "browser_size_title": "每页条数",
   "browser_size_total": "共 {total} 项",
   "@browser_size_total": {
@@ -2113,7 +2175,12 @@
       "total": {"type": "int"}
     }
   },
-  "browser_size_hint": "请输入 1 到 100,000 之间的数值。",
+  "browser_size_hint": "请输入 1 到 {max} 之间的数值。",
+  "@browser_size_hint": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
   "browser_size_helper": "{total}\n{hint}",
   "@browser_size_helper": {
     "placeholders": {
@@ -2123,7 +2190,12 @@
   },
   "browser_size_input_hint": "每页条数",
   "browser_size_label": "每页大小",
-  "browser_size_invalid": "请输入 1 到 100,000 之间的数字",
+  "browser_size_invalid": "请输入 1 到 {max} 之间的数字",
+  "@browser_size_invalid": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
   "browser_size_apply": "应用",
   "browser_load_failed": "加载浏览器内容失败。",
   "browser_retry": "重试",

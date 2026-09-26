@@ -6,6 +6,8 @@ import 'package:iris/store/kv/use_kv_store.dart';
 import 'package:flutter_zustand/flutter_zustand.dart';
 import 'package:iris/features/media_library/search/model/media_search_state.dart';
 import 'package:iris/features/media_library/search/model/search_scope.dart';
+import 'package:iris/features/paginated_browser/data_source/paginated_browser_data_source.dart'
+    show clampPageSize;
 import 'package:iris/store/persistent_store.dart';
 import 'package:iris/utils/logger.dart';
 
@@ -28,7 +30,11 @@ class MediaLibSearchStore extends PersistentStore<MediaLibSearchState> {
     try {
       final raw = await _storage.read(key: _storageKey);
       if (raw != null) {
-        return MediaLibSearchState.fromJson(json.decode(raw) as Map<String, dynamic>);
+        // Clamp ON READ: a size persisted by an older build (the prompt used to
+        // allow 100000) would otherwise materialize a huge page on upgrade.
+        final loaded = MediaLibSearchState.fromJson(
+            json.decode(raw) as Map<String, dynamic>);
+        return loaded.copyWith(pageSize: clampPageSize(loaded.pageSize));
       }
     } catch (e) {
       areaKeyLog.e('Search store load error: $e');

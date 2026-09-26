@@ -49,6 +49,7 @@ class DraggableDialogShell extends HookWidget {
     super.key,
     required this.initialFraction,
     required this.onCommit,
+    required this.dismissible,
     required this.child,
   });
 
@@ -57,6 +58,14 @@ class DraggableDialogShell extends HookWidget {
 
   /// Called once per gesture, with the fraction the card came to rest at.
   final ValueChanged<Offset> onCommit;
+
+  /// Whether tapping the scrim dismisses the route.
+  ///
+  /// The shell paints its OWN scrim instead of letting the route's barrier
+  /// handle it, so this flag is what the tap layer consults. A form holding
+  /// unsaved input passes false and must survive a stray click — the route's
+  /// `barrierDismissible` alone cannot express that here.
+  final bool dismissible;
 
   final Widget child;
 
@@ -119,7 +128,10 @@ class DraggableDialogShell extends HookWidget {
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => Navigator.of(context).pop(),
+              // Swallowed when the form opts out of dismissal: a non-dismissible
+              // scrim must still absorb the tap (so it does not reach whatever
+              // is behind the route) but must NOT pop the route.
+              onTap: dismissible ? () => Navigator.of(context).pop() : null,
               child: const ColoredBox(color: Colors.transparent),
             ),
           ),

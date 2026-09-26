@@ -302,6 +302,7 @@ class PagedScenarioBrowseDataSource
   @override
   Future<void> changePageSize(int newSize) async {
     if (newSize < 1) return;
+    newSize = clampPageSize(newSize);
     await _store.updateScenarioManagePageSize(newSize);
     await fetchPage(0, pageSize);
   }

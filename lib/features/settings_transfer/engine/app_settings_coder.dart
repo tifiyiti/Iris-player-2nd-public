@@ -34,6 +34,7 @@ class AppSettingsCoder implements SectionCoder {
         key.startsWith('video.') ||
         key.startsWith('speed.') ||
         key.startsWith('screenshot.') ||
+        key.startsWith('form.') ||
         key.startsWith('virtualmedia.');
   }
 
@@ -108,9 +109,13 @@ class AppSettingsCoder implements SectionCoder {
         final currentJson = store.state.toJson();
         currentJson.addAll(okFields);
         final next = AppState.fromJson(json.decode(json.encode(currentJson)) as Map<String, dynamic>);
+        // The round-trip drops every JsonKey-excluded (AUX-backed) field, so
+        // re-hydrate those domains before publishing — otherwise an import
+        // whose snapshot omits them resets the live AUX prefs to defaults.
+        final hydrated = await store.applyAuxDomains(next);
         // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-        store.set(next);
-        await store.persistSnapshot(next);
+        store.set(hydrated);
+        await store.persistSnapshot(hydrated);
       } catch (e) {
         results.add(TransferItemResult(section: sectionKey, label: 'appSettings.apply', ok: false, error: e.toString()));
         if (!skipErrors) return results;
@@ -118,8 +123,8 @@ class AppSettingsCoder implements SectionCoder {
     }
 
     // Upsert generic AUX rows individually (outside app.%).
-    var importedVirtualMediaRows = false;
     var importedIdentityRows = false;
+    var importedAuxRows = false;
     for (final r in rows) {
       try {
         final m = (r as Map).cast<String, dynamic>();
@@ -135,11 +140,10 @@ class AppSettingsCoder implements SectionCoder {
             }
             await MetaSettingsModule.repo.saveRawValue(k, v);
             results.add(TransferItemResult(section: sectionKey, label: k, ok: true));
-            if (k.startsWith('virtualmedia.')) {
-              importedVirtualMediaRows = true;
-            }
             if (k.startsWith('identity.')) {
               importedIdentityRows = true;
+            } else {
+              importedAuxRows = true;
             }
           }
         }
@@ -150,17 +154,20 @@ class AppSettingsCoder implements SectionCoder {
       }
     }
     // AUX upserts bypass the typed mutators, so the live snapshot would stay
-    // stale until restart. Refresh the virtual-media slice (rules imports
-    // already call notifyRulesChanged; these rows are the settings half).
-    if (importedVirtualMediaRows) {
+    // stale until restart. Re-read every AUX domain from the DB rather than
+    // passing the imported rows as `prefetched`: a payload that carries only
+    // SOME of the keys must not reset the ones it left out. This also covers
+    // the virtual-media settings half (rules imports already call
+    // notifyRulesChanged).
+    if (importedAuxRows) {
       try {
         final store = useAppStore();
         // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-        store.set(await store.applyVirtualMediaRows(store.state));
+        store.set(await store.applyAuxDomains(store.state));
       } catch (e) {
         results.add(TransferItemResult(
             section: sectionKey,
-            label: 'virtualmedia.refresh',
+            label: 'aux.refresh',
             ok: false,
             error: e.toString()));
         if (!skipErrors) return results;
@@ -168,7 +175,7 @@ class AppSettingsCoder implements SectionCoder {
     }
     // Custom desktop entries have their own store loaded only at startup, so an
     // AUX upsert would stay invisible until restart. Reload it now that the
-    // `identity.*` rows are in the DB (mirrors the virtual-media refresh above).
+    // `identity.*` rows are in the DB (mirrors the AUX refresh above).
     if (importedIdentityRows) {
       try {
         await useAppIdentityStore().load();

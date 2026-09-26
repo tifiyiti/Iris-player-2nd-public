@@ -105,6 +105,7 @@ abstract final class SettingTexts {
         'set_fs_edge_reveal_width' => t.set_fs_edge_reveal_width,
         'playlist_popup_theme' => t.set_playlist_popup_theme,
         'playlist_dock_theme' => t.set_playlist_dock_theme,
+        'set_scenario_queue_layout' => t.set_scenario_queue_layout,
         'video_display_mode' => t.set_video_display_mode,
         'gesture_profile' => t.set_gesture_profile,
         'scan_rescan_reminder' => t.set_scan_rescan_reminder,
@@ -152,6 +153,7 @@ abstract final class SettingTexts {
         'set_fs_edge_reveal_width_desc' => t.set_fs_edge_reveal_width_desc,
         'playlist_popup_theme_desc' => t.set_playlist_popup_theme_desc,
         'playlist_dock_theme_desc' => t.set_playlist_dock_theme_desc,
+        'set_scenario_queue_layout_desc' => t.set_scenario_queue_layout_desc,
         'video_display_mode_desc' => t.set_video_display_mode_desc,
         'osd_enabled_desc' => t.set_osd_enabled_desc,
         'osd_visibility_mode_desc' => t.set_osd_visibility_mode_desc,
@@ -434,6 +436,12 @@ abstract final class SettingTexts {
             'potlikeDark' => t.set_dock_theme_potlike,
             'system' => t.system,
             'light' => t.light,
+            _ => name,
+          },
+        'window.scenarioQueueLayout' => switch (name) {
+            'v1' => t.scn_queue_layout_v1,
+            'v2' => t.scn_queue_layout_v2,
+            'v3' => t.scn_queue_layout_v3,
             _ => name,
           },
         'video.desktopDisplayMode' => switch (name) {

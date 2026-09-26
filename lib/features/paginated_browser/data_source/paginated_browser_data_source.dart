@@ -9,6 +9,28 @@ import 'package:iris/models/enums/storage_list_error.dart';
 /// with a real tag literally named like the no-tag label.
 const String kNoTagCrumb = '\u0000muted:__no_tag__';
 
+/// Largest page size any browser accepts.
+///
+/// A page is fully MATERIALIZED in memory (rows, tiles, selection sets), so
+/// the number is a memory/work budget, not a preference. The prompt used to
+/// accept 100000, which asks one resolve to build a hundred thousand rows on
+/// the UI isolate — an OOM or a multi-second freeze from a single typo.
+///
+/// Clamping only the prompt is not enough: every browser page size is
+/// PERSISTED, so a value typed before this ceiling existed is read straight
+/// back from storage and reaches `fetchPage` without passing any prompt. Every
+/// entry therefore clamps — the prompt, each data source's `changePageSize`,
+/// and each store's load/import boundary — all through [clampPageSize], so the
+/// copy, the validator and the stores can never disagree about what is legal.
+const int kMaxBrowserPageSize = 1000;
+
+/// Clamps a requested page size into the legal `1..[kMaxBrowserPageSize]` range.
+///
+/// Pure, so the prompt's validation and each data source's guard share ONE
+/// definition instead of drifting apart.
+int clampPageSize(int size) =>
+    size < 1 ? 1 : (size > kMaxBrowserPageSize ? kMaxBrowserPageSize : size);
+
 abstract class PaginatedBrowserDataSource<T> extends ChangeNotifier {
   // Pagination State Accessors
   int get totalItems;

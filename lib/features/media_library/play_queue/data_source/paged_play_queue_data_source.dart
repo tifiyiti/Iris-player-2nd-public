@@ -202,6 +202,7 @@ class PagedPlayQueueDataSource
   @override
   Future<void> changePageSize(int newSize) async {
     if (newSize < 1) return;
+    newSize = clampPageSize(newSize);
     _pageSize = newSize;
     _currentPage = 0;
     await usePlayQueueStore().setItemsPerPage(newSize);

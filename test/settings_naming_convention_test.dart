@@ -56,6 +56,7 @@ void main() {
       MetaSettingsModule.kKeybindRowPrefix,
       MetaSettingsModule.kVideoRowPrefix,
       MetaSettingsModule.kSliderRowPrefix,
+      MetaSettingsModule.kFormRowPrefix,
       MetaSettingsModule.kSpeedRowPrefix,
       MetaSettingsModule.kVirtualMediaRowPrefix,
       MetaSettingsModule.kScreenshotRowPrefix,

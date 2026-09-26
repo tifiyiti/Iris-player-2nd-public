@@ -171,6 +171,30 @@ abstract final class AppSettingsContribution {
       platforms: ['android'],
       sortOrder: 27,
     ),
+    // Play-queue toolbar layout (scenario playback). Cross-platform: the queue
+    // exists on desktop and phone, and the compact single-row bar is the only
+    // one that fits a narrow phone. The queue's own trailing toggle is the
+    // runtime control; this row exposes the same choice here.
+    //
+    // The Def key is the LEGACY single-value row, not the live storage. The
+    // value itself is remembered PER SCREEN SHAPE and written to
+    // `window.scenarioQueueLayout{Desktop,Portrait,Landscape}`; this row is read
+    // once at load purely as a migration seed for profiles that have no row of
+    // their own (`applyWindowRows`). The custom editor bypasses the row and
+    // writes the three per-profile rows directly, so nothing writes this one
+    // after the split — it is retained as the settings SECTION's identity (title,
+    // icon, sort order, cross-platform visibility) so the tile keeps rendering.
+    SettingDef(
+      key: 'window.scenarioQueueLayout',
+      section: SettingsSection.play,
+      valueType: SettingValueType.json,
+      widgetKind: SettingWidgetKind.custom,
+      editorKey: 'scenario_queue_layout',
+      titleKey: 'set_scenario_queue_layout',
+      subtitleKey: 'set_scenario_queue_layout_desc',
+      iconKey: 'playlist',
+      sortOrder: 29,
+    ),
 
     // ── 播放行为 ──
     SettingDef(

@@ -23,10 +23,12 @@ import 'package:iris/features/scenario_playback/actions/stay_mode_page_action.da
 import 'package:iris/features/scenario_playback/store/playback_scenario_store_state.dart';
 import 'package:iris/features/scenario_playback/store/use_playback_scenario_store.dart';
 import 'package:iris/store/use_storage_store.dart';
+import 'package:iris/features/scenario_playback/view/sort/scenario_order_choice.dart';
 import 'package:iris/features/scenario_playback/view/widgets/playback_meta_row.dart';
 import 'package:iris/features/virtual_media/resolver/vm_preflight.dart';
 import 'package:iris/features/virtual_media/service/vm_overlay_service.dart';
 import 'package:iris/features/virtual_media/view/vm_child_segment_list.dart';
+import 'package:iris/l10n/app_localizations.dart';
 import 'package:iris/utils/path_conv.dart';
 import 'package:iris/widgets/chip.dart';
 
@@ -192,6 +194,7 @@ class PagedScenarioPreviewDataSource
   @override
   Future<void> changePageSize(int newSize) async {
     if (newSize < 1) return;
+    newSize = clampPageSize(newSize);
     await _store.updateScenarioPreviewQueuePageSize(newSize);
     _currentPage = 0;
     await fetchPage(0, pageSize);
@@ -466,41 +469,49 @@ class PagedScenarioPreviewDataSource
   Widget buildSortMenu(BuildContext context) {
     final t = getLocalizations(context);
     final scenario = _previewScenario(context);
-    final current = _currentOrderChoice(scenario);
+    final current = resolveScenarioOrderChoice(
+      order: _sortConfig.order,
+      sortField: _sortConfig.sortField,
+    );
     final direction = _sortConfig.sortDirection;
     final sourceInternalFirst = _sortConfig.sourceInternalFirst;
     final isDedup = _sortConfig.duplicatePolicy == DuplicatePolicy.deduplicate;
+    final captured = scenario?.originalSortField;
 
-    return PopupMenuButton<_OrderChoice>(
+    return PopupMenuButton<ScenarioOrderChoice>(
       icon: const Icon(Icons.sort_rounded),
       onSelected: _onOrderSelected,
       itemBuilder: (_) => [
         _sortItem(
           context,
-          _OrderChoice.shuffled,
+          ScenarioOrderChoice.shuffled,
           t.scn_sort_shuffled,
           current,
           direction,
         ),
+        // An ACTION, never a marked state: it restores the captured rule, so it
+        // names the field it will restore instead of competing with that field's
+        // own row for the arrow.
         _sortItem(
           context,
-          _OrderChoice.original,
-          t.scn_sort_original,
+          ScenarioOrderChoice.original,
+          captured == null
+              ? t.scn_sort_original
+              : t.scn_sort_original_of(_orderFieldLabel(t, captured)),
           current,
           direction,
-          disabled: scenario?.originalSortField == null,
+          disabled: captured == null,
         ),
         _sortItem(
-            context, _OrderChoice.name, t.scn_sort_name, current, direction),
-        _sortItem(context, _OrderChoice.modifiedAt, t.scn_sort_modified,
+            context, ScenarioOrderChoice.name, t.scn_sort_name, current, direction),
+        _sortItem(context, ScenarioOrderChoice.modifiedAt, t.scn_sort_modified,
             current, direction),
-        _sortItem(context, _OrderChoice.durationMs, t.scn_sort_duration,
+        _sortItem(context, ScenarioOrderChoice.durationMs, t.scn_sort_duration,
             current, direction),
-        _sortItem(context, _OrderChoice.sizeInBytes, t.scn_sort_size, current,
+        _sortItem(context, ScenarioOrderChoice.sizeInBytes, t.scn_sort_size, current,
             direction),
         const PopupMenuDivider(),
         _checkboxItem(
-          context,
           t.scn_group_same_dir,
           sourceInternalFirst,
           onToggle: () async {
@@ -511,7 +522,6 @@ class PagedScenarioPreviewDataSource
           },
         ),
         _checkboxItem(
-          context,
           t.scn_dedupe,
           isDedup,
           onToggle: () async {
@@ -538,11 +548,11 @@ class PagedScenarioPreviewDataSource
   /// queue-style sort item: the current item shows an up/down arrow;
   /// re-clicking the current item toggles the direction (see
   /// [_onOrderSelected]). All state changes are local to the preview.
-  PopupMenuItem<_OrderChoice> _sortItem(
+  PopupMenuItem<ScenarioOrderChoice> _sortItem(
     BuildContext context,
-    _OrderChoice choice,
+    ScenarioOrderChoice choice,
     String label,
-    _OrderChoice current,
+    ScenarioOrderChoice current,
     SortDirection direction, {
     bool disabled = false,
   }) {
@@ -568,59 +578,56 @@ class PagedScenarioPreviewDataSource
   }
 
   /// Checkbox row at the bottom of the sort menu (same style as filesdb's
-  /// folder_first). Toggling updates the local [_sortConfig], refreshes page
-  /// 0, then closes the menu. Nothing is persisted.
-  PopupMenuItem<_OrderChoice> _checkboxItem(
-    BuildContext context,
+  /// folder_first). The WHOLE ROW is the tap target — the checkbox only mirrors
+  /// the state, so a click on the label toggles just like a click on the box.
+  /// Toggling updates the local [_sortConfig] and refreshes page 0; the menu
+  /// closes ITSELF, because `PopupMenuItem.handleTap` pops the menu route before
+  /// it runs this callback — a pop from here would land on the route underneath
+  /// and take the hosting management page with it. Nothing is persisted.
+  PopupMenuItem<ScenarioOrderChoice> _checkboxItem(
     String label,
     bool value, {
     required Future<void> Function() onToggle,
   }) {
     return PopupMenuItem(
+      onTap: onToggle,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label),
-          Checkbox(
-            value: value,
-            onChanged: (_) async {
-              await onToggle();
-              if (context.mounted) Navigator.pop(context);
-            },
+          IgnorePointer(
+            child: Checkbox(
+              value: value,
+              onChanged: (_) {},
+            ),
           ),
         ],
       ),
     );
   }
 
-  /// The order choice currently in effect: Shuffled wins; then Original when
-  /// the local sort matches the captured generation rule; else the sort field.
-  _OrderChoice _currentOrderChoice(Scenario? scenario) {
-    if (_sortConfig.shuffled) {
-      return _OrderChoice.shuffled;
-    }
-    final original = scenario?.originalSortField;
-    if (original != null && _sortConfig.sortField == original) {
-      return _OrderChoice.original;
-    }
-    switch (_sortConfig.sortField) {
+  /// The localized label of one sort field, for the Original row's hint
+  /// ("Original (Name)"): the row names the field it will restore, so the
+  /// captured rule never competes with that field's own row for the arrow.
+  String _orderFieldLabel(AppLocalizations t, ScenarioSortField field) {
+    switch (field) {
       case ScenarioSortField.name:
-        return _OrderChoice.name;
+        return t.scn_sort_name;
       case ScenarioSortField.modifiedAt:
-        return _OrderChoice.modifiedAt;
+        return t.scn_sort_modified;
       case ScenarioSortField.durationMs:
-        return _OrderChoice.durationMs;
+        return t.scn_sort_duration;
       case ScenarioSortField.sizeInBytes:
-        return _OrderChoice.sizeInBytes;
+        return t.scn_sort_size;
     }
   }
 
-  Future<void> _onOrderSelected(_OrderChoice choice) async {
+  Future<void> _onOrderSelected(ScenarioOrderChoice choice) async {
     final scenario = _store.state.scenarios
         .where((c) => c.id == scenarioId)
         .firstOrNull;
 
-    if (choice == _OrderChoice.shuffled) {
+    if (choice == ScenarioOrderChoice.shuffled) {
       // Shuffled supports asc/desc like the other items: when already shuffled
       // a re-click flips the direction (reverse of the shuffled sequence);
       // otherwise it enables shuffle (forward, asc) with a fresh local seed.
@@ -652,7 +659,7 @@ class PagedScenarioPreviewDataSource
     final sortField = _sortConfig.sortField;
     final currentDir = _sortConfig.sortDirection;
 
-    if (choice == _OrderChoice.original) {
+    if (choice == ScenarioOrderChoice.original) {
       // Original asc = the captured first-add sort; re-click toggles to
       // desc = reversed original order.
       final original = scenario?.originalSortField;
@@ -669,8 +676,10 @@ class PagedScenarioPreviewDataSource
       }
     } else {
       // queue-style: re-clicking the CURRENT field toggles asc/desc; switching
-      // to a different field starts from that field's natural direction.
-      final target = _scenarioSortField(choice);
+      // to a different field starts from that field's natural direction. The
+      // menu marks that same field (see [resolveScenarioOrderChoice]).
+      // `shuffled`/`original` returned above, so this row has a field.
+      final target = choice.sortField!;
       final isCurrent = sortField == target;
       final direction = isCurrent
           ? (currentDir == SortDirection.asc
@@ -683,22 +692,6 @@ class PagedScenarioPreviewDataSource
       );
     }
     await fetchPage(0, pageSize);
-  }
-
-  ScenarioSortField _scenarioSortField(_OrderChoice choice) {
-    switch (choice) {
-      case _OrderChoice.name:
-        return ScenarioSortField.name;
-      case _OrderChoice.modifiedAt:
-        return ScenarioSortField.modifiedAt;
-      case _OrderChoice.durationMs:
-        return ScenarioSortField.durationMs;
-      case _OrderChoice.sizeInBytes:
-        return ScenarioSortField.sizeInBytes;
-      case _OrderChoice.shuffled:
-      case _OrderChoice.original:
-        return ScenarioSortField.name;
-    }
   }
 
   // ── PotPlayer playlist keyboard (PL >) ──
@@ -848,16 +841,4 @@ class PagedScenarioPreviewDataSource
       buildCustomSelectionActions(BuildContext scenario) {
     return const [];
   }
-}
-
-/// Order choices of the preview's order menu. [shuffled] toggles a LOCAL
-/// shuffle view (fresh seed, never persisted); [original] restores the
-/// captured queue-generation rule; the rest are plain sort fields.
-enum _OrderChoice {
-  shuffled,
-  original,
-  name,
-  modifiedAt,
-  durationMs,
-  sizeInBytes,
 }

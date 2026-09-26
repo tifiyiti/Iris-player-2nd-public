@@ -1,3 +1,21 @@
+## v2.0.4
+
+### Changelog
+
+* Scenario play queue gains selectable layouts: a compact V2 single row, plus a V3 floating grid pinned to two rows, with per-screen-shape defaults that are remembered per shape
+* Page-jump dialog: first / last page shortcuts, a narrower form that parks out of the way on phones, and a smaller go-to-current crosshair in every layout
+* Browser page sizes read back from disk are clamped, so a stale or hand-edited value can no longer produce an unusable page
+* A sort-menu tap no longer dismisses the page it belongs to (play queue, scenario preview, settings), and the chosen order field is what gets marked instead of the rule that was captured
+* Settings no longer get lost after the 2.0.3 regressions: keyboard-form geometry persists through the canonical shell, and AUX domains are rehydrated after snapshot round-trips, with the `form.` domain carried through settings export / import
+
+### 更新日志
+
+* 场景播放队列新增可选布局：紧凑的 V2 单行，以及固定为两行的 V3 悬浮网格；每种屏幕形态有各自的默认值并按形态记忆
+* 跳页对话框：新增首页 / 末页快捷按钮，手机上表单更窄并可停靠收起，各布局下的「定位当前」十字都缩小了
+* 浏览器读取磁盘上的分页大小时做钳制，陈旧或被手改的值不会再产生不可用的页码
+* 点击排序菜单不再把所在页面一起关掉（播放队列、场景预览、设置），并且标记的是所选排序字段而不是捕获到的规则
+* 修复 2.0.3 带来的设置丢失回归：键盘表单几何通过统一外壳持久化，AUX 域在快照往返后重新水合，设置导入导出也会带上 `form.` 域
+
 ## v2.0.3
 
 ### Changelog
